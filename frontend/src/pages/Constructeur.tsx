@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react'
-import { executerGraphe, lireProgression, listerBriques } from '../api/client'
+import { executerGraphe, listerComposants, listerTemplates } from '../api/client'
 import BrickCanvas from '../components/BrickCanvas'
 
 export default function Constructeur() {
-  const [briques, setBriques] = useState<any[]>([])
-  const [debloquees, setDebloquees] = useState<string[]>([])
+  const [composants, setComposants] = useState<any[]>([])
+  const [templates, setTemplates] = useState<any[]>([])
+  const [templateACharger, setTemplateACharger] = useState<any | null>(null)
   const [resultat, setResultat] = useState<any>(null)
+  const [noeudSelectionne, setNoeudSelectionne] = useState<{ id: string; brique: string } | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
 
   useEffect(() => {
-    listerBriques().then(setBriques)
-    lireProgression().then((p) => setDebloquees(p.debloquees))
+    listerComposants().then(setComposants)
+    listerTemplates().then(setTemplates)
   }, [])
-
-  const disponibles = briques.filter((b) => debloquees.includes(b.id))
 
   async function executer(
     nodes: { id: string; type: string; config: Record<string, unknown> }[],
@@ -21,6 +21,7 @@ export default function Constructeur() {
   ) {
     setErreur(null)
     setResultat(null)
+    setNoeudSelectionne(null)
     try {
       const r = await executerGraphe(nodes, edges)
       setResultat(r)
@@ -29,24 +30,46 @@ export default function Constructeur() {
     }
   }
 
+  const artefactNoeud = noeudSelectionne && resultat?.resultats_par_noeud?.[noeudSelectionne.id]
+
   return (
     <div className="page page-constructeur">
       <h1>Constructeur d'architecture</h1>
       <p className="page-intro">
-        Ajoutez des briques débloquées sur le canvas, reliez-les, puis exécutez le graphe pour de
-        vrai — ce n'est pas un schéma, chaque brique appelle réellement un modèle ou un outil.
+        Le mode « architecte » : chargez un modèle d'architecture réel (RAG documentaire, agent
+        avec outils, pipeline multi-agent) ou construisez le vôtre à partir des briques
+        granulaires, puis exécutez et inspectez ce que produit chaque étape intermédiaire.
       </p>
 
-      {disponibles.length === 0 && (
-        <p className="verrou">Aucune brique débloquée pour l'instant — commencez par le Parcours.</p>
-      )}
+      <div className="templates-liste">
+        {templates.map((t) => (
+          <button key={t.id} className="template-carte" onClick={() => setTemplateACharger({ ...t, _n: Date.now() })}>
+            <strong>{t.titre}</strong>
+            <span>{t.description}</span>
+          </button>
+        ))}
+      </div>
 
-      <BrickCanvas briquesDisponibles={disponibles} onExecuter={executer} />
+      <BrickCanvas
+        composants={composants}
+        templateACharger={templateACharger}
+        resultatsParNoeud={resultat?.resultats_par_noeud || null}
+        onExecuter={executer}
+        onNodeClick={(id, brique) => setNoeudSelectionne({ id, brique })}
+      />
 
       {erreur && <p className="erreur">{erreur}</p>}
+
+      {artefactNoeud && (
+        <div className="explication-bloc">
+          <h4>Ce qu'a produit ce nœud ({noeudSelectionne!.brique})</h4>
+          <pre className="resultat">{JSON.stringify(artefactNoeud, null, 2)}</pre>
+        </div>
+      )}
+
       {resultat && (
         <div className="explication-bloc">
-          <h4>Déroulé pas à pas</h4>
+          <h4>Déroulé complet</h4>
           <ol>
             {resultat.etapes.map((e: any, i: number) => (
               <li key={i}>
@@ -54,8 +77,12 @@ export default function Constructeur() {
               </li>
             ))}
           </ol>
-          <h4>Réponse finale</h4>
-          <p>{resultat.reponse_finale}</p>
+          {resultat.reponse_finale && (
+            <>
+              <h4>Réponse finale</h4>
+              <p className="traduction-cible">{resultat.reponse_finale}</p>
+            </>
+          )}
         </div>
       )}
     </div>

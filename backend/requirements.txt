@@ -12,6 +12,10 @@ datasets
 scikit-learn
 ultralytics
 chronos-forecasting
-fasttext-wheel
+py3langid
 huggingface_hub
 mcp
+tiktoken
+sentencepiece
+protobuf
+soundfile

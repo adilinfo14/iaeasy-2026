@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { essayerModele } from '../api/client'
+import ResultRenderer from './ResultRenderer'
 
 type Props = {
   modele: any
@@ -7,10 +8,17 @@ type Props = {
 }
 
 export default function ModelDetailDrawer({ modele, onFermer }: Props) {
-  const [input, setInput] = useState(modele.cas_usage.input_exemple)
+  const exemples: { label: string; input: string }[] = modele.cas_usage.exemples || []
+  const [exempleIdx, setExempleIdx] = useState(0)
+  const [input, setInput] = useState(exemples[0]?.input || '')
   const [resultat, setResultat] = useState<any>(null)
   const [enCours, setEnCours] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
+
+  function choisirExemple(idx: number) {
+    setExempleIdx(idx)
+    setInput(exemples[idx]?.input || '')
+  }
 
   async function essayer() {
     setEnCours(true)
@@ -26,6 +34,8 @@ export default function ModelDetailDrawer({ modele, onFermer }: Props) {
     }
   }
 
+  const necessiteTexte = exemples.length > 0
+
   return (
     <div className="drawer-overlay" onClick={onFermer}>
       <div className="drawer" onClick={(e) => e.stopPropagation()}>
@@ -39,13 +49,29 @@ export default function ModelDetailDrawer({ modele, onFermer }: Props) {
         <h4>Cas d'usage</h4>
         <p>{modele.cas_usage.enonce}</p>
 
-        <textarea value={input} onChange={(e) => setInput(e.target.value)} rows={3} />
+        {necessiteTexte && (
+          <>
+            <div className="exemples-chips">
+              {exemples.map((ex, i) => (
+                <button
+                  key={i}
+                  className={i === exempleIdx ? 'chip actif' : 'chip'}
+                  onClick={() => choisirExemple(i)}
+                >
+                  {ex.label}
+                </button>
+              ))}
+            </div>
+            <textarea value={input} onChange={(e) => setInput(e.target.value)} rows={3} />
+          </>
+        )}
+
         <button onClick={essayer} disabled={enCours}>
           {enCours ? 'Exécution en cours…' : 'Essayer ce modèle'}
         </button>
 
         {erreur && <div className="erreur">{erreur}</div>}
-        {resultat && <pre className="resultat">{JSON.stringify(resultat, null, 2)}</pre>}
+        {resultat && <ResultRenderer resultat={resultat} />}
       </div>
     </div>
   )

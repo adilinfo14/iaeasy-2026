@@ -28,7 +28,7 @@ def _prevoir_sync(model_ref: str) -> dict:
     context = torch.tensor(historique)
     horizon = 6
     quantiles, mean = _chronos_pipeline.predict_quantiles(
-        context=context, prediction_length=horizon, quantile_levels=[0.1, 0.5, 0.9]
+        inputs=context, prediction_length=horizon, quantile_levels=[0.1, 0.5, 0.9]
     )
 
     return {
@@ -75,9 +75,47 @@ def _detect_anomalie_sync() -> dict:
     }
 
 
+def _toy_transactions_bancaires() -> list[float]:
+    rng = np.random.RandomState(11)
+    montants = rng.normal(45, 20, 200).clip(2, 300)
+    montants[15] = 2450
+    montants[120] = 1875
+    return montants.tolist()
+
+
+def _detect_fraude_sync() -> dict:
+    from sklearn.ensemble import IsolationForest
+
+    montants = _toy_transactions_bancaires()
+    X = np.array(montants).reshape(-1, 1)
+    modele = IsolationForest(contamination=0.015, random_state=11)
+    modele.fit(X)
+    scores = modele.decision_function(X)
+    predictions = modele.predict(X)
+
+    anomalies = [
+        {"indice": i, "montant": round(montants[i], 2), "score": round(float(scores[i]), 3)}
+        for i, p in enumerate(predictions)
+        if p == -1
+    ]
+
+    return {
+        "type": "detection_anomalie",
+        "nb_mesures": len(montants),
+        "mesures": [round(v, 2) for v in montants],
+        "anomalies_detectees": anomalies,
+        "explication": "Modèle entraîné en direct sur l'historique de montants de transactions : les "
+        "valeurs identifiées s'écartent statistiquement du comportement d'achat habituel du client.",
+    }
+
+
 async def run_prevision(model_ref: str) -> dict:
     return await asyncio.to_thread(_prevoir_sync, model_ref)
 
 
 async def run_anomalie() -> dict:
     return await asyncio.to_thread(_detect_anomalie_sync)
+
+
+async def run_fraude() -> dict:
+    return await asyncio.to_thread(_detect_fraude_sync)

@@ -8,19 +8,32 @@ class OllamaClient:
         self.base_url = base_url or settings.ollama_url
 
     async def generate(self, model: str, prompt: str, stream: bool = False) -> str:
-        async with httpx.AsyncClient(timeout=180) as client:
+        # num_predict borne la longueur de réponse : sur CPU pur, un modèle 7B sans limite
+        # peut mettre plusieurs minutes à générer une réponse — inacceptable dans un outil
+        # pédagogique interactif.
+        async with httpx.AsyncClient(timeout=280) as client:
             resp = await client.post(
                 f"{self.base_url}/api/generate",
-                json={"model": model, "prompt": prompt, "stream": False},
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"num_predict": 300},
+                },
             )
             resp.raise_for_status()
             return resp.json()["response"]
 
     async def chat(self, model: str, messages: list[dict], tools: list[dict] | None = None) -> dict:
-        payload = {"model": model, "messages": messages, "stream": False}
+        payload = {
+            "model": model,
+            "messages": messages,
+            "stream": False,
+            "options": {"num_predict": 300},
+        }
         if tools:
             payload["tools"] = tools
-        async with httpx.AsyncClient(timeout=180) as client:
+        async with httpx.AsyncClient(timeout=280) as client:
             resp = await client.post(f"{self.base_url}/api/chat", json=payload)
             resp.raise_for_status()
             return resp.json()["message"]

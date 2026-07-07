@@ -90,8 +90,13 @@ async def _handler_rag(config: dict, contexte: dict, etapes: list[dict]) -> dict
     requete = config.get("prompt") or contexte.get("prompt") or "Qu'est-ce que MCP ?"
     vecteur_requete = await ollama.embed(MODELE_EMBED, requete)
 
-    meilleur_passage, meilleur_score = _MINI_CORPUS_RAG[0], -1.0
-    for passage in _MINI_CORPUS_RAG:
+    corpus = list(_MINI_CORPUS_RAG)
+    document_utilisateur = config.get("document_utilisateur")
+    if document_utilisateur:
+        corpus.append(document_utilisateur)
+
+    meilleur_passage, meilleur_score = corpus[0], -1.0
+    for passage in corpus:
         vecteur_passage = await ollama.embed(MODELE_EMBED, passage)
         score = _cosine(vecteur_requete, vecteur_passage)
         if score > meilleur_score:
@@ -216,12 +221,94 @@ async def _handler_multi_agent(config: dict, contexte: dict, etapes: list[dict])
     return contexte
 
 
+async def _handler_source_document(config: dict, contexte: dict, etapes: list[dict]) -> dict:
+    texte = config.get("texte") or (
+        "La garantie décennale couvre les dommages de gros œuvre pendant 10 ans après réception. "
+        "La garantie biennale couvre les équipements dissociables (chauffe-eau, volets) pendant 2 ans. "
+        "Le paiement se fait en 3 fois : 30% à la commande, 40% à mi-chantier, 30% à la réception. "
+        "Les interventions sont planifiées du lundi au vendredi, de 8h à 17h, hors jours fériés."
+    )
+    etapes.append({"brique": "source_document", "detail": f"Document source chargé ({len(texte)} caractères)."})
+    contexte["document"] = texte
+    return contexte
+
+
+def _decouper_en_chunks(document: str, taille: int = 120) -> list[str]:
+    phrases = [p.strip() for p in document.replace("\n", " ").split(".") if p.strip()]
+    chunks: list[str] = []
+    courant = ""
+    for p in phrases:
+        if courant and len(courant) + len(p) > taille:
+            chunks.append(courant.strip())
+            courant = ""
+        courant += p + ". "
+    if courant.strip():
+        chunks.append(courant.strip())
+    return chunks
+
+
+async def _handler_chunking(config: dict, contexte: dict, etapes: list[dict]) -> dict:
+    document = contexte.get("document", "")
+    chunks = _decouper_en_chunks(document, config.get("taille_chunk", 120))
+    etapes.append({"brique": "chunking", "detail": f"Document découpé en {len(chunks)} morceaux (chunks)."})
+    contexte["chunks"] = chunks
+    return contexte
+
+
+async def _handler_base_vectorielle(config: dict, contexte: dict, etapes: list[dict]) -> dict:
+    chunks = contexte.get("chunks") or list(_MINI_CORPUS_RAG)
+    requete = config.get("prompt") or contexte.get("prompt") or "Quelles sont les conditions de garantie ?"
+
+    vecteur_requete = await ollama.embed(MODELE_EMBED, requete)
+    scores = []
+    for chunk in chunks:
+        vecteur_chunk = await ollama.embed(MODELE_EMBED, chunk)
+        scores.append((chunk, _cosine(vecteur_requete, vecteur_chunk)))
+    scores.sort(key=lambda x: x[1], reverse=True)
+    top_k = scores[:2]
+
+    etapes.append(
+        {
+            "brique": "base_vectorielle",
+            "detail": (
+                f"Base vectorielle interrogée : {len(chunks)} chunks indexés, meilleur score "
+                f"{top_k[0][1]:.2f} : « {top_k[0][0][:100]} »"
+            ),
+        }
+    )
+    contexte["passages_retrouves"] = [c for c, _ in top_k]
+    contexte["prompt"] = requete
+    return contexte
+
+
+async def _handler_llm_agent(config: dict, contexte: dict, etapes: list[dict]) -> dict:
+    passages = contexte.get("passages_retrouves")
+    requete = config.get("prompt") or contexte.get("prompt") or "Résume la situation."
+
+    if passages:
+        prompt_final = (
+            "Contexte :\n" + "\n".join(passages) + f"\n\nQuestion : {requete}\n"
+            "Réponds uniquement à partir de ce contexte."
+        )
+    else:
+        prompt_final = requete
+
+    reponse = await ollama.generate(MODELE_LLM, prompt_final)
+    etapes.append({"brique": "llm_agent", "detail": "LLM interrogé avec le prompt final (augmenté si un retrieval a eu lieu)."})
+    contexte["derniere_reponse"] = reponse
+    return contexte
+
+
 _HANDLERS = {
     "llm_seul": _handler_llm_seul,
     "rag": _handler_rag,
     "outil_mcp": _handler_outil_mcp,
     "agent_unique": _handler_agent_unique,
     "multi_agent": _handler_multi_agent,
+    "source_document": _handler_source_document,
+    "chunking": _handler_chunking,
+    "base_vectorielle": _handler_base_vectorielle,
+    "llm_agent": _handler_llm_agent,
 }
 
 
@@ -231,6 +318,7 @@ async def executer_graphe(nodes: list[dict], edges: list[dict]) -> dict:
 
     contexte: dict = {}
     etapes: list[dict] = []
+    resultats_par_noeud: dict[str, dict] = {}
 
     for node_id in ordre:
         noeud = noeuds_par_id[node_id]
@@ -239,5 +327,10 @@ async def executer_graphe(nodes: list[dict], edges: list[dict]) -> dict:
         if handler is None:
             raise ValueError(f"Type de brique inconnu : {type_brique}")
         contexte = await handler(noeud.get("config", {}), contexte, etapes)
+        resultats_par_noeud[node_id] = dict(contexte)
 
-    return {"etapes": etapes, "reponse_finale": contexte.get("derniere_reponse")}
+    return {
+        "etapes": etapes,
+        "reponse_finale": contexte.get("derniere_reponse"),
+        "resultats_par_noeud": resultats_par_noeud,
+    }

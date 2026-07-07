@@ -11,7 +11,13 @@
     graphique, au prix d'un raisonnement moins fin qu'un très gros modèle.
   cas_usage:
     enonce: "Demander une explication simple d'un concept, comme le ferait un assistant généraliste."
-    input_exemple: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
+    exemples:
+      - label: "Explication scolaire"
+        input: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
+      - label: "Reformulation professionnelle"
+        input: "Reformule cette phrase de façon plus polie : 'vous devez payer maintenant sinon on arrête tout'."
+      - label: "Idée créative"
+        input: "Propose 3 noms originaux pour une nouvelle marque de café bio."
   statut: disponible
 
 - id: qwen-raisonnement
@@ -27,7 +33,13 @@
     aussi le modèle utilisé plus loin pour la brique "agent" (il sait appeler des outils).
   cas_usage:
     enonce: "Résoudre un petit problème en plusieurs étapes."
-    input_exemple: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
+    exemples:
+      - label: "Calcul de facturation"
+        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
+      - label: "Logique"
+        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
+      - label: "Comparaison argumentée"
+        input: "Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés."
   statut: disponible
 
 - id: deepseek-code
@@ -43,7 +55,13 @@
     d'entraînement" plutôt que par l'architecture elle-même.
   cas_usage:
     enonce: "Générer une petite fonction à partir d'une description en français."
-    input_exemple: "Écris une fonction Python qui vérifie si un nombre est premier."
+    exemples:
+      - label: "Fonction mathématique"
+        input: "Écris une fonction Python qui vérifie si un nombre est premier."
+      - label: "Manipulation de données"
+        input: "Écris une fonction Python qui prend une liste de prix TTC et renvoie la liste des prix HT (TVA 20%)."
+      - label: "Débogage"
+        input: "Corrige ce code Python qui plante : def moyenne(l): return sum(l)/len(l) -- appelé avec une liste vide."
   statut: disponible
 
 - id: nomic-embeddings
@@ -59,29 +77,62 @@
     proches. C'est la brique de base de la recherche sémantique et du RAG (module 3).
   cas_usage:
     enonce: "Comparer le sens de deux phrases via la similarité de leurs vecteurs."
-    input_exemple: "Phrase A: 'le chat dort sur le canapé'. Phrase B: 'un félin fait la sieste sur le sofa'."
+    exemples:
+      - label: "Synonymes"
+        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
+      - label: "Sens opposé"
+        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
+      - label: "Sans rapport"
+        input: "Phrase A: la réunion est reportée à demain. Phrase B: il pleut fort sur la côte bretonne."
+  statut: disponible
+
+- id: mxbai-embeddings
+  nom: "Mxbai Embed Large"
+  famille: embeddings
+  secteur: Recherche sémantique (comparatif)
+  moteur: ollama
+  moteur_ref: mxbai-embed-large
+  taille: "335 millions de paramètres"
+  description_pedagogique: >
+    Le même principe que Nomic Embed (transformer une phrase en vecteur), mais un modèle
+    différent et plus gros. En comparant les deux sur la même paire de phrases, on voit
+    que deux modèles d'embeddings ne donnent pas exactement le même score de similarité —
+    il n'existe pas "un seul bon vecteur", chaque modèle a appris sa propre représentation.
+  cas_usage:
+    enonce: "Comparer le sens de deux phrases via la similarité de leurs vecteurs (à comparer avec Nomic Embed)."
+    exemples:
+      - label: "Synonymes"
+        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
+      - label: "Sens opposé"
+        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
   statut: disponible
 
 - id: camembert-sentiment
   nom: "CamemBERT (sentiment FR)"
-  famille: nlp_encodeur
+  famille: classification_texte
   secteur: Assurance / Banque — analyse de retours clients
   moteur: transformers
   moteur_ref: cmarkea/distilcamembert-base-sentiment
   taille: "68 millions de paramètres (distillé)"
   description_pedagogique: >
     Contrairement aux modèles génératifs, un encodeur comme CamemBERT ne "rédige" rien :
-    il lit un texte en entier puis rend une seule étiquette (ici un sentiment). Modèle
-    souverain français (Inria/CNRS), beaucoup plus rapide et léger qu'un LLM pour cette
-    tâche précise — utile pour trier des avis clients ou des réclamations d'assurance.
+    il lit un texte en entier puis rend une seule étiquette (ici une note de 1 à 5 étoiles).
+    Modèle souverain français (Inria/CNRS), beaucoup plus rapide et léger qu'un LLM pour
+    cette tâche précise — utile pour trier des avis clients ou des réclamations d'assurance.
   cas_usage:
-    enonce: "Classer le sentiment d'un avis client."
-    input_exemple: "Le sinistre a été traité en 48h, un conseiller très clair, je recommande."
+    enonce: "Classer le sentiment d'un avis client (sortie sous forme de note en étoiles)."
+    exemples:
+      - label: "Avis positif"
+        input: "Le sinistre a été traité en 48h, un conseiller très clair, je recommande."
+      - label: "Avis négatif"
+        input: "Trois relances sans réponse, dossier toujours bloqué, très déçu."
+      - label: "Avis mitigé"
+        input: "Le prix est correct mais le délai de traitement est vraiment trop long."
   statut: disponible
 
 - id: helsinki-traduction
   nom: "Helsinki-NLP OPUS-MT (FR→EN)"
-  famille: nlp_encodeur
+  famille: traduction
   secteur: International / export
   moteur: transformers
   moteur_ref: Helsinki-NLP/opus-mt-fr-en
@@ -92,15 +143,84 @@
     qu'une seule tâche à apprendre.
   cas_usage:
     enonce: "Traduire une phrase professionnelle du français vers l'anglais."
-    input_exemple: "Veuillez trouver ci-joint le devis signé pour la rénovation de la toiture."
+    exemples:
+      - label: "Devis"
+        input: "Veuillez trouver ci-joint le devis signé pour la rénovation de la toiture."
+      - label: "Relance client"
+        input: "Nous vous rappelons que votre facture est en attente de règlement depuis 15 jours."
+      - label: "Email commercial"
+        input: "Nous serions ravis de vous présenter notre nouvelle gamme de produits lors d'un rendez-vous."
+  statut: disponible
+
+- id: barthez-resume
+  nom: "T5 (résumé automatique FR)"
+  famille: resume_automatique
+  secteur: Presse / veille documentaire
+  moteur: transformers
+  moteur_ref: plguillou/t5-base-fr-sum-cnndm
+  taille: "220 millions de paramètres"
+  description_pedagogique: >
+    Comme la traduction, le résumé est une tâche "texte vers texte" : le modèle lit un
+    texte long et en génère un plus court qui garde l'essentiel. Ce modèle est un T5
+    (même famille d'architecture que beaucoup de LLM actuels) fine-tuné spécifiquement
+    sur des articles de presse français pour cette tâche.
+  cas_usage:
+    enonce: "Résumer un texte en une ou deux phrases."
+    exemples:
+      - label: "Article économique"
+        input: "L'entreprise a annoncé une hausse de 12% de son chiffre d'affaires au troisième trimestre, portée par les ventes en ligne. La direction évoque un contexte favorable malgré l'inflation, et prévoit d'ouvrir 5 nouveaux points de vente en région parisienne d'ici la fin de l'année. Les syndicats restent toutefois prudents sur les créations d'emplois annoncées."
+      - label: "Compte-rendu de réunion"
+        input: "Lors de la réunion du 12 juin, l'équipe a validé le nouveau planning de livraison pour le chantier de la rue des Lilas. Le retard de trois semaines sur le gros œuvre a été discuté et un plan de rattrapage a été proposé, avec un renfort d'équipe à partir du 20 juin. Le client a été informé et a accepté le nouveau délai."
+  statut: disponible
+
+- id: camembert-ner
+  nom: "CamemBERT NER"
+  famille: extraction_entites
+  secteur: Juridique / RH — extraction d'informations
+  moteur: transformers
+  moteur_ref: Jean-Baptiste/camembert-ner
+  taille: "110 millions de paramètres"
+  description_pedagogique: >
+    Un encodeur spécialisé dans la reconnaissance d'entités nommées (NER) : il repère et
+    catégorise les personnes, lieux, organisations et dates dans un texte, sans jamais
+    rien générer. Utile pour extraire automatiquement des informations structurées d'un
+    contrat, d'un CV ou d'un compte-rendu.
+  cas_usage:
+    enonce: "Extraire les entités nommées (personnes, lieux, organisations) d'un texte."
+    exemples:
+      - label: "Contrat"
+        input: "Le contrat est signé entre Martin Dubois, domicilié à Lyon, et la société Artisans du Bâtiment SARL, représentée par Sophie Laurent."
+      - label: "Compte-rendu RH"
+        input: "Julie Petit rejoindra l'équipe de Marseille le 1er septembre, sous la responsabilité de Karim Benali, directeur régional chez Toiture Plus."
+  statut: disponible
+
+- id: camembert-qa
+  nom: "CamemBERT Question-Réponse"
+  famille: question_reponse
+  secteur: Support client / documentation
+  moteur: transformers
+  moteur_ref: etalab-ia/camembert-base-squadFR-fquad-piaf
+  taille: "110 millions de paramètres"
+  description_pedagogique: >
+    Un modèle de question-réponse extractive : il ne invente pas de réponse, il repère le
+    passage exact d'un texte de référence qui répond à la question posée. Très différent
+    d'un LLM qui, lui, reformule et peut inventer — ici la réponse est toujours un extrait
+    vérifiable du contexte fourni.
+  cas_usage:
+    enonce: "Répondre à une question en repérant le passage exact dans un texte de référence."
+    exemples:
+      - label: "Conditions de garantie"
+        input: "Contexte : La garantie couvre les défauts de matériaux pendant 2 ans à compter de la date d'achat. Elle ne couvre pas les dommages causés par une mauvaise utilisation. Question : Combien de temps dure la garantie ?"
+      - label: "Horaires"
+        input: "Contexte : Le service client est joignable du lundi au vendredi de 9h à 18h, sauf les jours fériés. Le samedi, seul le support en ligne est disponible. Question : Le service client répond-il le samedi ?"
   statut: disponible
 
 - id: fasttext-langue
-  nom: "fastText — détection de langue"
-  famille: nlp_minimal
+  nom: "py3langid — détection de langue"
+  famille: detection_langue
   secteur: Modération / routage multilingue
-  moteur: transformers
-  moteur_ref: facebook/fasttext-language-identification
+  moteur: py3langid
+  moteur_ref: py3langid (modèle statistique embarqué, ~14 Mo)
   taille: "quelques Mo (pas un LLM)"
   description_pedagogique: >
     L'exemple parfait qu'"IA" ne veut pas dire "gros modèle génératif" : ce modèle tient
@@ -108,12 +228,18 @@
     langue d'un texte, une brique utile avant de router vers le bon modèle spécialisé.
   cas_usage:
     enonce: "Détecter automatiquement la langue d'un message reçu."
-    input_exemple: "Hola, quisiera saber el estado de mi pedido."
+    exemples:
+      - label: "Espagnol"
+        input: "Hola, quisiera saber el estado de mi pedido."
+      - label: "Anglais"
+        input: "Hi, could you please send me an update on my order?"
+      - label: "Allemand"
+        input: "Guten Tag, wann wird meine Bestellung geliefert?"
   statut: disponible
 
 - id: yolo-vision
-  nom: "YOLOv8 (nano)"
-  famille: vision
+  nom: "YOLOv8 (détection, nano)"
+  famille: vision_detection
   secteur: Agriculture / Drone — détection depuis une vue aérienne
   moteur: ultralytics
   moteur_ref: yolov8n.pt
@@ -123,8 +249,42 @@
     des objets avec un rectangle (bounding box) + une étiquette. Base des usages "drone"
     (repérage de personnes/véhicules) ou "agriculture" (comptage, détection sur une parcelle).
   cas_usage:
-    enonce: "Détecter les objets visibles sur une image (photo d'exemple fournie, ou votre propre photo aérienne)."
-    input_exemple: "image d'exemple fournie par l'outil"
+    enonce: "Détecter et localiser les objets visibles sur une image d'exemple fournie par l'outil."
+    exemples: []
+  statut: disponible
+
+- id: yolo-classification
+  nom: "YOLOv8 (classification, nano)"
+  famille: vision_classification
+  secteur: Agriculture — identification visuelle
+  moteur: ultralytics
+  moteur_ref: yolov8n-cls.pt
+  taille: "3 millions de paramètres"
+  description_pedagogique: >
+    Même famille d'algorithme que YOLOv8 détection, mais une tâche différente : ici le
+    modèle ne localise rien, il attribue une seule étiquette à l'image entière. C'est la
+    distinction "détection" (où sont les objets ?) vs "classification" (à quoi ressemble
+    cette image ?) — deux tâches de vision très différentes en pratique.
+  cas_usage:
+    enonce: "Classer l'image d'exemple parmi 1000 catégories génériques (modèle non spécialisé agriculture, à titre pédagogique)."
+    exemples: []
+  statut: disponible
+
+- id: whisper-transcription
+  nom: "Whisper Tiny"
+  famille: audio_transcription
+  secteur: Service client — transcription d'appels et messages vocaux
+  moteur: transformers
+  moteur_ref: openai/whisper-tiny
+  taille: "39 millions de paramètres"
+  description_pedagogique: >
+    Premier modèle du catalogue qui ne lit ni texte ni image mais du son : il transforme
+    un signal audio en texte. Base des usages de transcription d'appels ou de messages
+    vocaux pour un service client, avant d'enchaîner avec un modèle de classification ou
+    un LLM sur le texte obtenu.
+  cas_usage:
+    enonce: "Transcrire un échantillon audio (fourni par l'outil, en anglais — Whisper est multilingue mais cet échantillon standard sert de test fiable)."
+    exemples: []
   statut: disponible
 
 - id: chronos-previsions
@@ -140,11 +300,11 @@
     valeurs suivantes. Bon exemple qu'un "modèle" peut être un tout autre type de prédicteur.
   cas_usage:
     enonce: "Prévoir les 6 prochains mois d'une série économique jouet à partir de son historique."
-    input_exemple: "série mensuelle synthétique fournie par l'outil (tendance + saisonnalité)"
+    exemples: []
   statut: disponible
 
 - id: isolation-forest-maintenance
-  nom: "Isolation Forest (détection d'anomalie)"
+  nom: "Isolation Forest — maintenance"
   famille: anomalie
   secteur: Mécanique — maintenance prédictive
   moteur: sklearn
@@ -157,5 +317,56 @@
     jouets — pont naturel vers le module 2 (entraînement).
   cas_usage:
     enonce: "Entraîner un détecteur d'anomalie sur des mesures vibratoires jouets et repérer les points anormaux."
-    input_exemple: "série de mesures capteur synthétique fournie par l'outil, avec 2 anomalies injectées"
+    exemples: []
+  statut: disponible
+
+- id: isolation-forest-fraude
+  nom: "Isolation Forest — fraude bancaire"
+  famille: anomalie
+  secteur: Banque — détection de fraude transactionnelle
+  moteur: sklearn
+  moteur_ref: entraîné en direct (mêmes principes, données différentes)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Le même algorithme que pour la maintenance mécanique, mais appliqué à un historique
+    de montants de transactions bancaires : preuve qu'un même type de modèle (détection
+    d'anomalie) sert des secteurs très différents dès lors qu'on lui donne les bonnes
+    données d'entraînement.
+  cas_usage:
+    enonce: "Entraîner un détecteur d'anomalie sur un historique de transactions et repérer les paiements suspects."
+    exemples: []
+  statut: disponible
+
+- id: scoring-credit
+  nom: "Régression logistique — scoring crédit"
+  famille: classification_classique
+  secteur: Banque / Assurance — scoring de risque
+  moteur: sklearn
+  moteur_ref: entraîné en direct (régression logistique)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Un algorithme de classification "classique" (pas un réseau de neurones) : il apprend
+    une frontière simple entre dossiers à risque et dossiers sains à partir de quelques
+    variables chiffrées. Beaucoup plus interprétable qu'un LLM — on peut dire précisément
+    quelle variable a pesé dans la décision.
+  cas_usage:
+    enonce: "Entraîner un modèle de scoring sur des dossiers jouets et évaluer le risque d'un nouveau dossier."
+    exemples: []
+  statut: disponible
+
+- id: recommandation-films
+  nom: "Factorisation de matrice (NMF) — recommandation"
+  famille: recommandation
+  secteur: E-commerce / Streaming — recommandation
+  moteur: sklearn
+  moteur_ref: entraîné en direct (factorisation de matrice NMF)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Un système de recommandation n'est pas toujours un LLM : ici, un algorithme de
+    factorisation de matrice apprend les goûts de chaque utilisateur à partir de ses
+    notes passées, et devine celles qu'il n'a pas encore données — le principe derrière
+    "les utilisateurs qui ont aimé X ont aussi aimé Y".
+  cas_usage:
+    enonce: "Entraîner un modèle de recommandation sur une petite matrice de notes utilisateurs × films et suggérer un film."
+    exemples: []
   statut: disponible

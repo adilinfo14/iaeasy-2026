@@ -1,9 +1,14 @@
 from pydantic import BaseModel
 
 
+class Exemple(BaseModel):
+    label: str
+    input: str
+
+
 class CasUsage(BaseModel):
     enonce: str
-    input_exemple: str
+    exemples: list[Exemple] = []
 
 
 class ModelCard(BaseModel):

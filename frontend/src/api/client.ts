@@ -18,8 +18,35 @@ export async function essayerModele(id: string, inputText?: string) {
   return r.json()
 }
 
-export async function demarrerEntrainement() {
-  const r = await fetch(`${BASE}/training/start`, { method: 'POST' })
+export async function listerScenariosEntrainement() {
+  const r = await fetch(`${BASE}/training/scenarios`)
+  return r.json()
+}
+
+export async function apercuDonnees(scenarioId: string) {
+  const r = await fetch(`${BASE}/training/scenarios/${scenarioId}/apercu`)
+  return r.json()
+}
+
+export async function demarrerEntrainement(scenarioId: string) {
+  const r = await fetch(`${BASE}/training/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scenario_id: scenarioId }),
+  })
+  return r.json()
+}
+
+export async function testerModeleEntraine(jobId: string, entree: string) {
+  const r = await fetch(`${BASE}/training/${jobId}/tester`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entree }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erreur pendant le test du modèle')
+  }
   return r.json()
 }
 
@@ -56,6 +83,16 @@ export async function executerGraphe(nodes: unknown[], edges: unknown[]) {
     const err = await r.json().catch(() => ({}))
     throw new Error(err.detail || 'Erreur pendant l’exécution du graphe')
   }
+  return r.json()
+}
+
+export async function listerComposants() {
+  const r = await fetch(`${BASE}/agents/composants`)
+  return r.json()
+}
+
+export async function listerTemplates() {
+  const r = await fetch(`${BASE}/agents/templates`)
   return r.json()
 }
 

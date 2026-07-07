@@ -7,15 +7,63 @@ export default function Parcours() {
   const [resultats, setResultats] = useState<Record<string, any>>({})
   const [enCours, setEnCours] = useState<string | null>(null)
 
+  // Entrées libres par brique
+  const [promptLlm, setPromptLlm] = useState("Explique en une phrase ce qu'est un LLM.")
+  const [questionRag, setQuestionRag] = useState('Quelles sont les conditions de garantie ?')
+  const [documentUtilisateur, setDocumentUtilisateur] = useState(
+    'La garantie décennale couvre les dommages de gros œuvre pendant 10 ans après réception des travaux.',
+  )
+  const [outilChoisi, setOutilChoisi] = useState<'calculatrice' | 'recherche'>('calculatrice')
+  const [expressionOutil, setExpressionOutil] = useState('45 * 3.5 + 45 * 2.25')
+  const [tacheAgent, setTacheAgent] = useState('Combien font 15 fois (2 + 6) ?')
+  const [tacheMultiAgent, setTacheMultiAgent] = useState(
+    "Rédige un message pour expliquer à un client ce qu'est un agent IA.",
+  )
+
   useEffect(() => {
     listerBriques().then(setBriques)
     lireProgression().then((p) => setDebloquees(p.debloquees))
   }, [])
 
+  function construireGraphe(brique: any) {
+    switch (brique.id) {
+      case 'llm_seul':
+        return { nodes: [{ id: '1', type: 'llm_seul', config: { prompt: promptLlm } }], edges: [] }
+      case 'rag':
+        return {
+          nodes: [
+            {
+              id: '1',
+              type: 'rag',
+              config: { prompt: questionRag, document_utilisateur: documentUtilisateur },
+            },
+          ],
+          edges: [],
+        }
+      case 'outil_mcp':
+        return {
+          nodes: [
+            {
+              id: '1',
+              type: 'outil_mcp',
+              config: { outil: outilChoisi, expression: expressionOutil, prompt: expressionOutil },
+            },
+          ],
+          edges: [],
+        }
+      case 'agent_unique':
+        return { nodes: [{ id: '1', type: 'agent_unique', config: { prompt: tacheAgent } }], edges: [] }
+      case 'multi_agent':
+        return { nodes: [{ id: '1', type: 'multi_agent', config: { prompt: tacheMultiAgent } }], edges: [] }
+      default:
+        return { nodes: [], edges: [] }
+    }
+  }
+
   async function essayerBrique(brique: any) {
     setEnCours(brique.id)
     try {
-      const graphe = construireGraphePourBrique(brique.id)
+      const graphe = construireGraphe(brique)
       const resultat = await executerGraphe(graphe.nodes, graphe.edges)
       setResultats((r) => ({ ...r, [brique.id]: resultat }))
       const suivante = nextBriqueId(briques, brique.id)
@@ -28,34 +76,149 @@ export default function Parcours() {
     }
   }
 
+  function renderEntree(brique: any) {
+    switch (brique.id) {
+      case 'llm_seul':
+        return (
+          <textarea
+            className="input-texte"
+            rows={2}
+            value={promptLlm}
+            onChange={(e) => setPromptLlm(e.target.value)}
+          />
+        )
+      case 'rag':
+        return (
+          <>
+            <label className="texte-muted">Votre question :</label>
+            <textarea
+              className="input-texte"
+              rows={2}
+              value={questionRag}
+              onChange={(e) => setQuestionRag(e.target.value)}
+            />
+            <label className="texte-muted">Ajoutez votre propre document au corpus de l'entreprise :</label>
+            <textarea
+              className="input-texte"
+              rows={2}
+              value={documentUtilisateur}
+              onChange={(e) => setDocumentUtilisateur(e.target.value)}
+            />
+          </>
+        )
+      case 'outil_mcp':
+        return (
+          <>
+            <div className="exemples-chips">
+              <button
+                className={outilChoisi === 'calculatrice' ? 'chip actif' : 'chip'}
+                onClick={() => setOutilChoisi('calculatrice')}
+              >
+                Calculatrice
+              </button>
+              <button
+                className={outilChoisi === 'recherche' ? 'chip actif' : 'chip'}
+                onClick={() => setOutilChoisi('recherche')}
+              >
+                Recherche documentaire
+              </button>
+            </div>
+            <textarea
+              className="input-texte"
+              rows={2}
+              value={expressionOutil}
+              onChange={(e) => setExpressionOutil(e.target.value)}
+              placeholder={outilChoisi === 'calculatrice' ? 'Ex: 45 * 3.5' : 'Ex: Qu\'est-ce que MCP ?'}
+            />
+          </>
+        )
+      case 'agent_unique':
+        return (
+          <textarea
+            className="input-texte"
+            rows={2}
+            value={tacheAgent}
+            onChange={(e) => setTacheAgent(e.target.value)}
+          />
+        )
+      case 'multi_agent':
+        return (
+          <textarea
+            className="input-texte"
+            rows={2}
+            value={tacheMultiAgent}
+            onChange={(e) => setTacheMultiAgent(e.target.value)}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="page">
-      <h1>Parcours — débloquer les briques une à une</h1>
+      <h1>Parcours — construis ton assistant, brique par brique</h1>
       <p className="page-intro">
-        Chaque étape débloque la brique suivante : impossible de passer au multi-agent avant
-        d'avoir vu ce qu'apporte chaque brique précédente.
+        Tu es développeur chez un artisan du bâtiment. Chaque étape ajoute une capacité concrète à
+        l'assistant que tu construis, et débloque la brique suivante. Utilise tes propres questions
+        pour comprendre ce qui change réellement à chaque étape.
       </p>
 
       <ol className="parcours-liste">
         {briques.map((b) => {
           const debloquee = debloquees.includes(b.id)
           const prerequisOk = (b.prerequis as string[]).every((p) => debloquees.includes(p))
+          const resultat = resultats[b.id]
           return (
             <li
               key={b.id}
               className={debloquee ? 'etape debloquee' : prerequisOk ? 'etape disponible' : 'etape verrouillee'}
             >
               <h3>
-                {b.ordre}. {b.titre}
+                {b.icone} {b.ordre}. {b.titre}
               </h3>
-              <p>{b.description_pedagogique}</p>
-              {prerequisOk && (
-                <button onClick={() => essayerBrique(b)} disabled={enCours === b.id}>
-                  {enCours === b.id ? 'Exécution…' : 'Essayer cette brique'}
-                </button>
+              <p className="mise-en-situation">{b.mise_en_situation}</p>
+
+              <div className="avant-apres">
+                <div className="avant-apres-carte avant">
+                  <span className="avant-apres-label">Avant</span>
+                  <p>{b.avant}</p>
+                </div>
+                <div className="avant-apres-fleche">→</div>
+                <div className="avant-apres-carte apres">
+                  <span className="avant-apres-label">Après cette brique</span>
+                  <p>{b.apres}</p>
+                </div>
+              </div>
+
+              {prerequisOk ? (
+                <>
+                  {renderEntree(b)}
+                  <button onClick={() => essayerBrique(b)} disabled={enCours === b.id}>
+                    {enCours === b.id ? 'Exécution…' : 'Essayer cette brique'}
+                  </button>
+                </>
+              ) : (
+                <p className="verrou">🔒 Termine l'étape précédente pour débloquer.</p>
               )}
-              {!prerequisOk && <p className="verrou">🔒 Termine l'étape précédente pour débloquer.</p>}
-              {resultats[b.id] && <pre className="resultat">{JSON.stringify(resultats[b.id], null, 2)}</pre>}
+
+              {resultat && !resultat.erreur && (
+                <div className="explication-bloc">
+                  <h4>Déroulé</h4>
+                  <ol className="liste-etapes-trace">
+                    {resultat.etapes.map((e: any, i: number) => (
+                      <li key={i}>{e.detail}</li>
+                    ))}
+                  </ol>
+                  {resultat.reponse_finale && (
+                    <>
+                      <h4>Réponse finale</h4>
+                      <p className="traduction-cible">{resultat.reponse_finale}</p>
+                    </>
+                  )}
+                </div>
+              )}
+              {resultat?.erreur && <p className="erreur">{resultat.erreur}</p>}
             </li>
           )
         })}
@@ -67,38 +230,4 @@ export default function Parcours() {
 function nextBriqueId(briques: any[], courant: string): string {
   const idx = briques.findIndex((b) => b.id === courant)
   return briques[idx + 1]?.id ?? courant
-}
-
-function construireGraphePourBrique(id: string) {
-  switch (id) {
-    case 'llm_seul':
-      return {
-        nodes: [{ id: '1', type: 'llm_seul', config: { prompt: "Explique en une phrase ce qu'est un LLM." } }],
-        edges: [],
-      }
-    case 'rag':
-      return {
-        nodes: [{ id: '1', type: 'rag', config: { prompt: "Qu'est-ce que le RAG ?" } }],
-        edges: [],
-      }
-    case 'outil_mcp':
-      return {
-        nodes: [{ id: '1', type: 'outil_mcp', config: { outil: 'calculatrice', expression: '12 * (3 + 4)' } }],
-        edges: [],
-      }
-    case 'agent_unique':
-      return {
-        nodes: [{ id: '1', type: 'agent_unique', config: { prompt: 'Combien font 15 fois (2 + 6) ?' } }],
-        edges: [],
-      }
-    case 'multi_agent':
-      return {
-        nodes: [
-          { id: '1', type: 'multi_agent', config: { prompt: "Résume ce qu'est un agent IA pour un débutant." } },
-        ],
-        edges: [],
-      }
-    default:
-      return { nodes: [], edges: [] }
-  }
 }

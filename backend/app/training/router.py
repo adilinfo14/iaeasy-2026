@@ -1,17 +1,42 @@
 import asyncio
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 
 from . import trainer
 
 router = APIRouter(prefix="/training", tags=["training"])
 
 
+class DemarrerRequest(BaseModel):
+    scenario_id: str
+
+
+class TesterRequest(BaseModel):
+    entree: str | None = None
+
+
+@router.get("/scenarios")
+def scenarios():
+    return trainer.lister_scenarios()
+
+
+@router.get("/scenarios/{scenario_id}/apercu")
+def apercu(scenario_id: str):
+    try:
+        return trainer.apercu_donnees(scenario_id)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
 @router.post("/start")
-def demarrer():
-    job_id = trainer.demarrer_entrainement()
+def demarrer(requete: DemarrerRequest):
+    try:
+        job_id = trainer.demarrer_entrainement(requete.scenario_id)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
     return {"job_id": job_id}
 
 
@@ -21,6 +46,14 @@ def etat(job_id: str):
     if job is None:
         return {"status": "inconnu"}
     return job
+
+
+@router.post("/{job_id}/tester")
+def tester(job_id: str, requete: TesterRequest):
+    try:
+        return trainer.tester_modele(job_id, requete.entree)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
 
 
 @router.get("/{job_id}/stream")

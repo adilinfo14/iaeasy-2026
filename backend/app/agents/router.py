@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from . import engine
+from .architecture import get_composants, get_templates
 from .bricks import get_briques
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -26,6 +27,16 @@ class GrapheRequest(BaseModel):
 @router.get("/briques")
 def briques():
     return get_briques()
+
+
+@router.get("/composants")
+def composants():
+    return get_composants()
+
+
+@router.get("/templates")
+def templates():
+    return get_templates()
 
 
 @router.post("/run")

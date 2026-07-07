@@ -11,6 +11,7 @@ services:
       - HF_HOME=/data/hf_cache
     volumes:
       - iaeasy_data:/data
+      - ./backend/app:/app/app:ro
     networks:
       - proxy-net
 
