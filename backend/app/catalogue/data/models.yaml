@@ -1,0 +1,161 @@
+- id: llama3-generaliste
+  nom: "Llama 3.2 (3B)"
+  famille: llm_generatif
+  secteur: Généraliste
+  moteur: ollama
+  moteur_ref: llama3.2:3b
+  taille: "3 milliards de paramètres"
+  description_pedagogique: >
+    Un modèle de langage génératif : il prédit le mot suivant, un par un, à partir de tout
+    le texte déjà écrit avant lui. Sa taille réduite (3B) le rend rapide même sans carte
+    graphique, au prix d'un raisonnement moins fin qu'un très gros modèle.
+  cas_usage:
+    enonce: "Demander une explication simple d'un concept, comme le ferait un assistant généraliste."
+    input_exemple: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
+  statut: disponible
+
+- id: qwen-raisonnement
+  nom: "Qwen 2.5 Instruct (7B)"
+  famille: llm_generatif
+  secteur: Raisonnement / généraliste renforcé
+  moteur: ollama
+  moteur_ref: qwen2.5:7b-instruct
+  taille: "7 milliards de paramètres"
+  description_pedagogique: >
+    Même famille de modèle que Llama (génératif, mot par mot), mais plus gros : il suit
+    mieux des instructions précises et enchaîne plusieurs étapes de raisonnement. C'est
+    aussi le modèle utilisé plus loin pour la brique "agent" (il sait appeler des outils).
+  cas_usage:
+    enonce: "Résoudre un petit problème en plusieurs étapes."
+    input_exemple: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
+  statut: disponible
+
+- id: deepseek-code
+  nom: "DeepSeek Coder (6.7B)"
+  famille: llm_generatif
+  secteur: Code / développement
+  moteur: ollama
+  moteur_ref: deepseek-coder:6.7b
+  taille: "6.7 milliards de paramètres"
+  description_pedagogique: >
+    Un modèle génératif spécialisé : entraîné en majorité sur du code source plutôt que
+    sur du texte généraliste. Il illustre l'idée de "spécialisation par les données
+    d'entraînement" plutôt que par l'architecture elle-même.
+  cas_usage:
+    enonce: "Générer une petite fonction à partir d'une description en français."
+    input_exemple: "Écris une fonction Python qui vérifie si un nombre est premier."
+  statut: disponible
+
+- id: nomic-embeddings
+  nom: "Nomic Embed Text"
+  famille: embeddings
+  secteur: Recherche sémantique / RAG
+  moteur: ollama
+  moteur_ref: nomic-embed-text
+  taille: "137 millions de paramètres"
+  description_pedagogique: >
+    Ce modèle ne génère pas de texte : il transforme une phrase en une liste de nombres
+    (un "vecteur") qui capture son sens. Deux phrases proches en sens ont des vecteurs
+    proches. C'est la brique de base de la recherche sémantique et du RAG (module 3).
+  cas_usage:
+    enonce: "Comparer le sens de deux phrases via la similarité de leurs vecteurs."
+    input_exemple: "Phrase A: 'le chat dort sur le canapé'. Phrase B: 'un félin fait la sieste sur le sofa'."
+  statut: disponible
+
+- id: camembert-sentiment
+  nom: "CamemBERT (sentiment FR)"
+  famille: nlp_encodeur
+  secteur: Assurance / Banque — analyse de retours clients
+  moteur: transformers
+  moteur_ref: cmarkea/distilcamembert-base-sentiment
+  taille: "68 millions de paramètres (distillé)"
+  description_pedagogique: >
+    Contrairement aux modèles génératifs, un encodeur comme CamemBERT ne "rédige" rien :
+    il lit un texte en entier puis rend une seule étiquette (ici un sentiment). Modèle
+    souverain français (Inria/CNRS), beaucoup plus rapide et léger qu'un LLM pour cette
+    tâche précise — utile pour trier des avis clients ou des réclamations d'assurance.
+  cas_usage:
+    enonce: "Classer le sentiment d'un avis client."
+    input_exemple: "Le sinistre a été traité en 48h, un conseiller très clair, je recommande."
+  statut: disponible
+
+- id: helsinki-traduction
+  nom: "Helsinki-NLP OPUS-MT (FR→EN)"
+  famille: nlp_encodeur
+  secteur: International / export
+  moteur: transformers
+  moteur_ref: Helsinki-NLP/opus-mt-fr-en
+  taille: "77 millions de paramètres"
+  description_pedagogique: >
+    Un modèle de traduction dédié à une seule paire de langues (français vers anglais).
+    Beaucoup plus petit et rapide qu'un LLM généraliste utilisé pour traduire, car il n'a
+    qu'une seule tâche à apprendre.
+  cas_usage:
+    enonce: "Traduire une phrase professionnelle du français vers l'anglais."
+    input_exemple: "Veuillez trouver ci-joint le devis signé pour la rénovation de la toiture."
+  statut: disponible
+
+- id: fasttext-langue
+  nom: "fastText — détection de langue"
+  famille: nlp_minimal
+  secteur: Modération / routage multilingue
+  moteur: transformers
+  moteur_ref: facebook/fasttext-language-identification
+  taille: "quelques Mo (pas un LLM)"
+  description_pedagogique: >
+    L'exemple parfait qu'"IA" ne veut pas dire "gros modèle génératif" : ce modèle tient
+    en quelques mégaoctets et répond en quelques millisecondes. Il sert à détecter la
+    langue d'un texte, une brique utile avant de router vers le bon modèle spécialisé.
+  cas_usage:
+    enonce: "Détecter automatiquement la langue d'un message reçu."
+    input_exemple: "Hola, quisiera saber el estado de mi pedido."
+  statut: disponible
+
+- id: yolo-vision
+  nom: "YOLOv8 (nano)"
+  famille: vision
+  secteur: Agriculture / Drone — détection depuis une vue aérienne
+  moteur: ultralytics
+  moteur_ref: yolov8n.pt
+  taille: "3.2 millions de paramètres"
+  description_pedagogique: >
+    Un modèle de vision par ordinateur : il ne lit pas du texte mais une image, et localise
+    des objets avec un rectangle (bounding box) + une étiquette. Base des usages "drone"
+    (repérage de personnes/véhicules) ou "agriculture" (comptage, détection sur une parcelle).
+  cas_usage:
+    enonce: "Détecter les objets visibles sur une image (photo d'exemple fournie, ou votre propre photo aérienne)."
+    input_exemple: "image d'exemple fournie par l'outil"
+  statut: disponible
+
+- id: chronos-previsions
+  nom: "Chronos Bolt (tiny)"
+  famille: series_temporelles
+  secteur: Économie / Finance — prévision
+  moteur: chronos
+  moteur_ref: amazon/chronos-bolt-tiny
+  taille: "9 millions de paramètres"
+  description_pedagogique: >
+    Ici le modèle ne manipule ni texte ni image mais une courbe de chiffres dans le temps
+    (ex. chiffre d'affaires mensuel) : il apprend le motif de la courbe pour prédire les
+    valeurs suivantes. Bon exemple qu'un "modèle" peut être un tout autre type de prédicteur.
+  cas_usage:
+    enonce: "Prévoir les 6 prochains mois d'une série économique jouet à partir de son historique."
+    input_exemple: "série mensuelle synthétique fournie par l'outil (tendance + saisonnalité)"
+  statut: disponible
+
+- id: isolation-forest-maintenance
+  nom: "Isolation Forest (détection d'anomalie)"
+  famille: anomalie
+  secteur: Mécanique — maintenance prédictive
+  moteur: sklearn
+  moteur_ref: entraîné en direct (pas de poids pré-entraînés)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Il n'existe pas de modèle "mécanique" pré-entraîné universel : le vrai cas d'usage
+    terrain (maintenance prédictive) s'apprend sur les données spécifiques d'une machine.
+    Ce modèle s'entraîne donc en direct, sous vos yeux, sur des données de capteurs
+    jouets — pont naturel vers le module 2 (entraînement).
+  cas_usage:
+    enonce: "Entraîner un détecteur d'anomalie sur des mesures vibratoires jouets et repérer les points anormaux."
+    input_exemple: "série de mesures capteur synthétique fournie par l'outil, avec 2 anomalies injectées"
+  statut: disponible

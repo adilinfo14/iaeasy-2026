@@ -1,0 +1,297 @@
+:root {
+  --bg: #0f1115;
+  --bg-alt: #171a21;
+  --fg: #e8e9ec;
+  --fg-muted: #9aa0ab;
+  --accent: #4f7cff;
+  --accent-soft: #22315c;
+  --border: #2a2e38;
+  --danger: #ff6b6b;
+  --success: #4ade80;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-alt);
+}
+
+.topnav .brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.topnav nav {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.topnav nav a {
+  color: var(--fg-muted);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.topnav nav a.active {
+  color: var(--fg);
+  border-bottom-color: var(--accent);
+}
+
+main {
+  flex: 1;
+  padding: 1.5rem 2rem 3rem;
+}
+
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.page h1 {
+  margin-bottom: 0.3rem;
+}
+
+.page-intro {
+  color: var(--fg-muted);
+  max-width: 70ch;
+  margin-bottom: 1.5rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.filtres {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
+.filtre {
+  background: var(--bg-alt);
+  color: var(--fg-muted);
+  border: 1px solid var(--border);
+}
+
+.filtre.actif {
+  background: var(--accent-soft);
+  color: var(--fg);
+  border-color: var(--accent);
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.model-card {
+  text-align: left;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.model-card:hover {
+  border-color: var(--accent);
+}
+
+.model-card-famille {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+
+.model-card h3 {
+  margin: 0.1rem 0;
+}
+
+.model-card-secteur {
+  color: var(--fg-muted);
+  margin: 0;
+}
+
+.model-card-taille {
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 20;
+}
+
+.drawer {
+  width: min(520px, 100%);
+  height: 100%;
+  background: var(--bg-alt);
+  border-left: 1px solid var(--border);
+  padding: 2rem;
+  overflow-y: auto;
+  position: relative;
+}
+
+.drawer-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  color: var(--fg-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.2rem 0.5rem;
+}
+
+.drawer-meta {
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+}
+
+.drawer textarea {
+  width: 100%;
+  margin: 0.8rem 0;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+}
+
+.resultat {
+  margin-top: 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.erreur {
+  color: var(--danger);
+  margin-top: 0.8rem;
+}
+
+.succes {
+  color: var(--success);
+}
+
+.explication-bloc {
+  margin-top: 1.5rem;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.3rem;
+}
+
+.parcours-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.etape {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.3rem;
+  background: var(--bg-alt);
+}
+
+.etape.verrouillee {
+  opacity: 0.55;
+}
+
+.etape.debloquee {
+  border-color: var(--success);
+}
+
+.verrou {
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+}
+
+.canvas-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1rem;
+  height: 480px;
+  margin-top: 1rem;
+}
+
+.palette {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.palette button {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  text-align: left;
+}
+
+.executer-btn {
+  margin-top: auto;
+  background: var(--accent);
+  color: white;
+}
+
+.canvas {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}

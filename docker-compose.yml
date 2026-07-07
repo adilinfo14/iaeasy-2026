@@ -1,0 +1,22 @@
+services:
+  iaeasy:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: iaeasy
+    restart: unless-stopped
+    environment:
+      - OLLAMA_URL=http://ollama:11434
+      - IAEASY_DATA_DIR=/data
+      - HF_HOME=/data/hf_cache
+    volumes:
+      - iaeasy_data:/data
+    networks:
+      - proxy-net
+
+networks:
+  proxy-net:
+    external: true
+
+volumes:
+  iaeasy_data:
