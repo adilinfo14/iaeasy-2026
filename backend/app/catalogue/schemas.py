@@ -9,6 +9,7 @@ class Exemple(BaseModel):
 class CasUsage(BaseModel):
     enonce: str
     exemples: list[Exemple] = []
+    idees_usage: list[str] = []
 
 
 class ModelCard(BaseModel):
@@ -22,6 +23,8 @@ class ModelCard(BaseModel):
     description_pedagogique: str
     cas_usage: CasUsage
     statut: str
+    lien_telechargement: str | None = None
+    mode_emploi: str | None = None
 
 
 class EssaiRequest(BaseModel):

@@ -1,661 +1,1185 @@
 - id: llama3-generaliste
-  nom: "Llama 3.2 (3B)"
+  nom: Llama 3.2 (3B)
   famille: llm_generatif
   secteur: Généraliste
   moteur: ollama
   moteur_ref: llama3.2:3b
-  taille: "3 milliards de paramètres"
-  description_pedagogique: >
-    Un modèle de langage génératif : il prédit le mot suivant, un par un, à partir de tout
-    le texte déjà écrit avant lui. Sa taille réduite (3B) le rend rapide même sans carte
-    graphique, au prix d'un raisonnement moins fin qu'un très gros modèle.
-  cas_usage:
-    enonce: "Demander une explication simple d'un concept, comme le ferait un assistant généraliste."
-    exemples:
-      - label: "Explication scolaire"
-        input: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
-      - label: "Reformulation professionnelle"
-        input: "Reformule cette phrase de façon plus polie : 'vous devez payer maintenant sinon on arrête tout'."
-      - label: "Idée créative"
-        input: "Propose 3 noms originaux pour une nouvelle marque de café bio."
-  statut: disponible
+  taille: 3 milliards de paramètres
+  description_pedagogique: 'Un modèle de langage génératif : il prédit le mot suivant, un par un, à partir
+    de tout le texte déjà écrit avant lui. Sa taille réduite (3B) le rend rapide même sans carte graphique,
+    au prix d''un raisonnement moins fin qu''un très gros modèle.
 
+    '
+  cas_usage:
+    enonce: Demander une explication simple d'un concept, comme le ferait un assistant généraliste.
+    exemples:
+    - label: Explication scolaire
+      input: Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien.
+    - label: Reformulation professionnelle
+      input: 'Reformule cette phrase de façon plus polie : ''vous devez payer maintenant sinon on arrête
+        tout''.'
+    - label: Idée créative
+      input: Propose 3 noms originaux pour une nouvelle marque de café bio.
+    - label: Réponse à un avis client
+      input: 'Écris une réponse courte et polie à cet avis Google 2 étoiles : ''Livraison en retard et
+        produit abîmé, très déçu.'''
+    - label: Résumé de cours
+      input: Résume en 5 lignes maximum les causes de la Révolution française, pour réviser avant un contrôle.
+    idees_usage:
+    - Un artisan répond rapidement à un avis client mécontent laissé sur Google.
+    - Une association rédige une courte annonce pour un événement de quartier.
+    - Un étudiant demande un résumé en 5 lignes d'un chapitre avant un contrôle.
+    - Un commerçant reformule une affiche de promotion pour la rendre plus claire.
+    - Une collectivité simplifie un communiqué administratif pour les habitants.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/llama3.2
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull llama3.2:3b` dans un terminal
+    — le modèle est ensuite utilisable avec `ollama run llama3.2:3b` en ligne de commande, ou via l'API
+    locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: qwen-raisonnement
-  nom: "Qwen 2.5 Instruct (7B)"
+  nom: Qwen 2.5 Instruct (7B)
   famille: llm_generatif
   secteur: Raisonnement / généraliste renforcé
   moteur: ollama
   moteur_ref: qwen2.5:7b-instruct
-  taille: "7 milliards de paramètres"
-  description_pedagogique: >
-    Même famille de modèle que Llama (génératif, mot par mot), mais plus gros : il suit
-    mieux des instructions précises et enchaîne plusieurs étapes de raisonnement. C'est
-    aussi le modèle utilisé plus loin pour la brique "agent" (il sait appeler des outils).
-  cas_usage:
-    enonce: "Résoudre un petit problème en plusieurs étapes."
-    exemples:
-      - label: "Calcul de facturation"
-        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
-      - label: "Logique"
-        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
-      - label: "Comparaison argumentée"
-        input: "Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés."
-  statut: disponible
+  taille: 7 milliards de paramètres
+  description_pedagogique: 'Même famille de modèle que Llama (génératif, mot par mot), mais plus gros
+    : il suit mieux des instructions précises et enchaîne plusieurs étapes de raisonnement. C''est aussi
+    le modèle utilisé plus loin pour la brique "agent" (il sait appeler des outils).
 
+    '
+  cas_usage:
+    enonce: Résoudre un petit problème en plusieurs étapes.
+    exemples:
+    - label: Calcul de facturation
+      input: Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé,
+        étape par étape.
+    - label: Logique
+      input: J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient
+        5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?
+    - label: Comparaison argumentée
+      input: Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés.
+    - label: Comparaison de devis
+      input: 'Trois fournisseurs proposent : A) 120€ + 15€/unité, B) 200€ forfait pour 10 unités max puis
+        10€/unité, C) 8€/unité sans forfait. Pour une commande de 25 unités, calcule le coût de chaque
+        option étape par étape et indique la moins chère.'
+    - label: Répartition de budget
+      input: 'Une association reçoit une subvention de 8000€ à répartir : 40% pour le matériel, 35% pour
+        la communication, le reste pour les frais de déplacement. Calcule chaque montant et vérifie que
+        le total correspond bien à 8000€.'
+    idees_usage:
+    - Un indépendant compare plusieurs devis fournisseurs pour trouver le moins cher étape par étape.
+    - Une association répartit un budget de subvention entre plusieurs postes de dépense selon des règles
+      précises.
+    - Un développeur fait vérifier la logique d'un algorithme décrit en français avant de le coder.
+    - Un étudiant en gestion calcule un seuil de rentabilité pas à pas.
+    - Une collectivité structure une note de synthèse à partir de plusieurs contraintes réglementaires.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/qwen2.5
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull qwen2.5:7b-instruct` dans
+    un terminal — le modèle est ensuite utilisable avec `ollama run qwen2.5:7b-instruct` en ligne de commande,
+    ou via l'API locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: deepseek-code
-  nom: "DeepSeek Coder (6.7B)"
+  nom: DeepSeek Coder (6.7B)
   famille: llm_generatif
   secteur: Code / développement
   moteur: ollama
   moteur_ref: deepseek-coder:6.7b
-  taille: "6.7 milliards de paramètres"
-  description_pedagogique: >
-    Un modèle génératif spécialisé : entraîné en majorité sur du code source plutôt que
-    sur du texte généraliste. Il illustre l'idée de "spécialisation par les données
-    d'entraînement" plutôt que par l'architecture elle-même.
-  cas_usage:
-    enonce: "Générer une petite fonction à partir d'une description en français."
-    exemples:
-      - label: "Fonction mathématique"
-        input: "Écris une fonction Python qui vérifie si un nombre est premier."
-      - label: "Manipulation de données"
-        input: "Écris une fonction Python qui prend une liste de prix TTC et renvoie la liste des prix HT (TVA 20%)."
-      - label: "Débogage"
-        input: "Corrige ce code Python qui plante : def moyenne(l): return sum(l)/len(l) -- appelé avec une liste vide."
-  statut: disponible
+  taille: 6.7 milliards de paramètres
+  description_pedagogique: 'Un modèle génératif spécialisé : entraîné en majorité sur du code source plutôt
+    que sur du texte généraliste. Il illustre l''idée de "spécialisation par les données d''entraînement"
+    plutôt que par l''architecture elle-même.
 
+    '
+  cas_usage:
+    enonce: Générer une petite fonction à partir d'une description en français.
+    exemples:
+    - label: Fonction mathématique
+      input: Écris une fonction Python qui vérifie si un nombre est premier.
+    - label: Manipulation de données
+      input: Écris une fonction Python qui prend une liste de prix TTC et renvoie la liste des prix HT
+        (TVA 20%).
+    - label: Débogage
+      input: 'Corrige ce code Python qui plante : def moyenne(l): return sum(l)/len(l) -- appelé avec
+        une liste vide.'
+    - label: Script de renommage de fichiers
+      input: Écris un script Python qui renomme tous les fichiers PDF d'un dossier au format 'facture_AAAA-MM-JJ.pdf'
+        à partir de leur date de création.
+    - label: Fonction de tri personnalisé
+      input: Écris une fonction Python qui trie une liste de dictionnaires représentant des clients par
+        ordre alphabétique de nom de famille.
+    idees_usage:
+    - Un développeur freelance génère un script de nettoyage de fichiers CSV avant import dans un outil
+      de facturation.
+    - Un artisan demande à un ami développeur d'automatiser le calcul de marges sur ses devis via un petit
+      script.
+    - Un étudiant en informatique demande un exemple de fonction pour s'entraîner à la récursivité.
+    - Une petite entreprise génère un script pour renommer automatiquement des fichiers de factures.
+    - Un développeur fait relire un algorithme de tri pour repérer une erreur de logique.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/deepseek-coder
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull deepseek-coder:6.7b` dans
+    un terminal — le modèle est ensuite utilisable avec `ollama run deepseek-coder:6.7b` en ligne de commande,
+    ou via l'API locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: nomic-embeddings
-  nom: "Nomic Embed Text"
+  nom: Nomic Embed Text
   famille: embeddings
   secteur: Recherche sémantique / RAG
   moteur: ollama
   moteur_ref: nomic-embed-text
-  taille: "137 millions de paramètres"
-  description_pedagogique: >
-    Ce modèle ne génère pas de texte : il transforme une phrase en une liste de nombres
-    (un "vecteur") qui capture son sens. Deux phrases proches en sens ont des vecteurs
-    proches. C'est la brique de base de la recherche sémantique et du RAG (module 3).
-  cas_usage:
-    enonce: "Comparer le sens de deux phrases via la similarité de leurs vecteurs."
-    exemples:
-      - label: "Synonymes"
-        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
-      - label: "Sens opposé"
-        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
-      - label: "Sans rapport"
-        input: "Phrase A: la réunion est reportée à demain. Phrase B: il pleut fort sur la côte bretonne."
-  statut: disponible
+  taille: 137 millions de paramètres
+  description_pedagogique: 'Ce modèle ne génère pas de texte : il transforme une phrase en une liste de
+    nombres (un "vecteur") qui capture son sens. Deux phrases proches en sens ont des vecteurs proches.
+    C''est la brique de base de la recherche sémantique et du RAG (module 3).
 
+    '
+  cas_usage:
+    enonce: Comparer le sens de deux phrases via la similarité de leurs vecteurs.
+    exemples:
+    - label: Synonymes
+      input: 'Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa.'
+    - label: Sens opposé
+      input: 'Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut
+        être remboursé.'
+    - label: Sans rapport
+      input: 'Phrase A: la réunion est reportée à demain. Phrase B: il pleut fort sur la côte bretonne.'
+    - label: Question RH reformulée
+      input: 'Phrase A: comment poser mes congés payés ? Phrase B: quelle est la procédure pour demander
+        des vacances ?'
+    - label: Actualités sans rapport
+      input: 'Phrase A: la banque centrale relève ses taux d''intérêt. Phrase B: l''équipe locale a gagné
+        le match hier soir.'
+    idees_usage:
+    - 'Recherche documentaire : retrouver les passages d''un manuel technique pertinents pour répondre
+      à une question posée en langage naturel.'
+    - 'RAG d''entreprise : alimenter un assistant qui va chercher les bons extraits d''une base de connaissances
+      avant de rédiger sa réponse.'
+    - 'Détection de doublons : identifier les tickets de support qui posent la même question avec des
+      formulations différentes.'
+    - 'Regroupement de tickets : classer automatiquement des avis clients par thème (livraison, prix,
+      SAV) sans dictionnaire de mots-clés.'
+    - 'Veille : rapprocher des articles de presse qui parlent du même événement malgré des titres très
+      différents.'
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/nomic-embed-text
+  mode_emploi: Installez Ollama (ollama.com/download), lancez `ollama pull nomic-embed-text`, puis appelez-le
+    via l'API locale (`curl http://localhost:11434/api/embeddings -d '{"model":"nomic-embed-text","prompt":"votre
+    texte"}'`) ou la bibliothèque Python `ollama`.
 - id: mxbai-embeddings
-  nom: "Mxbai Embed Large"
+  nom: Mxbai Embed Large
   famille: embeddings
   secteur: Recherche sémantique (comparatif)
   moteur: ollama
   moteur_ref: mxbai-embed-large
-  taille: "335 millions de paramètres"
-  description_pedagogique: >
-    Le même principe que Nomic Embed (transformer une phrase en vecteur), mais un modèle
-    différent et plus gros. En comparant les deux sur la même paire de phrases, on voit
-    que deux modèles d'embeddings ne donnent pas exactement le même score de similarité —
-    il n'existe pas "un seul bon vecteur", chaque modèle a appris sa propre représentation.
-  cas_usage:
-    enonce: "Comparer le sens de deux phrases via la similarité de leurs vecteurs (à comparer avec Nomic Embed)."
-    exemples:
-      - label: "Synonymes"
-        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
-      - label: "Sens opposé"
-        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
-  statut: disponible
+  taille: 335 millions de paramètres
+  description_pedagogique: 'Le même principe que Nomic Embed (transformer une phrase en vecteur), mais
+    un modèle différent et plus gros. En comparant les deux sur la même paire de phrases, on voit que
+    deux modèles d''embeddings ne donnent pas exactement le même score de similarité — il n''existe pas
+    "un seul bon vecteur", chaque modèle a appris sa propre représentation.
 
+    '
+  cas_usage:
+    enonce: Comparer le sens de deux phrases via la similarité de leurs vecteurs (à comparer avec Nomic
+      Embed).
+    exemples:
+    - label: Synonymes
+      input: 'Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa.'
+    - label: Sens opposé
+      input: 'Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut
+        être remboursé.'
+    - label: Recommandation de lecture
+      input: 'Phrase A: je cherche un livre qui parle de voyage dans le temps. Phrase B: peux-tu me conseiller
+        un roman de science-fiction sur les voyages temporels ?'
+    - label: Sujets sans lien
+      input: 'Phrase A: les prix de l''énergie augmentent cet hiver. Phrase B: le chien du voisin aboie
+        toute la nuit.'
+    idees_usage:
+    - 'RAG documentaire : tester si un modèle plus gros améliore la pertinence des passages retrouvés
+      dans une base volumineuse.'
+    - 'Recherche interne : comparer la qualité des résultats de recherche sémantique avant de choisir
+      le modèle à mettre en production.'
+    - 'Détection de doublons : vérifier si les doublons de tickets repérés par un petit modèle sont confirmés
+      par un modèle plus précis.'
+    - 'Modération de contenu : repérer des messages qui reformulent un contenu interdit avec un vocabulaire
+      différent.'
+    - 'Benchmark interne : évaluer plusieurs modèles d''embeddings sur des phrases métier avant d''arbitrer
+      un choix d''infrastructure.'
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/mxbai-embed-large
+  mode_emploi: Installez Ollama (ollama.com/download), lancez `ollama pull mxbai-embed-large`, puis appelez-le
+    via l'API locale (`curl http://localhost:11434/api/embeddings -d '{"model":"mxbai-embed-large","prompt":"votre
+    texte"}'`) ou la bibliothèque Python `ollama`.
 - id: camembert-sentiment
-  nom: "CamemBERT (sentiment FR)"
+  nom: CamemBERT (sentiment FR)
   famille: classification_texte
   secteur: Assurance / Banque — analyse de retours clients
   moteur: transformers
   moteur_ref: cmarkea/distilcamembert-base-sentiment
-  taille: "68 millions de paramètres (distillé)"
-  description_pedagogique: >
-    Contrairement aux modèles génératifs, un encodeur comme CamemBERT ne "rédige" rien :
-    il lit un texte en entier puis rend une seule étiquette (ici une note de 1 à 5 étoiles).
-    Modèle souverain français (Inria/CNRS), beaucoup plus rapide et léger qu'un LLM pour
-    cette tâche précise — utile pour trier des avis clients ou des réclamations d'assurance.
-  cas_usage:
-    enonce: "Classer le sentiment d'un avis client (sortie sous forme de note en étoiles)."
-    exemples:
-      - label: "Avis positif"
-        input: "Le sinistre a été traité en 48h, un conseiller très clair, je recommande."
-      - label: "Avis négatif"
-        input: "Trois relances sans réponse, dossier toujours bloqué, très déçu."
-      - label: "Avis mitigé"
-        input: "Le prix est correct mais le délai de traitement est vraiment trop long."
-  statut: disponible
+  taille: 68 millions de paramètres (distillé)
+  description_pedagogique: 'Contrairement aux modèles génératifs, un encodeur comme CamemBERT ne "rédige"
+    rien : il lit un texte en entier puis rend une seule étiquette (ici une note de 1 à 5 étoiles). Modèle
+    souverain français (Inria/CNRS), beaucoup plus rapide et léger qu''un LLM pour cette tâche précise
+    — utile pour trier des avis clients ou des réclamations d''assurance.
 
+    '
+  cas_usage:
+    enonce: Classer le sentiment d'un avis client (sortie sous forme de note en étoiles).
+    exemples:
+    - label: Avis positif
+      input: Le sinistre a été traité en 48h, un conseiller très clair, je recommande.
+    - label: Avis négatif
+      input: Trois relances sans réponse, dossier toujours bloqué, très déçu.
+    - label: Avis mitigé
+      input: Le prix est correct mais le délai de traitement est vraiment trop long.
+    - label: Avis très positif sur un logement
+      input: L'appartement était impeccable, exactement conforme aux photos, et l'hôte a répondu à toutes
+        nos questions en quelques minutes.
+    - label: Réclamation neutre à négative
+      input: Le colis est arrivé avec deux jours de retard et l'emballage était abîmé, mais le produit
+        fonctionne normalement.
+    idees_usage:
+    - Prioriser automatiquement les tickets de support en repérant les messages les plus négatifs à traiter
+      en urgence.
+    - Suivre l'évolution mensuelle de la satisfaction sur les avis Google d'un réseau d'agences.
+    - Alerter un community manager quand un commentaire très négatif est posté sur les réseaux sociaux.
+    - Filtrer les réponses à une enquête de satisfaction interne pour cibler les équipes en difficulté.
+    - Comparer la tonalité des retours entre deux versions d'une application avant et après une mise à
+      jour.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/cmarkea/distilcamembert-base-sentiment
+  mode_emploi: pip install transformers torch, puis charger avec `AutoModelForSequenceClassification.from_pretrained("cmarkea/distilcamembert-base-sentiment")`
+    (+ le tokenizer associé). Les poids sont téléchargés automatiquement au premier lancement et mis en
+    cache localement (~/.cache/huggingface).
 - id: helsinki-traduction
-  nom: "Helsinki-NLP OPUS-MT (FR→EN)"
+  nom: Helsinki-NLP OPUS-MT (FR→EN)
   famille: traduction
   secteur: International / export
   moteur: transformers
   moteur_ref: Helsinki-NLP/opus-mt-fr-en
-  taille: "77 millions de paramètres"
-  description_pedagogique: >
-    Un modèle de traduction dédié à une seule paire de langues (français vers anglais).
-    Beaucoup plus petit et rapide qu'un LLM généraliste utilisé pour traduire, car il n'a
-    qu'une seule tâche à apprendre.
-  cas_usage:
-    enonce: "Traduire une phrase professionnelle du français vers l'anglais."
-    exemples:
-      - label: "Devis"
-        input: "Veuillez trouver ci-joint le devis signé pour la rénovation de la toiture."
-      - label: "Relance client"
-        input: "Nous vous rappelons que votre facture est en attente de règlement depuis 15 jours."
-      - label: "Email commercial"
-        input: "Nous serions ravis de vous présenter notre nouvelle gamme de produits lors d'un rendez-vous."
-  statut: disponible
+  taille: 77 millions de paramètres
+  description_pedagogique: 'Un modèle de traduction dédié à une seule paire de langues (français vers
+    anglais). Beaucoup plus petit et rapide qu''un LLM généraliste utilisé pour traduire, car il n''a
+    qu''une seule tâche à apprendre.
 
+    '
+  cas_usage:
+    enonce: Traduire une phrase professionnelle du français vers l'anglais.
+    exemples:
+    - label: Devis
+      input: Veuillez trouver ci-joint le devis signé pour la rénovation de la toiture.
+    - label: Relance client
+      input: Nous vous rappelons que votre facture est en attente de règlement depuis 15 jours.
+    - label: Email commercial
+      input: Nous serions ravis de vous présenter notre nouvelle gamme de produits lors d'un rendez-vous.
+    - label: Confirmation de commande
+      input: Votre commande a bien été enregistrée et sera expédiée sous 48 heures ouvrées.
+    - label: Invitation à un événement
+      input: Nous avons le plaisir de vous inviter à l'inauguration de notre nouveau showroom le 15 septembre.
+    idees_usage:
+    - Traduire en quelques secondes les fiches produits d'un catalogue e-commerce avant leur mise en ligne
+      à l'international.
+    - Préparer une première version anglaise d'un mode d'emploi technique avant relecture par un traducteur.
+    - Traduire automatiquement les sous-titres d'une vidéo de formation interne pour des filiales anglophones.
+    - Générer une version anglaise rapide d'un communiqué de presse à diffuser en urgence.
+    - Faciliter les échanges d'un service achats avec des fournisseurs étrangers en traduisant les emails
+      sortants.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/Helsinki-NLP/opus-mt-fr-en
+  mode_emploi: pip install transformers torch, puis charger avec `AutoModelForSeq2SeqLM.from_pretrained("Helsinki-NLP/opus-mt-fr-en")`
+    (+ le tokenizer associé). Les poids sont téléchargés automatiquement au premier lancement et mis en
+    cache localement (~/.cache/huggingface).
 - id: barthez-resume
-  nom: "T5 (résumé automatique FR)"
+  nom: T5 (résumé automatique FR)
   famille: resume_automatique
   secteur: Presse / veille documentaire
   moteur: transformers
   moteur_ref: plguillou/t5-base-fr-sum-cnndm
-  taille: "220 millions de paramètres"
-  description_pedagogique: >
-    Comme la traduction, le résumé est une tâche "texte vers texte" : le modèle lit un
-    texte long et en génère un plus court qui garde l'essentiel. Ce modèle est un T5
-    (même famille d'architecture que beaucoup de LLM actuels) fine-tuné spécifiquement
-    sur des articles de presse français pour cette tâche.
-  cas_usage:
-    enonce: "Résumer un texte en une ou deux phrases."
-    exemples:
-      - label: "Article économique"
-        input: "L'entreprise a annoncé une hausse de 12% de son chiffre d'affaires au troisième trimestre, portée par les ventes en ligne. La direction évoque un contexte favorable malgré l'inflation, et prévoit d'ouvrir 5 nouveaux points de vente en région parisienne d'ici la fin de l'année. Les syndicats restent toutefois prudents sur les créations d'emplois annoncées."
-      - label: "Compte-rendu de réunion"
-        input: "Lors de la réunion du 12 juin, l'équipe a validé le nouveau planning de livraison pour le chantier de la rue des Lilas. Le retard de trois semaines sur le gros œuvre a été discuté et un plan de rattrapage a été proposé, avec un renfort d'équipe à partir du 20 juin. Le client a été informé et a accepté le nouveau délai."
-  statut: disponible
+  taille: 220 millions de paramètres
+  description_pedagogique: 'Comme la traduction, le résumé est une tâche "texte vers texte" : le modèle
+    lit un texte long et en génère un plus court qui garde l''essentiel. Ce modèle est un T5 (même famille
+    d''architecture que beaucoup de LLM actuels) fine-tuné spécifiquement sur des articles de presse français
+    pour cette tâche.
 
+    '
+  cas_usage:
+    enonce: Résumer un texte en une ou deux phrases.
+    exemples:
+    - label: Article économique
+      input: L'entreprise a annoncé une hausse de 12% de son chiffre d'affaires au troisième trimestre,
+        portée par les ventes en ligne. La direction évoque un contexte favorable malgré l'inflation,
+        et prévoit d'ouvrir 5 nouveaux points de vente en région parisienne d'ici la fin de l'année. Les
+        syndicats restent toutefois prudents sur les créations d'emplois annoncées.
+    - label: Compte-rendu de réunion
+      input: Lors de la réunion du 12 juin, l'équipe a validé le nouveau planning de livraison pour le
+        chantier de la rue des Lilas. Le retard de trois semaines sur le gros œuvre a été discuté et un
+        plan de rattrapage a été proposé, avec un renfort d'équipe à partir du 20 juin. Le client a été
+        informé et a accepté le nouveau délai.
+    - label: Compte-rendu de comité de direction
+      input: Le comité de direction s'est réuni ce mardi pour faire le point sur le lancement du nouveau
+        produit prévu en octobre. Les retours des tests utilisateurs sont globalement positifs, même si
+        certains bugs mineurs restent à corriger avant la mise en production. Le budget marketing a été
+        revu à la hausse de 8% pour accompagner le lancement, et une campagne sur les réseaux sociaux
+        débutera dès la première semaine de septembre. La direction a également annoncé le recrutement
+        de deux personnes supplémentaires pour renforcer l'équipe support.
+    - label: Article scientifique de vulgarisation
+      input: Une équipe de chercheurs a mis au point une nouvelle méthode de recyclage des batteries lithium-ion
+        permettant de récupérer plus de 95% des métaux critiques comme le cobalt et le nickel. Le procédé,
+        testé à échelle pilote depuis un an, consomme deux fois moins d'énergie que les techniques industrielles
+        actuelles. Les auteurs estiment qu'une industrialisation pourrait voir le jour d'ici trois à cinq
+        ans si les investissements suivent. Plusieurs constructeurs automobiles ont déjà manifesté leur
+        intérêt pour cette technologie.
+    idees_usage:
+    - Condenser un compte-rendu de comité de direction en quelques lignes pour les collaborateurs absents.
+    - Résumer automatiquement de longs rapports d'incident pour un tableau de bord de suivi qualité.
+    - Produire un résumé rapide d'articles scientifiques pour une veille technologique hebdomadaire.
+    - Synthétiser les échanges d'un long fil d'emails avant transfert à un nouveau responsable de dossier.
+    - Générer un résumé express de décisions de justice pour un cabinet d'avocats surchargé.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/plguillou/t5-base-fr-sum-cnndm
+  mode_emploi: 'pip install transformers torch, puis charger avec `AutoModelForSeq2SeqLM (préfixer le
+    texte par "summarize: ").from_pretrained("plguillou/t5-base-fr-sum-cnndm")` (+ le tokenizer associé).
+    Les poids sont téléchargés automatiquement au premier lancement et mis en cache localement (~/.cache/huggingface).'
 - id: camembert-ner
-  nom: "CamemBERT NER"
+  nom: CamemBERT NER
   famille: extraction_entites
   secteur: Juridique / RH — extraction d'informations
   moteur: transformers
   moteur_ref: Jean-Baptiste/camembert-ner
-  taille: "110 millions de paramètres"
-  description_pedagogique: >
-    Un encodeur spécialisé dans la reconnaissance d'entités nommées (NER) : il repère et
-    catégorise les personnes, lieux, organisations et dates dans un texte, sans jamais
-    rien générer. Utile pour extraire automatiquement des informations structurées d'un
-    contrat, d'un CV ou d'un compte-rendu.
-  cas_usage:
-    enonce: "Extraire les entités nommées (personnes, lieux, organisations) d'un texte."
-    exemples:
-      - label: "Contrat"
-        input: "Le contrat est signé entre Martin Dubois, domicilié à Lyon, et la société Artisans du Bâtiment SARL, représentée par Sophie Laurent."
-      - label: "Compte-rendu RH"
-        input: "Julie Petit rejoindra l'équipe de Marseille le 1er septembre, sous la responsabilité de Karim Benali, directeur régional chez Toiture Plus."
-  statut: disponible
+  taille: 110 millions de paramètres
+  description_pedagogique: 'Un encodeur spécialisé dans la reconnaissance d''entités nommées (NER) : il
+    repère et catégorise les personnes, lieux, organisations et dates dans un texte, sans jamais rien
+    générer. Utile pour extraire automatiquement des informations structurées d''un contrat, d''un CV
+    ou d''un compte-rendu.
 
+    '
+  cas_usage:
+    enonce: Extraire les entités nommées (personnes, lieux, organisations) d'un texte.
+    exemples:
+    - label: Contrat
+      input: Le contrat est signé entre Martin Dubois, domicilié à Lyon, et la société Artisans du Bâtiment
+        SARL, représentée par Sophie Laurent.
+    - label: Compte-rendu RH
+      input: Julie Petit rejoindra l'équipe de Marseille le 1er septembre, sous la responsabilité de Karim
+        Benali, directeur régional chez Toiture Plus.
+    - label: Procès-verbal d'assemblée générale
+      input: L'assemblée générale s'est tenue à Bordeaux en présence de Nicolas Faure, président de la
+        société Immo Conseil SAS, et de Laura Mercier, représentante des copropriétaires du quartier Chartrons.
+    - label: Note de service RH
+      input: À compter du 3 novembre, Thomas Girard prendra la direction de l'agence de Lille, en remplacement
+        de Camille Roy, qui rejoint le siège social à Nantes chez Bâti Services.
+    idees_usage:
+    - Extraire automatiquement les noms des parties dans des centaines de contrats pour alimenter une
+      base clients.
+    - Repérer les organisations et dates citées dans des rapports d'audit pour accélérer leur classement.
+    - Constituer un annuaire des intervenants (personnes, entreprises, villes) à partir de comptes-rendus
+      de réunions.
+    - Anonymiser des documents RH en repérant automatiquement les noms de personnes à masquer.
+    - Identifier rapidement les lieux et sociétés mentionnés dans des dépêches d'actualité pour une revue
+      de presse.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/Jean-Baptiste/camembert-ner
+  mode_emploi: pip install transformers torch, puis charger avec `AutoModelForTokenClassification.from_pretrained("Jean-Baptiste/camembert-ner")`
+    (+ le tokenizer associé). Les poids sont téléchargés automatiquement au premier lancement et mis en
+    cache localement (~/.cache/huggingface).
 - id: camembert-qa
-  nom: "CamemBERT Question-Réponse"
+  nom: CamemBERT Question-Réponse
   famille: question_reponse
   secteur: Support client / documentation
   moteur: transformers
   moteur_ref: etalab-ia/camembert-base-squadFR-fquad-piaf
-  taille: "110 millions de paramètres"
-  description_pedagogique: >
-    Un modèle de question-réponse extractive : il ne invente pas de réponse, il repère le
-    passage exact d'un texte de référence qui répond à la question posée. Très différent
-    d'un LLM qui, lui, reformule et peut inventer — ici la réponse est toujours un extrait
-    vérifiable du contexte fourni.
-  cas_usage:
-    enonce: "Répondre à une question en repérant le passage exact dans un texte de référence."
-    exemples:
-      - label: "Conditions de garantie"
-        input: "Contexte : La garantie couvre les défauts de matériaux pendant 2 ans à compter de la date d'achat. Elle ne couvre pas les dommages causés par une mauvaise utilisation. Question : Combien de temps dure la garantie ?"
-      - label: "Horaires"
-        input: "Contexte : Le service client est joignable du lundi au vendredi de 9h à 18h, sauf les jours fériés. Le samedi, seul le support en ligne est disponible. Question : Le service client répond-il le samedi ?"
-  statut: disponible
+  taille: 110 millions de paramètres
+  description_pedagogique: 'Un modèle de question-réponse extractive : il ne invente pas de réponse, il
+    repère le passage exact d''un texte de référence qui répond à la question posée. Très différent d''un
+    LLM qui, lui, reformule et peut inventer — ici la réponse est toujours un extrait vérifiable du contexte
+    fourni.
 
+    '
+  cas_usage:
+    enonce: Répondre à une question en repérant le passage exact dans un texte de référence.
+    exemples:
+    - label: Conditions de garantie
+      input: 'Contexte : La garantie couvre les défauts de matériaux pendant 2 ans à compter de la date
+        d''achat. Elle ne couvre pas les dommages causés par une mauvaise utilisation. Question : Combien
+        de temps dure la garantie ?'
+    - label: Horaires
+      input: 'Contexte : Le service client est joignable du lundi au vendredi de 9h à 18h, sauf les jours
+        fériés. Le samedi, seul le support en ligne est disponible. Question : Le service client répond-il
+        le samedi ?'
+    - label: Politique de retour produit
+      input: 'Contexte : Les articles peuvent être retournés dans un délai de 30 jours après réception,
+        à condition d''être dans leur emballage d''origine et non utilisés. Les frais de retour sont à
+        la charge du client sauf en cas de produit défectueux. Question : Quel est le délai pour retourner
+        un article ?'
+    - label: Modalités de paiement d'une facture
+      input: 'Contexte : Les factures sont payables sous 30 jours à réception. Passé ce délai, des pénalités
+        de retard de 3% par mois sont appliquées automatiquement, sans qu''un rappel soit nécessaire.
+        Question : Que se passe-t-il si le paiement est en retard ?'
+    idees_usage:
+    - Répondre automatiquement aux questions fréquentes des clients à partir d'une FAQ produit existante.
+    - Aider un agent de support à retrouver instantanément la clause exacte d'un contrat mentionnant un
+      délai.
+    - Permettre à un employé de retrouver une information précise dans un règlement intérieur sans le
+      relire entièrement.
+    - Extraire la réponse exacte à une question technique dans une documentation logicielle volumineuse.
+    - Assister un patient à retrouver une consigne précise dans une notice médicale longue et détaillée.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/etalab-ia/camembert-base-squadFR-fquad-piaf
+  mode_emploi: pip install transformers torch, puis charger avec `AutoModelForQuestionAnswering.from_pretrained("etalab-ia/camembert-base-squadFR-fquad-piaf")`
+    (+ le tokenizer associé). Les poids sont téléchargés automatiquement au premier lancement et mis en
+    cache localement (~/.cache/huggingface).
 - id: fasttext-langue
-  nom: "py3langid — détection de langue"
+  nom: py3langid — détection de langue
   famille: detection_langue
   secteur: Modération / routage multilingue
   moteur: py3langid
   moteur_ref: py3langid (modèle statistique embarqué, ~14 Mo)
-  taille: "quelques Mo (pas un LLM)"
-  description_pedagogique: >
-    L'exemple parfait qu'"IA" ne veut pas dire "gros modèle génératif" : ce modèle tient
-    en quelques mégaoctets et répond en quelques millisecondes. Il sert à détecter la
-    langue d'un texte, une brique utile avant de router vers le bon modèle spécialisé.
-  cas_usage:
-    enonce: "Détecter automatiquement la langue d'un message reçu."
-    exemples:
-      - label: "Espagnol"
-        input: "Hola, quisiera saber el estado de mi pedido."
-      - label: "Anglais"
-        input: "Hi, could you please send me an update on my order?"
-      - label: "Allemand"
-        input: "Guten Tag, wann wird meine Bestellung geliefert?"
-  statut: disponible
+  taille: quelques Mo (pas un LLM)
+  description_pedagogique: 'L''exemple parfait qu''"IA" ne veut pas dire "gros modèle génératif" : ce
+    modèle tient en quelques mégaoctets et répond en quelques millisecondes. Il sert à détecter la langue
+    d''un texte, une brique utile avant de router vers le bon modèle spécialisé.
 
+    '
+  cas_usage:
+    enonce: Détecter automatiquement la langue d'un message reçu.
+    exemples:
+    - label: Espagnol
+      input: Hola, quisiera saber el estado de mi pedido.
+    - label: Anglais
+      input: Hi, could you please send me an update on my order?
+    - label: Allemand
+      input: Guten Tag, wann wird meine Bestellung geliefert?
+    - label: Italien
+      input: Buongiorno, vorrei sapere lo stato del mio ordine, grazie.
+    - label: Portugais
+      input: Bom dia, gostaria de saber quando meu pedido será entregue.
+    idees_usage:
+    - Trier automatiquement les avis clients laissés sur une marketplace avant de les envoyer au bon service
+      de modération.
+    - Orienter un formulaire de contact vers l'équipe support parlant la langue du visiteur.
+    - Filtrer les commentaires d'un forum multilingue pour n'afficher que ceux dans la langue préférée
+      de l'utilisateur.
+    - Détecter la langue des tickets entrants dans un helpdesk pour les assigner automatiquement au bon
+      agent.
+    - Identifier la langue dominante d'un corpus de documents avant de lancer une traduction automatique
+      en masse.
+  statut: disponible
+  lien_telechargement: https://pypi.org/project/py3langid/
+  mode_emploi: pip install py3langid, puis `import py3langid as langid; langid.classify(texte)` — le modèle
+    statistique (~14 Mo) est embarqué dans le package, aucun téléchargement séparé n'est nécessaire.
 - id: yolo-vision
-  nom: "YOLOv8 (détection, nano)"
+  nom: YOLOv8 (détection, nano)
   famille: vision_detection
   secteur: Agriculture / Drone — détection depuis une vue aérienne
   moteur: ultralytics
   moteur_ref: yolov8n.pt
-  taille: "3.2 millions de paramètres"
-  description_pedagogique: >
-    Un modèle de vision par ordinateur : il ne lit pas du texte mais une image, et localise
-    des objets avec un rectangle (bounding box) + une étiquette. Base des usages "drone"
-    (repérage de personnes/véhicules) ou "agriculture" (comptage, détection sur une parcelle).
-  cas_usage:
-    enonce: "Détecter et localiser les objets visibles sur une image d'exemple fournie par l'outil."
-    exemples: []
-  statut: disponible
+  taille: 3.2 millions de paramètres
+  description_pedagogique: 'Un modèle de vision par ordinateur : il ne lit pas du texte mais une image,
+    et localise des objets avec un rectangle (bounding box) + une étiquette. Base des usages "drone" (repérage
+    de personnes/véhicules) ou "agriculture" (comptage, détection sur une parcelle).
 
+    '
+  cas_usage:
+    enonce: Détecter et localiser les objets visibles sur une image d'exemple fournie par l'outil.
+    exemples: []
+    idees_usage:
+    - 'Sécurité chantier : repérer sur une photo les casques ou gilets manquants parmi les ouvriers.'
+    - 'Retail : compter les produits présents en rayon pour repérer les ruptures de stock.'
+    - 'Sport : localiser les joueurs et le ballon sur une image de match pour des statistiques.'
+    - 'Logistique : détecter les colis sur un tapis roulant pour vérifier la continuité du flux.'
+    - 'Vidéosurveillance urbaine : détecter véhicules et piétons sur une image de caméra fixe.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8n.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: yolo-classification
-  nom: "YOLOv8 (classification, nano)"
+  nom: YOLOv8 (classification, nano)
   famille: vision_classification
   secteur: Agriculture — identification visuelle
   moteur: ultralytics
   moteur_ref: yolov8n-cls.pt
-  taille: "3 millions de paramètres"
-  description_pedagogique: >
-    Même famille d'algorithme que YOLOv8 détection, mais une tâche différente : ici le
-    modèle ne localise rien, il attribue une seule étiquette à l'image entière. C'est la
-    distinction "détection" (où sont les objets ?) vs "classification" (à quoi ressemble
-    cette image ?) — deux tâches de vision très différentes en pratique.
-  cas_usage:
-    enonce: "Classer l'image d'exemple parmi 1000 catégories génériques (modèle non spécialisé agriculture, à titre pédagogique)."
-    exemples: []
-  statut: disponible
+  taille: 3 millions de paramètres
+  description_pedagogique: 'Même famille d''algorithme que YOLOv8 détection, mais une tâche différente
+    : ici le modèle ne localise rien, il attribue une seule étiquette à l''image entière. C''est la distinction
+    "détection" (où sont les objets ?) vs "classification" (à quoi ressemble cette image ?) — deux tâches
+    de vision très différentes en pratique.
 
+    '
+  cas_usage:
+    enonce: Classer l'image d'exemple parmi 1000 catégories génériques (modèle non spécialisé agriculture,
+      à titre pédagogique).
+    exemples: []
+    idees_usage:
+    - 'Tri des déchets : classer la photo d''un objet jeté comme recyclable ou non.'
+    - 'Contrôle qualité industriel : trier d''un coup d''œil une pièce comme conforme ou défectueuse.'
+    - 'Application photo grand public : identifier le type de scène (plage, montagne, ville) pour ranger
+      un album.'
+    - 'Diagnostic agronomique simplifié : classer une feuille comme saine ou malade, à titre d''illustration.'
+    - 'Sécurité : classer globalement une image de caméra comme scène normale ou scène suspecte.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8n-cls.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: whisper-transcription
-  nom: "Whisper Tiny"
+  nom: Whisper Tiny
   famille: audio_transcription
   secteur: Service client — transcription d'appels et messages vocaux
   moteur: transformers
   moteur_ref: openai/whisper-tiny
-  taille: "39 millions de paramètres"
-  description_pedagogique: >
-    Premier modèle du catalogue qui ne lit ni texte ni image mais du son : il transforme
-    un signal audio en texte. Base des usages de transcription d'appels ou de messages
-    vocaux pour un service client, avant d'enchaîner avec un modèle de classification ou
-    un LLM sur le texte obtenu.
-  cas_usage:
-    enonce: "Transcrire un échantillon audio (fourni par l'outil, en anglais — Whisper est multilingue mais cet échantillon standard sert de test fiable)."
-    exemples: []
-  statut: disponible
+  taille: 39 millions de paramètres
+  description_pedagogique: 'Premier modèle du catalogue qui ne lit ni texte ni image mais du son : il
+    transforme un signal audio en texte. Base des usages de transcription d''appels ou de messages vocaux
+    pour un service client, avant d''enchaîner avec un modèle de classification ou un LLM sur le texte
+    obtenu.
 
+    '
+  cas_usage:
+    enonce: Transcrire un échantillon audio (fourni par l'outil, en anglais — Whisper est multilingue
+      mais cet échantillon standard sert de test fiable).
+    exemples: []
+    idees_usage:
+    - Retranscrire des mémos vocaux d'agents commerciaux pour alimenter automatiquement un CRM.
+    - Générer des sous-titres à partir d'enregistrements de webinaires ou de formations internes.
+    - Transcrire des réunions d'équipe pour produire un compte-rendu écrit consultable et indexable.
+    - Convertir des messages vocaux WhatsApp reçus par un service client en texte pour un traitement plus
+      rapide.
+    - Transformer des notes audio prises sur le terrain (chantier, visite médicale, inspection) en rapports
+      écrits.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/openai/whisper-tiny
+  mode_emploi: pip install transformers torch, puis `pipeline("automatic-speech-recognition", model=...)`
+    avec `model="openai/whisper-tiny"` (+ le tokenizer associé). Les poids sont téléchargés automatiquement
+    au premier lancement et mis en cache localement (~/.cache/huggingface).
 - id: chronos-previsions
-  nom: "Chronos Bolt (tiny)"
+  nom: Chronos Bolt (tiny)
   famille: series_temporelles
   secteur: Économie / Finance — prévision
   moteur: chronos
   moteur_ref: amazon/chronos-bolt-tiny
-  taille: "9 millions de paramètres"
-  description_pedagogique: >
-    Ici le modèle ne manipule ni texte ni image mais une courbe de chiffres dans le temps
-    (ex. chiffre d'affaires mensuel) : il apprend le motif de la courbe pour prédire les
-    valeurs suivantes. Bon exemple qu'un "modèle" peut être un tout autre type de prédicteur.
-  cas_usage:
-    enonce: "Prévoir les 6 prochains mois d'une série économique jouet à partir de son historique."
-    exemples: []
-  statut: disponible
+  taille: 9 millions de paramètres
+  description_pedagogique: 'Ici le modèle ne manipule ni texte ni image mais une courbe de chiffres dans
+    le temps (ex. chiffre d''affaires mensuel) : il apprend le motif de la courbe pour prédire les valeurs
+    suivantes. Bon exemple qu''un "modèle" peut être un tout autre type de prédicteur.
 
+    '
+  cas_usage:
+    enonce: Prévoir les 6 prochains mois d'une série économique jouet à partir de son historique.
+    exemples: []
+    idees_usage:
+    - Anticiper la demande d'un produit saisonnier pour ajuster les commandes fournisseurs à l'avance.
+    - Projeter l'évolution du trafic d'un site web afin de dimensionner les ressources serveur.
+    - Estimer la consommation électrique future d'un bâtiment pour optimiser les contrats d'énergie.
+    - Prévoir l'affluence dans un restaurant ou un magasin pour mieux planifier les plannings du personnel.
+    - Projeter l'évolution des stocks d'un entrepôt afin de déclencher les réapprovisionnements au bon
+      moment.
+  statut: disponible
+  lien_telechargement: https://huggingface.co/amazon/chronos-bolt-tiny
+  mode_emploi: pip install chronos-forecasting, puis `ChronosBoltPipeline.from_pretrained("amazon/chronos-bolt-tiny")`
+    — les poids sont téléchargés automatiquement depuis HuggingFace Hub au premier appel.
 - id: isolation-forest-maintenance
-  nom: "Isolation Forest — maintenance"
+  nom: Isolation Forest — maintenance
   famille: anomalie
   secteur: Mécanique — maintenance prédictive
   moteur: sklearn
   moteur_ref: entraîné en direct (pas de poids pré-entraînés)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Il n'existe pas de modèle "mécanique" pré-entraîné universel : le vrai cas d'usage
-    terrain (maintenance prédictive) s'apprend sur les données spécifiques d'une machine.
-    Ce modèle s'entraîne donc en direct, sous vos yeux, sur des données de capteurs
-    jouets — pont naturel vers le module 2 (entraînement).
-  cas_usage:
-    enonce: "Entraîner un détecteur d'anomalie sur des mesures vibratoires jouets et repérer les points anormaux."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Il n''existe pas de modèle "mécanique" pré-entraîné universel : le vrai cas
+    d''usage terrain (maintenance prédictive) s''apprend sur les données spécifiques d''une machine. Ce
+    modèle s''entraîne donc en direct, sous vos yeux, sur des données de capteurs jouets — pont naturel
+    vers le module 2 (entraînement).
 
+    '
+  cas_usage:
+    enonce: Entraîner un détecteur d'anomalie sur des mesures vibratoires jouets et repérer les points
+      anormaux.
+    exemples: []
+    idees_usage:
+    - Détecter une dérive anormale dans la consommation électrique d'un atelier.
+    - Repérer des cycles de production anormalement longs sur une chaîne d'assemblage.
+    - Surveiller la pression hydraulique d'une presse industrielle pour anticiper une panne.
+    - Identifier des bruits moteurs inhabituels sur une flotte de véhicules utilitaires.
+    - Repérer des relevés de température anormaux sur un compresseur frigorifique.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: isolation-forest-fraude
-  nom: "Isolation Forest — fraude bancaire"
+  nom: Isolation Forest — fraude bancaire
   famille: anomalie
   secteur: Banque — détection de fraude transactionnelle
   moteur: sklearn
   moteur_ref: entraîné en direct (mêmes principes, données différentes)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Le même algorithme que pour la maintenance mécanique, mais appliqué à un historique
-    de montants de transactions bancaires : preuve qu'un même type de modèle (détection
-    d'anomalie) sert des secteurs très différents dès lors qu'on lui donne les bonnes
-    données d'entraînement.
-  cas_usage:
-    enonce: "Entraîner un détecteur d'anomalie sur un historique de transactions et repérer les paiements suspects."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Le même algorithme que pour la maintenance mécanique, mais appliqué à un historique
+    de montants de transactions bancaires : preuve qu''un même type de modèle (détection d''anomalie)
+    sert des secteurs très différents dès lors qu''on lui donne les bonnes données d''entraînement.
 
+    '
+  cas_usage:
+    enonce: Entraîner un détecteur d'anomalie sur un historique de transactions et repérer les paiements
+      suspects.
+    exemples: []
+    idees_usage:
+    - Repérer des connexions inhabituelles à un espace client bancaire en ligne.
+    - Détecter des demandes de remboursement anormalement fréquentes en assurance.
+    - Identifier des retraits atypiques sur un réseau de distributeurs automatiques.
+    - Surveiller des virements internationaux pour repérer des montages suspects.
+    - Détecter des habitudes d'achat inhabituelles sur une carte prépayée.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: scoring-credit
-  nom: "Régression logistique — scoring crédit"
+  nom: Régression logistique — scoring crédit
   famille: classification_classique
   secteur: Banque / Assurance — scoring de risque
   moteur: sklearn
   moteur_ref: entraîné en direct (régression logistique)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Un algorithme de classification "classique" (pas un réseau de neurones) : il apprend
-    une frontière simple entre dossiers à risque et dossiers sains à partir de quelques
-    variables chiffrées. Beaucoup plus interprétable qu'un LLM — on peut dire précisément
-    quelle variable a pesé dans la décision.
-  cas_usage:
-    enonce: "Entraîner un modèle de scoring sur des dossiers jouets et évaluer le risque d'un nouveau dossier."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Un algorithme de classification "classique" (pas un réseau de neurones) :
+    il apprend une frontière simple entre dossiers à risque et dossiers sains à partir de quelques variables
+    chiffrées. Beaucoup plus interprétable qu''un LLM — on peut dire précisément quelle variable a pesé
+    dans la décision.
 
+    '
+  cas_usage:
+    enonce: Entraîner un modèle de scoring sur des dossiers jouets et évaluer le risque d'un nouveau dossier.
+    exemples: []
+    idees_usage:
+    - Évaluer le risque de résiliation d'un contrat d'assurance auto.
+    - Estimer la probabilité qu'un emprunteur rembourse un microcrédit.
+    - Scorer la solvabilité d'une entreprise candidate à un prêt professionnel.
+    - Évaluer le risque d'impayé sur un contrat de location immobilière.
+    - Estimer la probabilité de défaut sur un crédit renouvelable.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: recommandation-films
-  nom: "Factorisation de matrice (NMF) — recommandation"
+  nom: Factorisation de matrice (NMF) — recommandation
   famille: recommandation
   secteur: E-commerce / Streaming — recommandation
   moteur: sklearn
   moteur_ref: entraîné en direct (factorisation de matrice NMF)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Un système de recommandation n'est pas toujours un LLM : ici, un algorithme de
-    factorisation de matrice apprend les goûts de chaque utilisateur à partir de ses
-    notes passées, et devine celles qu'il n'a pas encore données — le principe derrière
-    "les utilisateurs qui ont aimé X ont aussi aimé Y".
-  cas_usage:
-    enonce: "Entraîner un modèle de recommandation sur une petite matrice de notes utilisateurs × films et suggérer un film."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Un système de recommandation n''est pas toujours un LLM : ici, un algorithme
+    de factorisation de matrice apprend les goûts de chaque utilisateur à partir de ses notes passées,
+    et devine celles qu''il n''a pas encore données — le principe derrière "les utilisateurs qui ont aimé
+    X ont aussi aimé Y".
 
+    '
+  cas_usage:
+    enonce: Entraîner un modèle de recommandation sur une petite matrice de notes utilisateurs × films
+      et suggérer un film.
+    exemples: []
+    idees_usage:
+    - Suggérer des morceaux de musique à partir des écoutes passées d'un auditeur.
+    - Recommander des produits sur une boutique en ligne selon les achats précédents.
+    - Suggérer des articles de blog selon les lectures d'un utilisateur.
+    - Recommander des restaurants selon les avis déjà laissés par un client.
+    - Suggérer des formations en ligne selon les cours déjà suivis.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: llama3-generaliste-8b
-  nom: "Llama 3 (8B)"
+  nom: Llama 3 (8B)
   famille: llm_generatif
   secteur: Généraliste (comparatif de taille)
   moteur: ollama
   moteur_ref: llama3:8b
-  taille: "8 milliards de paramètres"
-  description_pedagogique: >
-    Le grand frère de Llama 3.2 (3B) : même famille de modèle, plus de paramètres. À poser
-    la même question aux deux pour comparer directement l'effet de la taille sur la
-    qualité de réponse — voir aussi le Simulateur coût/latence pour comparer leur vitesse.
-  cas_usage:
-    enonce: "Comparer la qualité de réponse avec Llama 3.2 (3B) sur la même question."
-    exemples:
-      - label: "Logique en plusieurs étapes"
-        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
-      - label: "Explication scolaire"
-        input: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
-  statut: disponible
+  taille: 8 milliards de paramètres
+  description_pedagogique: 'Le grand frère de Llama 3.2 (3B) : même famille de modèle, plus de paramètres.
+    À poser la même question aux deux pour comparer directement l''effet de la taille sur la qualité de
+    réponse — voir aussi le Simulateur coût/latence pour comparer leur vitesse.
 
+    '
+  cas_usage:
+    enonce: Comparer la qualité de réponse avec Llama 3.2 (3B) sur la même question.
+    exemples:
+    - label: Logique en plusieurs étapes
+      input: J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient
+        5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?
+    - label: Explication scolaire
+      input: Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien.
+    - label: Synthèse d'un texte
+      input: 'Résume ce paragraphe en une seule phrase : ''Le télétravail permet de réduire les temps
+        de trajet mais complique parfois la coordination d''équipe et l''accès à certains outils internes.'''
+    - label: Rédaction d'un email professionnel
+      input: Rédige un email pour annoncer à un client un léger retard de livraison de 3 jours, en restant
+        rassurant et professionnel.
+    idees_usage:
+    - Un formateur illustre à des élèves la différence entre un petit et un grand modèle sur une tâche
+      de rédaction.
+    - Un indépendant vérifie si un modèle plus gros justifie un temps de réponse plus long pour ses emails
+      clients.
+    - Une collectivité teste plusieurs tailles de modèle avant de choisir laquelle héberger en interne.
+    - Un étudiant compare les réponses pour comprendre pourquoi les modèles IA n'ont pas tous la même
+      'intelligence'.
+    - Un développeur benchmarke la cohérence des réponses sur une tâche de synthèse de texte.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/llama3
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull llama3:8b` dans un terminal
+    — le modèle est ensuite utilisable avec `ollama run llama3:8b` en ligne de commande, ou via l'API
+    locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: mistral-7b
-  nom: "Mistral 7B Instruct"
+  nom: Mistral 7B Instruct
   famille: llm_generatif
   secteur: Généraliste (comparatif)
   moteur: ollama
   moteur_ref: mistral:7b-instruct
-  taille: "7 milliards de paramètres"
-  description_pedagogique: >
-    Encore un modèle génératif de taille comparable à Qwen 2.5 (7B), mais d'un éditeur et
-    d'un entraînement différents — la meilleure preuve qu'à taille équivalente, deux
-    modèles ne répondent jamais exactement pareil à la même question. Bon candidat pour
-    le Simulateur coût/latence en complément des trois modèles déjà comparés.
-  cas_usage:
-    enonce: "Comparer la réponse avec Qwen 2.5 (7B) sur la même question."
-    exemples:
-      - label: "Logique en plusieurs étapes"
-        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
-      - label: "Comparaison argumentée"
-        input: "Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés."
-  statut: disponible
+  taille: 7 milliards de paramètres
+  description_pedagogique: 'Encore un modèle génératif de taille comparable à Qwen 2.5 (7B), mais d''un
+    éditeur et d''un entraînement différents — la meilleure preuve qu''à taille équivalente, deux modèles
+    ne répondent jamais exactement pareil à la même question. Bon candidat pour le Simulateur coût/latence
+    en complément des trois modèles déjà comparés.
 
+    '
+  cas_usage:
+    enonce: Comparer la réponse avec Qwen 2.5 (7B) sur la même question.
+    exemples:
+    - label: Logique en plusieurs étapes
+      input: J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient
+        5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?
+    - label: Comparaison argumentée
+      input: Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés.
+    - label: Rédaction d'un courrier type
+      input: Rédige un courrier de relance poli pour une facture impayée depuis 30 jours, à envoyer à
+        un client professionnel.
+    - label: Classification de texte
+      input: 'Classe ces 3 avis clients en ''positif'', ''négatif'' ou ''neutre'' : 1) ''Service impeccable,
+        je recommande.'' 2) ''Correct sans plus.'' 3) ''Colis reçu cassé, aucune réponse du SAV.'''
+    idees_usage:
+    - Un formateur montre que deux modèles de taille similaire peuvent donner des styles de réponse différents.
+    - Un indépendant teste plusieurs modèles pour trouver celui dont le ton correspond le mieux à sa communication.
+    - Une association compare les formulations proposées pour un courrier type avant de choisir la plus
+      adaptée.
+    - Un étudiant observe les différences de raisonnement entre deux modèles sur un même exercice de mathématiques.
+    - Un développeur évalue quel modèle est le plus fiable pour une tâche de classification de texte simple.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/mistral
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull mistral:7b-instruct` dans
+    un terminal — le modèle est ensuite utilisable avec `ollama run mistral:7b-instruct` en ligne de commande,
+    ou via l'API locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: gemma2-2b
-  nom: "Gemma 2 (2B)"
+  nom: Gemma 2 (2B)
   famille: llm_generatif
   secteur: Généraliste — modèle très léger
   moteur: ollama
   moteur_ref: gemma2:2b
-  taille: "2 milliards de paramètres"
-  description_pedagogique: >
-    Un modèle de Google, plus petit encore que Llama 3.2 (3B) : bon exemple pour voir
-    qu'un modèle "léger" reste tout à fait utilisable en pratique sur des tâches simples,
-    avec une vitesse de réponse encore meilleure — au prix de plus d'erreurs sur les
-    raisonnements longs.
-  cas_usage:
-    enonce: "Tester les limites d'un tout petit modèle sur une tâche simple vs une tâche à plusieurs étapes."
-    exemples:
-      - label: "Tâche simple"
-        input: "Rédige une phrase de bienvenue pour un nouveau client."
-      - label: "Tâche à plusieurs étapes"
-        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
-  statut: disponible
+  taille: 2 milliards de paramètres
+  description_pedagogique: 'Un modèle de Google, plus petit encore que Llama 3.2 (3B) : bon exemple pour
+    voir qu''un modèle "léger" reste tout à fait utilisable en pratique sur des tâches simples, avec une
+    vitesse de réponse encore meilleure — au prix de plus d''erreurs sur les raisonnements longs.
 
+    '
+  cas_usage:
+    enonce: Tester les limites d'un tout petit modèle sur une tâche simple vs une tâche à plusieurs étapes.
+    exemples:
+    - label: Tâche simple
+      input: Rédige une phrase de bienvenue pour un nouveau client.
+    - label: Tâche à plusieurs étapes
+      input: Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé,
+        étape par étape.
+    - label: Annonce réseaux sociaux
+      input: Rédige une courte annonce Facebook pour annoncer les soldes d'été d'une boutique de vêtements.
+    - label: Idées de titres
+      input: Propose 3 titres accrocheurs pour un exposé sur le recyclage du plastique, destiné à des
+        collégiens.
+    idees_usage:
+    - Un commerçant rédige une courte annonce pour ses réseaux sociaux sans attendre longtemps.
+    - Une association teste un modèle léger utilisable sur un vieil ordinateur pour rédiger un compte-rendu
+      de réunion.
+    - Un étudiant génère rapidement des idées de titres pour un exposé.
+    - Un artisan utilise un modèle rapide pour reformuler un SMS envoyé à un client.
+    - Une collectivité évalue si un modèle très léger suffit pour des tâches administratives simples et
+      répétitives.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/gemma2
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull gemma2:2b` dans un terminal
+    — le modèle est ensuite utilisable avec `ollama run gemma2:2b` en ligne de commande, ou via l'API
+    locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: phi3-mini
-  nom: "Phi-3 Mini"
+  nom: Phi-3 Mini
   famille: llm_generatif
   secteur: Généraliste — modèle compact orienté raisonnement
   moteur: ollama
   moteur_ref: phi3:mini
-  taille: "3.8 milliards de paramètres"
-  description_pedagogique: >
-    Un modèle de Microsoft entraîné sur des données très sélectionnées plutôt que sur un
-    immense volume brut — preuve qu'un choix rigoureux des données d'entraînement peut
-    compenser en partie une taille plus petite, une autre façon de penser la
-    "spécialisation" qu'un simple nombre de paramètres.
-  cas_usage:
-    enonce: "Comparer avec les autres petits modèles (Llama 3.2, Gemma 2) sur un même problème."
-    exemples:
-      - label: "Calcul de facturation"
-        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
-      - label: "Reformulation professionnelle"
-        input: "Reformule cette phrase de façon plus polie : 'vous devez payer maintenant sinon on arrête tout'."
-  statut: disponible
+  taille: 3.8 milliards de paramètres
+  description_pedagogique: 'Un modèle de Microsoft entraîné sur des données très sélectionnées plutôt
+    que sur un immense volume brut — preuve qu''un choix rigoureux des données d''entraînement peut compenser
+    en partie une taille plus petite, une autre façon de penser la "spécialisation" qu''un simple nombre
+    de paramètres.
 
+    '
+  cas_usage:
+    enonce: Comparer avec les autres petits modèles (Llama 3.2, Gemma 2) sur un même problème.
+    exemples:
+    - label: Calcul de facturation
+      input: Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé,
+        étape par étape.
+    - label: Reformulation professionnelle
+      input: 'Reformule cette phrase de façon plus polie : ''vous devez payer maintenant sinon on arrête
+        tout''.'
+    - label: Calcul de facturation simple
+      input: Un client a acheté 3 articles à 12,50€ et 2 articles à 7,90€, avec une remise de 10% sur
+        le total. Calcule le montant final étape par étape.
+    - label: Exercice de logique
+      input: Trois amis, Alice, Bruno et Chloé, ont chacun un âge différent. Alice est plus âgée que Bruno.
+        Chloé est la plus jeune. Bruno a 28 ans. Qui est le plus âgé et que peut-on dire de l'âge de Chloé
+        ?
+    idees_usage:
+    - Un formateur compare la qualité de raisonnement de plusieurs petits modèles sur un exercice identique.
+    - Un étudiant vérifie si un petit modèle 'bien entraîné' peut rivaliser avec un modèle plus gros sur
+      un exercice de logique.
+    - Un indépendant cherche un modèle léger mais fiable pour des calculs simples de facturation.
+    - Une association teste plusieurs petits modèles pour équiper un ordinateur peu puissant.
+    - Un développeur évalue la cohérence des réponses de plusieurs petits modèles avant d'en choisir un
+      pour un projet embarqué.
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/phi3
+  mode_emploi: Installez Ollama (ollama.com/download), puis lancez `ollama pull phi3:mini` dans un terminal
+    — le modèle est ensuite utilisable avec `ollama run phi3:mini` en ligne de commande, ou via l'API
+    locale http://localhost:11434/api/generate depuis n'importe quel langage.
 - id: minilm-embeddings
-  nom: "All-MiniLM"
+  nom: All-MiniLM
   famille: embeddings
   secteur: Recherche sémantique (le plus petit du catalogue)
   moteur: ollama
   moteur_ref: all-minilm
-  taille: "23 millions de paramètres"
-  description_pedagogique: >
-    Le plus petit modèle d'embeddings du catalogue — à comparer avec Nomic Embed (137M)
-    et Mxbai Embed (335M) sur la même paire de phrases : un score de similarité correct
-    ne nécessite pas forcément un gros modèle, mais la finesse de la représentation peut
-    varier sur des cas plus subtils.
-  cas_usage:
-    enonce: "Comparer le score de similarité avec Nomic Embed et Mxbai Embed sur la même paire de phrases."
-    exemples:
-      - label: "Synonymes"
-        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
-      - label: "Sens opposé"
-        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
-  statut: disponible
+  taille: 23 millions de paramètres
+  description_pedagogique: 'Le plus petit modèle d''embeddings du catalogue — à comparer avec Nomic Embed
+    (137M) et Mxbai Embed (335M) sur la même paire de phrases : un score de similarité correct ne nécessite
+    pas forcément un gros modèle, mais la finesse de la représentation peut varier sur des cas plus subtils.
 
+    '
+  cas_usage:
+    enonce: Comparer le score de similarité avec Nomic Embed et Mxbai Embed sur la même paire de phrases.
+    exemples:
+    - label: Synonymes
+      input: 'Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa.'
+    - label: Sens opposé
+      input: 'Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut
+        être remboursé.'
+    - label: Support technique reformulé
+      input: 'Phrase A: mon imprimante ne répond plus après la mise à jour. Phrase B: l''imprimante est
+        bloquée depuis la dernière mise à jour logicielle.'
+    - label: Phrases sans rapport
+      input: 'Phrase A: le musée ouvre une nouvelle exposition ce mois-ci. Phrase B: j''ai perdu mes clés
+        de voiture ce matin.'
+    idees_usage:
+    - 'Recherche embarquée : faire tourner une recherche sémantique sur un petit serveur ou en local,
+      sans GPU.'
+    - 'Prototypage rapide : tester une idée de moteur de recherche interne avant d''investir dans un modèle
+      plus lourd.'
+    - 'Détection de doublons à grande échelle : dédupliquer des millions de questions de FAQ avec un coût
+      de calcul minimal.'
+    - 'Regroupement de tickets support : classer un gros volume de tickets par thème en temps quasi réel
+      sur une petite machine.'
+    - 'Suggestions instantanées : proposer des résultats de recherche en temps réel dans une barre de
+      recherche interne.'
+  statut: disponible
+  lien_telechargement: https://ollama.com/library/all-minilm
+  mode_emploi: Installez Ollama (ollama.com/download), lancez `ollama pull all-minilm`, puis appelez-le
+    via l'API locale (`curl http://localhost:11434/api/embeddings -d '{"model":"all-minilm","prompt":"votre
+    texte"}'`) ou la bibliothèque Python `ollama`.
 - id: yolo-vision-small
-  nom: "YOLOv8 (détection, small)"
+  nom: YOLOv8 (détection, small)
   famille: vision_detection
   secteur: Agriculture / Drone — comparatif de taille
   moteur: ultralytics
   moteur_ref: yolov8s.pt
-  taille: "11.2 millions de paramètres"
-  description_pedagogique: >
-    La version "small" du même YOLOv8 nano vu plus haut — presque 4 fois plus de
-    paramètres. À essayer sur la même image d'exemple pour voir concrètement si la
-    détection change (objets supplémentaires détectés, confiance différente).
-  cas_usage:
-    enonce: "Comparer les détections avec la version nano sur la même image d'exemple."
-    exemples: []
-  statut: disponible
+  taille: 11.2 millions de paramètres
+  description_pedagogique: 'La version "small" du même YOLOv8 nano vu plus haut — presque 4 fois plus
+    de paramètres. À essayer sur la même image d''exemple pour voir concrètement si la détection change
+    (objets supplémentaires détectés, confiance différente).
 
+    '
+  cas_usage:
+    enonce: Comparer les détections avec la version nano sur la même image d'exemple.
+    exemples: []
+    idees_usage:
+    - 'Atelier BTP : détecter des petits objets (vis, outils) éparpillés sur un établi encombré.'
+    - 'Verger : compter des fruits individuels sur un arbre au feuillage dense.'
+    - 'Ligne de production : repérer des défauts fins sur des pièces qui défilent rapidement.'
+    - 'Drone à haute altitude : détecter des personnes plus petites dans l''image avec plus de finesse.'
+    - 'Rayon retail : distinguer deux références produits visuellement très proches.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8s.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: yolo-classification-small
-  nom: "YOLOv8 (classification, small)"
+  nom: YOLOv8 (classification, small)
   famille: vision_classification
   secteur: Agriculture — comparatif de taille
   moteur: ultralytics
   moteur_ref: yolov8s-cls.pt
-  taille: "6.4 millions de paramètres"
-  description_pedagogique: >
-    La version "small" du classifieur YOLOv8 nano vu plus haut. Comparer le top-1 des
-    deux tailles sur la même image d'exemple montre qu'un plus gros modèle peut changer
-    la catégorie prédite, pas seulement affiner un peu le score.
-  cas_usage:
-    enonce: "Comparer le top-1/top-5 avec la version nano sur la même image d'exemple."
-    exemples: []
-  statut: disponible
+  taille: 6.4 millions de paramètres
+  description_pedagogique: 'La version "small" du classifieur YOLOv8 nano vu plus haut. Comparer le top-1
+    des deux tailles sur la même image d''exemple montre qu''un plus gros modèle peut changer la catégorie
+    prédite, pas seulement affiner un peu le score.
 
+    '
+  cas_usage:
+    enonce: Comparer le top-1/top-5 avec la version nano sur la même image d'exemple.
+    exemples: []
+    idees_usage:
+    - 'Contrôle qualité : différencier des variantes très proches d''une même pièce industrielle.'
+    - 'Agriculture : distinguer plus finement les stades de maturité d''un fruit sur une photo.'
+    - 'Mode et retail : classer le style vestimentaire dominant sur une photo produit.'
+    - 'Tri industriel : classer le type de matériau visible (métal, plastique, bois) sur un poste de tri.'
+    - 'Sport : classer le type de sport pratiqué à partir d''une photo d''action.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8s-cls.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: isolation-forest-four
-  nom: "Isolation Forest — four industriel"
+  nom: Isolation Forest — four industriel
   famille: anomalie
   secteur: Industrie — surveillance de four
   moteur: sklearn
   moteur_ref: entraîné en direct (mêmes principes, données différentes)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Un troisième secteur pour le même algorithme de détection d'anomalie (après la
-    mécanique et la fraude bancaire) : la température d'un four industriel. Confirme
-    qu'un même type de modèle se transpose à des données très différentes, tant que le
-    signal (une mesure qui varie dans le temps) a la même forme statistique.
-  cas_usage:
-    enonce: "Entraîner un détecteur d'anomalie sur des mesures de température de four et repérer les écarts."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Un troisième secteur pour le même algorithme de détection d''anomalie (après
+    la mécanique et la fraude bancaire) : la température d''un four industriel. Confirme qu''un même type
+    de modèle se transpose à des données très différentes, tant que le signal (une mesure qui varie dans
+    le temps) a la même forme statistique.
 
+    '
+  cas_usage:
+    enonce: Entraîner un détecteur d'anomalie sur des mesures de température de four et repérer les écarts.
+    exemples: []
+    idees_usage:
+    - Surveiller le niveau sonore d'une ligne de production pour repérer une usure anormale.
+    - Détecter des anomalies dans la consommation d'eau d'un site industriel.
+    - Repérer des vibrations inhabituelles sur un ventilateur de refroidissement.
+    - Surveiller la qualité de l'air d'un atelier de peinture pour anticiper un dysfonctionnement.
+    - Détecter des écarts de pression anormaux dans un réseau de tuyauterie.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: scoring-pret-immobilier
-  nom: "Arbre de décision — scoring prêt immobilier"
+  nom: Arbre de décision — scoring prêt immobilier
   famille: classification_classique
   secteur: Banque — crédit immobilier
   moteur: sklearn
   moteur_ref: entraîné en direct (arbre de décision)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Un autre algorithme "classique" que la régression logistique du scoring crédit : un
-    arbre de décision. Sa décision se lit comme une suite de questions simples (ex :
-    apport &lt; 10% ET durée &gt; 25 ans → refus), encore plus directement explicable
-    qu'une régression logistique.
-  cas_usage:
-    enonce: "Entraîner un scoring de prêt immobilier sur des dossiers jouets et évaluer un nouveau dossier."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Un autre algorithme "classique" que la régression logistique du scoring crédit
+    : un arbre de décision. Sa décision se lit comme une suite de questions simples (ex : apport &lt;
+    10% ET durée &gt; 25 ans → refus), encore plus directement explicable qu''une régression logistique.
 
+    '
+  cas_usage:
+    enonce: Entraîner un scoring de prêt immobilier sur des dossiers jouets et évaluer un nouveau dossier.
+    exemples: []
+    idees_usage:
+    - Évaluer l'éligibilité d'un candidat à une bourse d'études.
+    - Scorer l'acceptation d'une demande d'assurance emprunteur.
+    - Aider à la décision d'octroi d'un découvert bancaire.
+    - Évaluer le risque d'un dossier de crédit à la consommation.
+    - Scorer la validation d'une demande de leasing automobile.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: recommandation-materiaux
-  nom: "Factorisation de matrice (NMF) — matériaux artisan"
+  nom: Factorisation de matrice (NMF) — matériaux artisan
   famille: recommandation
   secteur: BTP — recommandation de matériaux
   moteur: sklearn
   moteur_ref: entraîné en direct (factorisation de matrice NMF)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Le même algorithme que la recommandation de films, appliqué cette fois aux
-    préférences de matériaux d'un artisan à partir de ses chantiers passés — la
-    recommandation ne se limite pas au e-commerce grand public.
-  cas_usage:
-    enonce: "Entraîner un modèle de recommandation sur les matériaux déjà utilisés par un artisan et en suggérer un nouveau."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Le même algorithme que la recommandation de films, appliqué cette fois aux
+    préférences de matériaux d''un artisan à partir de ses chantiers passés — la recommandation ne se
+    limite pas au e-commerce grand public.
 
+    '
+  cas_usage:
+    enonce: Entraîner un modèle de recommandation sur les matériaux déjà utilisés par un artisan et en
+      suggérer un nouveau.
+    exemples: []
+    idees_usage:
+    - Suggérer des outils à commander selon l'historique d'achats d'un artisan.
+    - Recommander des fournisseurs selon les chantiers précédents d'une entreprise du bâtiment.
+    - Suggérer des prestations complémentaires selon les devis passés d'un client.
+    - Recommander des teintes de peinture selon les choix déjà effectués sur d'autres chantiers.
+    - Suggérer des équipements de sécurité selon les types de chantiers réalisés.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: yolo-segmentation
-  nom: "YOLOv8 (segmentation)"
+  nom: YOLOv8 (segmentation)
   famille: vision_segmentation
   secteur: BTP / Agriculture — mesure de surface
   moteur: ultralytics
   moteur_ref: yolov8n-seg.pt
-  taille: "3.4 millions de paramètres"
-  description_pedagogique: >
-    Contrairement à la détection (un simple rectangle autour de l'objet), la segmentation
-    délimite le contour exact de chaque objet, pixel par pixel. Utile dès qu'on a besoin
+  taille: 3.4 millions de paramètres
+  description_pedagogique: 'Contrairement à la détection (un simple rectangle autour de l''objet), la
+    segmentation délimite le contour exact de chaque objet, pixel par pixel. Utile dès qu''on a besoin
     de mesurer une surface réelle (une toiture, une parcelle) plutôt que juste repérer une présence.
-  cas_usage:
-    enonce: "Segmenter précisément chaque objet de l'image d'exemple (contour, pas juste un rectangle)."
-    exemples: []
-  statut: disponible
 
+    '
+  cas_usage:
+    enonce: Segmenter précisément chaque objet de l'image d'exemple (contour, pas juste un rectangle).
+    exemples: []
+    idees_usage:
+    - 'Toiture : mesurer la surface exacte d''un toit à partir d''une photo aérienne pour établir un devis.'
+    - 'Parcelle agricole : délimiter précisément la zone cultivée pour estimer un rendement.'
+    - 'Contrôle industriel : isoler le contour exact d''une pièce sur une chaîne pour vérifier ses dimensions.'
+    - 'Environnement : cartographier la surface d''une zone forestière ou d''un plan d''eau sur une image
+      satellite.'
+    - 'E-commerce : détourer automatiquement un produit sur une photo pour l''intégrer à une fiche catalogue.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8n-seg.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: yolo-pose
-  nom: "YOLOv8 (estimation de pose)"
+  nom: YOLOv8 (estimation de pose)
   famille: vision_pose
   secteur: BTP / Industrie — sécurité au travail
   moteur: ultralytics
   moteur_ref: yolov8n-pose.pt
-  taille: "3.3 millions de paramètres"
-  description_pedagogique: >
-    Une tâche de vision différente de la détection ou la classification : repérer les
-    points clés du corps humain (épaules, coudes, genoux...). Base de nombreux usages de
-    sécurité au travail (détecter une chute, une position à risque) ou de sport.
-  cas_usage:
-    enonce: "Repérer les points clés du corps des personnes visibles sur une photo d'exemple."
-    exemples: []
-  statut: disponible
+  taille: 3.3 millions de paramètres
+  description_pedagogique: 'Une tâche de vision différente de la détection ou la classification : repérer
+    les points clés du corps humain (épaules, coudes, genoux...). Base de nombreux usages de sécurité
+    au travail (détecter une chute, une position à risque) ou de sport.
 
+    '
+  cas_usage:
+    enonce: Repérer les points clés du corps des personnes visibles sur une photo d'exemple.
+    exemples: []
+    idees_usage:
+    - 'Sport : analyser la posture d''un athlète pour corriger sa technique de course ou de saut.'
+    - 'Manutention industrielle : détecter une posture à risque (dos courbé) lors du port de charges.'
+    - 'Rééducation : suivre l''amplitude des mouvements d''un patient pendant un exercice.'
+    - 'Étude ergonomique retail : analyser la posture des clients devant un rayon.'
+    - 'Maintien à domicile : détecter la chute d''une personne âgée sur une image de caméra.'
+  statut: disponible
+  lien_telechargement: https://docs.ultralytics.com/models/yolov8/
+  mode_emploi: pip install ultralytics, puis `from ultralytics import YOLO; model = YOLO("yolov8n-pose.pt")`
+    — les poids se téléchargent automatiquement au premier appel depuis les serveurs Ultralytics/GitHub.
 - id: kmeans-clustering-clients
-  nom: "KMeans — segmentation de clientèle"
+  nom: KMeans — segmentation de clientèle
   famille: clustering
   secteur: Artisanat — segmentation de clientèle
   moteur: sklearn
   moteur_ref: entraîné en direct (KMeans, non supervisé)
-  taille: "algorithme classique, pas un réseau de neurones"
-  description_pedagogique: >
-    Différence fondamentale avec le scoring crédit ou la classification classique : ici
-    aucune étiquette n'est fournie au modèle. Il découvre lui-même des groupes de clients
-    cohérents à partir de leurs seules habitudes (montant moyen, fréquence), sans qu'on
-    lui dise à l'avance ce que ces groupes représentent.
-  cas_usage:
-    enonce: "Découvrir automatiquement des groupes de clients à partir de leurs habitudes d'achat, sans étiquette fournie."
-    exemples: []
-  statut: disponible
+  taille: algorithme classique, pas un réseau de neurones
+  description_pedagogique: 'Différence fondamentale avec le scoring crédit ou la classification classique
+    : ici aucune étiquette n''est fournie au modèle. Il découvre lui-même des groupes de clients cohérents
+    à partir de leurs seules habitudes (montant moyen, fréquence), sans qu''on lui dise à l''avance ce
+    que ces groupes représentent.
 
+    '
+  cas_usage:
+    enonce: Découvrir automatiquement des groupes de clients à partir de leurs habitudes d'achat, sans
+      étiquette fournie.
+    exemples: []
+    idees_usage:
+    - Segmenter des patients selon leurs habitudes de consultation médicale.
+    - Regrouper des produits d'un catalogue selon leurs caractéristiques de vente.
+    - Segmenter des quartiers selon des indicateurs socio-économiques.
+    - Regrouper des salariés selon leurs profils de compétences.
+    - Segmenter des fournisseurs selon leurs délais et volumes de livraison.
+  statut: disponible
+  lien_telechargement: https://scikit-learn.org/stable/
+  mode_emploi: 'pip install scikit-learn — pas de poids à télécharger : ce modèle s''entraîne en quelques
+    secondes, en direct, sur vos propres données (voir « Poids / données » ci-dessus pour l''algorithme
+    exact utilisé).'
 - id: resnet-similarite-image
-  nom: "ResNet-18 — similarité visuelle"
+  nom: ResNet-18 — similarité visuelle
   famille: recherche_image
   secteur: E-commerce / Immobilier — recherche visuelle
   moteur: torchvision
   moteur_ref: resnet18 (ImageNet)
-  taille: "11.7 millions de paramètres"
-  description_pedagogique: >
-    L'équivalent visuel des embeddings de texte (module Embeddings) : chaque image est
-    transformée en un vecteur de nombres qui capture son contenu visuel, ce qui permet de
-    comparer deux images par leur sens plutôt que pixel par pixel — base de la recherche
-    d'image ("trouver des produits similaires à cette photo").
-  cas_usage:
-    enonce: "Comparer la similarité visuelle de deux images d'exemple via leurs vecteurs."
-    exemples: []
-  statut: disponible
+  taille: 11.7 millions de paramètres
+  description_pedagogique: 'L''équivalent visuel des embeddings de texte (module Embeddings) : chaque
+    image est transformée en un vecteur de nombres qui capture son contenu visuel, ce qui permet de comparer
+    deux images par leur sens plutôt que pixel par pixel — base de la recherche d''image ("trouver des
+    produits similaires à cette photo").
 
+    '
+  cas_usage:
+    enonce: Comparer la similarité visuelle de deux images d'exemple via leurs vecteurs.
+    exemples: []
+    idees_usage:
+    - Retrouver un article de mode dont on n'a que la photo, sans en connaître la référence exacte
+    - Regrouper automatiquement des milliers de photos d'un catalogue par similarité visuelle plutôt que
+      par catégorie déclarée
+    - Repérer des doublons ou quasi-doublons d'images dans une base de médiathèque d'entreprise
+    - Suggérer des biens immobiliers au style architectural proche à partir d'une photo de façade
+    - Détecter des visuels de produits contrefaits proches d'un modèle original dans une marketplace
+  statut: disponible
+  lien_telechargement: https://pytorch.org/vision/stable/models/resnet.html
+  mode_emploi: pip install torch torchvision, puis `torchvision.models.resnet18(weights='IMAGENET1K_V1')`
+    — les poids sont téléchargés automatiquement depuis download.pytorch.org au premier appel.
 - id: tesseract-ocr
-  nom: "Tesseract OCR"
+  nom: Tesseract OCR
   famille: ocr
   secteur: Comptabilité / Administratif — numérisation de documents
   moteur: tesseract
   moteur_ref: tesseract-ocr (moteur classique, pas un LLM)
-  taille: "quelques dizaines de Mo (modèle de reconnaissance de caractères, pas un LLM)"
-  description_pedagogique: >
-    Extraire le texte contenu dans une image (une facture scannée, une photo de document)
-    plutôt que de le taper à la main. Un moteur mature et éprouvé plutôt qu'un tout
-    nouveau modèle — bon rappel que beaucoup d'IA utile au quotidien n'est pas un LLM.
-  cas_usage:
-    enonce: "Extraire le texte d'une image de facture générée automatiquement pour l'exemple."
-    exemples: []
-  statut: disponible
+  taille: quelques dizaines de Mo (modèle de reconnaissance de caractères, pas un LLM)
+  description_pedagogique: 'Extraire le texte contenu dans une image (une facture scannée, une photo de
+    document) plutôt que de le taper à la main. Un moteur mature et éprouvé plutôt qu''un tout nouveau
+    modèle — bon rappel que beaucoup d''IA utile au quotidien n''est pas un LLM.
 
+    '
+  cas_usage:
+    enonce: Extraire le texte d'une image de facture générée automatiquement pour l'exemple.
+    exemples: []
+    idees_usage:
+    - Reverser automatiquement une pile de tickets de caisse papier dans un tableur de notes de frais
+    - Extraire les références et quantités d'un bon de livraison photographié depuis un entrepôt
+    - Numériser d'anciens registres ou courriers papier pour les rendre recherchables dans une archive
+    - Récupérer le texte d'une carte de visite prise en photo pour l'ajouter à un carnet de contacts
+    - Convertir des relevés bancaires scannés en lignes exploitables pour un rapprochement comptable
+  statut: disponible
+  lien_telechargement: https://github.com/tesseract-ocr/tesseract
+  mode_emploi: Installez le paquet système (`sudo apt install tesseract-ocr tesseract-ocr-fra` sous Debian/Ubuntu,
+    un paquet Homebrew équivalent sous macOS), puis `pip install pytesseract` pour l'appeler depuis Python.
 - id: espeak-tts
-  nom: "eSpeak NG — synthèse vocale"
+  nom: eSpeak NG — synthèse vocale
   famille: synthese_vocale
   secteur: Accessibilité — lecture à voix haute
   moteur: espeak-ng
   moteur_ref: espeak-ng (moteur à règles phonétiques, pas un réseau de neurones)
-  taille: "quelques Mo (pas un réseau de neurones)"
-  description_pedagogique: >
-    L'inverse de Whisper (texte → son au lieu de son → texte). Ce moteur classique
-    (règles phonétiques codées à la main) est très léger et rapide, avec une voix
-    nettement plus robotique qu'un moteur neuronal moderne — bon exemple pour discuter du
-    compromis légèreté/qualité, au-delà du seul cas des LLM.
+  taille: quelques Mo (pas un réseau de neurones)
+  description_pedagogique: 'L''inverse de Whisper (texte → son au lieu de son → texte). Ce moteur classique
+    (règles phonétiques codées à la main) est très léger et rapide, avec une voix nettement plus robotique
+    qu''un moteur neuronal moderne — bon exemple pour discuter du compromis légèreté/qualité, au-delà
+    du seul cas des LLM.
+
+    '
   cas_usage:
-    enonce: "Convertir un texte libre en audio (voix synthétique)."
+    enonce: Convertir un texte libre en audio (voix synthétique).
     exemples:
-      - label: "Message d'accueil"
-        input: "Bienvenue chez nous, comment puis-je vous aider aujourd'hui ?"
-      - label: "Rappel de rendez-vous"
-        input: "Nous vous rappelons votre rendez-vous demain à quatorze heures."
+    - label: Message d'accueil
+      input: Bienvenue chez nous, comment puis-je vous aider aujourd'hui ?
+    - label: Rappel de rendez-vous
+      input: Nous vous rappelons votre rendez-vous demain à quatorze heures.
+    - label: Alerte de sécurité
+      input: Attention, évacuation immédiate du bâtiment, dirigez-vous vers la sortie la plus proche.
+    - label: Annonce d'embarquement
+      input: Le vol à destination de Marseille est maintenant ouvert à l'embarquement porte douze.
+    idees_usage:
+    - Faire lire à voix haute les consignes de sécurité d'un site industriel pour les opérateurs mains
+      occupées
+    - Annoncer automatiquement les numéros de tickets dans une file d'attente en mairie ou en pharmacie
+    - Donner une voix aux notifications d'un logiciel métier pour les utilisateurs malvoyants
+    - Lire les messages d'un chatbot interne à un ouvrier casqué qui ne peut pas regarder un écran
+    - Sonoriser les alertes d'un tableau de bord de supervision pour qu'elles soient perçues sans regarder
+      l'écran
   statut: disponible
+  lien_telechargement: https://github.com/espeak-ng/espeak-ng
+  mode_emploi: Installez le paquet système (`sudo apt install espeak-ng`), puis appelez-le en ligne de
+    commande (`espeak-ng -v fr "texte"`) ou via `subprocess` en Python.

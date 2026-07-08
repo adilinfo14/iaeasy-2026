@@ -266,6 +266,25 @@ button:disabled {
   font-size: 0.85rem;
 }
 
+.drawer-installation {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.drawer-installation code {
+  background: var(--bg);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+  font-size: 0.85rem;
+}
+
+.drawer-installation a {
+  display: inline-block;
+  margin-top: 0.4rem;
+  color: var(--accent);
+}
+
 .drawer textarea {
   width: 100%;
   min-height: 160px;

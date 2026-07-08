@@ -49,6 +49,17 @@ export default function ModelDetailDrawer({ modele, onFermer }: Props) {
         <h4>Cas d'usage</h4>
         <p>{modele.cas_usage.enonce}</p>
 
+        {modele.cas_usage.idees_usage?.length > 0 && (
+          <>
+            <h4>Idées pour s'en inspirer</h4>
+            <ul className="liste-simple">
+              {modele.cas_usage.idees_usage.map((idee: string, i: number) => (
+                <li key={i}>{idee}</li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {necessiteTexte && (
           <>
             <div className="exemples-chips">
@@ -72,6 +83,21 @@ export default function ModelDetailDrawer({ modele, onFermer }: Props) {
 
         {erreur && <div className="erreur">{erreur}</div>}
         {resultat && <ResultRenderer resultat={resultat} />}
+
+        {(modele.lien_telechargement || modele.mode_emploi) && (
+          <div className="drawer-installation">
+            <h4>Installer / utiliser ce modèle chez soi</h4>
+            <p className="texte-muted">
+              Référence technique : <code>{modele.moteur_ref}</code>
+            </p>
+            {modele.mode_emploi && <p>{modele.mode_emploi}</p>}
+            {modele.lien_telechargement && (
+              <a href={modele.lien_telechargement} target="_blank" rel="noopener noreferrer">
+                📥 Page du modèle / téléchargement
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
