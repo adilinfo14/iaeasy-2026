@@ -12,13 +12,17 @@ from .stats.router import router as stats_router
 from .strategie_test.router import router as strategie_test_router
 from .training.router import router as training_router
 
-app = FastAPI(title="iaeasy — plateforme pédagogique IA")
+# Documentation interactive désactivée en production : le SPA React ne l'utilise jamais et
+# elle ne fait qu'élargir la surface de reconnaissance pour un visiteur non prévu.
+app = FastAPI(title="iaeasy — plateforme pédagogique IA", docs_url=None, redoc_url=None, openapi_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Le frontend est servi par ce même processus (même origine) : cette liste ne sert qu'à
+    # d'éventuels appels croisés explicites, jamais au fonctionnement normal du site.
+    allow_origins=["https://iaeasy.noschoixpourvous.com"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 app.include_router(catalogue_router, prefix="/api")

@@ -20,8 +20,13 @@ def get_debloquees() -> list[str]:
     return sorted(_lire())
 
 
+_MAX_BRIQUES = 1000
+
+
 def debloquer(brique_id: str) -> list[str]:
     debloquees = _lire()
+    if brique_id not in debloquees and len(debloquees) >= _MAX_BRIQUES:
+        return sorted(debloquees)
     debloquees.add(brique_id)
     _ecrire(debloquees)
     return sorted(debloquees)

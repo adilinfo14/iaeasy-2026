@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import engine
 from .architecture import get_composants, get_templates
@@ -9,19 +9,19 @@ router = APIRouter(prefix="/agents", tags=["agents"])
 
 
 class Noeud(BaseModel):
-    id: str
-    type: str
+    id: str = Field(max_length=64)
+    type: str = Field(max_length=64)
     config: dict = {}
 
 
 class Arete(BaseModel):
-    source: str
-    target: str
+    source: str = Field(max_length=64)
+    target: str = Field(max_length=64)
 
 
 class GrapheRequest(BaseModel):
-    nodes: list[Noeud]
-    edges: list[Arete]
+    nodes: list[Noeud] = Field(max_length=20)
+    edges: list[Arete] = Field(max_length=40)
 
 
 @router.get("/briques")

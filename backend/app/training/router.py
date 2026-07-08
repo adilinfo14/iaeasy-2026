@@ -3,7 +3,7 @@ import json
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import trainer
 
@@ -11,11 +11,11 @@ router = APIRouter(prefix="/training", tags=["training"])
 
 
 class DemarrerRequest(BaseModel):
-    scenario_id: str
+    scenario_id: str = Field(max_length=64)
 
 
 class TesterRequest(BaseModel):
-    entree: str | None = None
+    entree: str | None = Field(default=None, max_length=500)
 
 
 @router.get("/scenarios")

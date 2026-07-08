@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Exemple(BaseModel):
@@ -25,4 +25,4 @@ class ModelCard(BaseModel):
 
 
 class EssaiRequest(BaseModel):
-    input_text: str | None = None
+    input_text: str | None = Field(default=None, max_length=2000)

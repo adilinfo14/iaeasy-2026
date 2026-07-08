@@ -23,18 +23,39 @@ _OPS = {
     ast.USub: operator.neg,
 }
 
+# Cette calculatrice est appelée en synchrone dans une boucle asyncio mono-worker : un calcul
+# trop coûteux (ex: un exposant énorme sur un grand entier) bloquerait le processus entier pour
+# TOUS les visiteurs, pas seulement l'auteur de la requête. D'où ces bornes strictes.
+_LONGUEUR_MAX_EXPRESSION = 200
+_MAGNITUDE_MAX = 10**12
+_EXPOSANT_MAX = 64
+
+
+def _nombre_valide(valeur) -> bool:
+    return isinstance(valeur, (int, float)) and not isinstance(valeur, bool) and abs(valeur) <= _MAGNITUDE_MAX
+
 
 def _eval_noeud(noeud):
     if isinstance(noeud, ast.Constant):
+        if not _nombre_valide(noeud.value):
+            raise ValueError("Seuls des nombres raisonnables (|x| ≤ 10^12) sont autorisés")
         return noeud.value
     if isinstance(noeud, ast.BinOp) and type(noeud.op) in _OPS:
-        return _OPS[type(noeud.op)](_eval_noeud(noeud.left), _eval_noeud(noeud.right))
+        gauche, droite = _eval_noeud(noeud.left), _eval_noeud(noeud.right)
+        if isinstance(noeud.op, ast.Pow) and abs(droite) > _EXPOSANT_MAX:
+            raise ValueError(f"Exposant trop grand (max {_EXPOSANT_MAX})")
+        resultat = _OPS[type(noeud.op)](gauche, droite)
+        if not _nombre_valide(resultat):
+            raise ValueError("Résultat intermédiaire trop grand (|x| ≤ 10^12)")
+        return resultat
     if isinstance(noeud, ast.UnaryOp) and type(noeud.op) in _OPS:
         return _OPS[type(noeud.op)](_eval_noeud(noeud.operand))
     raise ValueError("Expression non supportée (seuls +,-,*,/,** sur des nombres sont autorisés)")
 
 
 def calculatrice(expression: str) -> dict:
+    if not isinstance(expression, str) or len(expression) > _LONGUEUR_MAX_EXPRESSION:
+        return {"ok": False, "resultat": None, "erreur": f"Expression trop longue (max {_LONGUEUR_MAX_EXPRESSION} caractères)"}
     try:
         arbre = ast.parse(expression, mode="eval").body
         resultat = _eval_noeud(arbre)

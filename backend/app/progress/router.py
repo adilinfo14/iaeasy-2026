@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Path
 
 from . import store
 
@@ -11,5 +11,5 @@ def lire():
 
 
 @router.post("/debloquer/{brique_id}")
-def debloquer(brique_id: str):
+def debloquer(brique_id: str = Path(max_length=64)):
     return {"debloquees": store.debloquer(brique_id)}

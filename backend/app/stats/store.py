@@ -5,6 +5,11 @@ from ..core.config import settings
 
 _FICHIER = Path(settings.data_dir) / "visiteurs.json"
 
+# Plafond défensif : au-delà, on arrête d'accepter de nouveaux identifiants (un vrai visiteur
+# unique de plus ne changera rien de notable à l'affichage) pour empêcher un abus scripté de
+# gonfler indéfiniment ce fichier (déni de service par remplissage disque).
+_MAX_VISITEURS = 500_000
+
 
 def _lire() -> set[str]:
     if not _FICHIER.exists():
@@ -18,6 +23,8 @@ def _ecrire(visiteurs: set[str]) -> None:
 
 def enregistrer_visiteur(visiteur_id: str) -> int:
     visiteurs = _lire()
+    if visiteur_id not in visiteurs and len(visiteurs) >= _MAX_VISITEURS:
+        return len(visiteurs)
     visiteurs.add(visiteur_id)
     _ecrire(visiteurs)
     return len(visiteurs)

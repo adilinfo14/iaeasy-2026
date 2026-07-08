@@ -292,9 +292,30 @@ def _entrainer(job_id: str, scenario_id: str) -> None:
         _jobs[job_id]["erreur"] = str(exc)
 
 
+# Chaque entraînement démarre un vrai thread CPU-intensif (fine-tuning CamemBERT ou équivalent).
+# Sans plafond, un visiteur pourrait en lancer un nombre illimité en boucle et saturer le
+# homelab partagé (qui héberge aussi d'autres services). _MAX_JOBS_CONSERVES borne aussi la
+# mémoire du dict _jobs, qui sinon grossirait indéfiniment sur la durée de vie du process.
+_MAX_JOBS_CONCURRENTS = 3
+_MAX_JOBS_CONSERVES = 100
+
+
 def demarrer_entrainement(scenario_id: str) -> str:
     if scenario_id not in SCENARIOS:
         raise ValueError(f"Scénario inconnu : {scenario_id}")
+
+    en_cours = sum(1 for j in _jobs.values() if j["status"] == "en_cours")
+    if en_cours >= _MAX_JOBS_CONCURRENTS:
+        raise ValueError(
+            f"Trop d'entraînements en cours ({en_cours}/{_MAX_JOBS_CONCURRENTS}). "
+            "Réessayez dans quelques instants."
+        )
+
+    if len(_jobs) >= _MAX_JOBS_CONSERVES:
+        plus_ancien = next(iter(_jobs))
+        _jobs.pop(plus_ancien, None)
+        _modeles_entraines.pop(plus_ancien, None)
+
     job_id = uuid.uuid4().hex[:8]
     avant = _evaluer_avant(scenario_id)
     _jobs[job_id] = {

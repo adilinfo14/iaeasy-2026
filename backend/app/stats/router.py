@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import store
 
@@ -7,7 +7,7 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 
 
 class VisiteurRequest(BaseModel):
-    visiteur_id: str
+    visiteur_id: str = Field(min_length=1, max_length=64)
 
 
 @router.post("/visiteur")

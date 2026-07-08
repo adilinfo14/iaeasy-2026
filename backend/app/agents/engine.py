@@ -6,6 +6,29 @@ from . import tools
 MODELE_LLM = "qwen2.5:7b-instruct"
 MODELE_EMBED = "nomic-embed-text"
 
+# Liste blanche stricte : le graphe est piloté par un payload JSON librement modifiable par
+# l'appelant (config par nœud), donc rien n'empêche d'y glisser le nom d'un modèle non prévu —
+# notamment le 70B présent sur l'Ollama partagé du homelab mais volontairement écarté ailleurs
+# pour sa lourdeur. Sans ce filtre, un appel direct à /api/agents/run pourrait forcer son
+# chargement et dégrader tous les autres services du serveur.
+_MODELES_AUTORISES = {"qwen2.5:7b-instruct", "llama3.2:3b", "deepseek-coder:6.7b"}
+
+
+def _modele_valide(config: dict, cle: str, defaut: str) -> str:
+    valeur = config.get(cle)
+    return valeur if valeur in _MODELES_AUTORISES else defaut
+
+
+# Longueur max d'un champ texte libre (prompt, document...) injecté dans un appel Ollama —
+# évite qu'un payload énorme ne ralentisse ou ne fasse échouer le modèle partagé.
+_LONGUEUR_MAX_TEXTE = 4000
+
+
+def _texte_borne(valeur, defaut: str) -> str:
+    if not isinstance(valeur, str) or not valeur.strip():
+        return defaut
+    return valeur[:_LONGUEUR_MAX_TEXTE]
+
 _MINI_CORPUS_RAG = tools._MINI_CORPUS
 
 _MOTS_BLOQUES = ["pirater", "arnaque", "contourner la loi", "fabriquer une arme"]
@@ -81,8 +104,8 @@ def _executer_outil(nom: str, arguments: dict) -> str:
 
 
 async def _handler_llm_seul(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    prompt = config.get("prompt") or contexte.get("prompt") or "Explique en une phrase ce qu'est un agent IA."
-    modele = config.get("modele", MODELE_LLM)
+    prompt = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Explique en une phrase ce qu'est un agent IA.")
+    modele = _modele_valide(config, "modele", MODELE_LLM)
     reponse = await ollama.generate(modele, prompt)
     etapes.append({"brique": "llm_seul", "detail": f"Prompt envoyé à {modele} : « {prompt} »"})
     contexte["derniere_reponse"] = reponse
@@ -90,13 +113,13 @@ async def _handler_llm_seul(config: dict, contexte: dict, etapes: list[dict]) ->
 
 
 async def _handler_rag(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    requete = config.get("prompt") or contexte.get("prompt") or "Qu'est-ce que MCP ?"
+    requete = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Qu'est-ce que MCP ?")
     vecteur_requete = await ollama.embed(MODELE_EMBED, requete)
 
     corpus = list(_MINI_CORPUS_RAG)
     document_utilisateur = config.get("document_utilisateur")
-    if document_utilisateur:
-        corpus.append(document_utilisateur)
+    if isinstance(document_utilisateur, str) and document_utilisateur.strip():
+        corpus.append(document_utilisateur[:_LONGUEUR_MAX_TEXTE])
 
     meilleur_passage, meilleur_score = corpus[0], -1.0
     for passage in corpus:
@@ -124,14 +147,14 @@ async def _handler_rag(config: dict, contexte: dict, etapes: list[dict]) -> dict
 async def _handler_outil_mcp(config: dict, contexte: dict, etapes: list[dict]) -> dict:
     outil = config.get("outil", "recherche")
     if outil == "calculatrice":
-        expression = config.get("expression", "2 + 2")
+        expression = _texte_borne(config.get("expression"), "2 + 2")[:200]
         resultat = tools.calculatrice(expression)
         etapes.append(
             {"brique": "outil_mcp", "detail": f"Outil MCP 'calculer' sur « {expression} » -> {resultat}"}
         )
         contexte["resultat_outil"] = resultat
     else:
-        requete = config.get("prompt") or contexte.get("prompt") or "MCP"
+        requete = _texte_borne(config.get("prompt") or contexte.get("prompt"), "MCP")
         resultat = tools.recherche_mini_corpus(requete)
         etapes.append(
             {
@@ -144,7 +167,7 @@ async def _handler_outil_mcp(config: dict, contexte: dict, etapes: list[dict]) -
 
 
 async def _handler_agent_unique(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    tache = config.get("prompt") or contexte.get("prompt") or "Combien font 12 fois (3+4) ?"
+    tache = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Combien font 12 fois (3+4) ?")
     passages = contexte.get("passages_retrouves")
     if passages:
         tache = "Contexte documentaire disponible :\n" + "\n".join(passages) + f"\n\nTâche : {tache}"
@@ -185,7 +208,7 @@ async def _handler_agent_unique(config: dict, contexte: dict, etapes: list[dict]
 
 
 async def _handler_multi_agent(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    tache = config.get("prompt") or contexte.get("prompt") or "Résume ce qu'est le RAG pour un débutant."
+    tache = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Résume ce qu'est le RAG pour un débutant.")
 
     messages_chercheur = [
         {
@@ -229,7 +252,7 @@ async def _handler_multi_agent(config: dict, contexte: dict, etapes: list[dict])
 
 
 async def _handler_source_document(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    texte = config.get("texte") or (
+    texte = _texte_borne(config.get("texte"), None) or (
         "La garantie décennale couvre les dommages de gros œuvre pendant 10 ans après réception. "
         "La garantie biennale couvre les équipements dissociables (chauffe-eau, volets) pendant 2 ans. "
         "Le paiement se fait en 3 fois : 30% à la commande, 40% à mi-chantier, 30% à la réception. "
@@ -256,7 +279,10 @@ def _decouper_en_chunks(document: str, taille: int = 120) -> list[str]:
 
 async def _handler_chunking(config: dict, contexte: dict, etapes: list[dict]) -> dict:
     document = contexte.get("document", "")
-    chunks = _decouper_en_chunks(document, config.get("taille_chunk", 120))
+    taille_chunk = config.get("taille_chunk", 120)
+    if not isinstance(taille_chunk, (int, float)) or isinstance(taille_chunk, bool) or not (20 <= taille_chunk <= 2000):
+        taille_chunk = 120
+    chunks = _decouper_en_chunks(document, int(taille_chunk))
     etapes.append({"brique": "chunking", "detail": f"Document découpé en {len(chunks)} morceaux (chunks)."})
     contexte["chunks"] = chunks
     return contexte
@@ -264,7 +290,7 @@ async def _handler_chunking(config: dict, contexte: dict, etapes: list[dict]) ->
 
 async def _handler_base_vectorielle(config: dict, contexte: dict, etapes: list[dict]) -> dict:
     chunks = contexte.get("chunks") or list(_MINI_CORPUS_RAG)
-    requete = config.get("prompt") or contexte.get("prompt") or "Quelles sont les conditions de garantie ?"
+    requete = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Quelles sont les conditions de garantie ?")
 
     vecteur_requete = await ollama.embed(MODELE_EMBED, requete)
     scores = []
@@ -293,8 +319,8 @@ async def _handler_llm_agent(config: dict, contexte: dict, etapes: list[dict]) -
         return contexte
 
     passages = contexte.get("passages_retrouves")
-    requete = config.get("prompt") or contexte.get("prompt") or "Résume la situation."
-    modele = config.get("modele", MODELE_LLM)
+    requete = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Résume la situation.")
+    modele = _modele_valide(config, "modele", MODELE_LLM)
 
     if passages:
         prompt_final = (
@@ -311,9 +337,9 @@ async def _handler_llm_agent(config: dict, contexte: dict, etapes: list[dict]) -
 
 
 async def _handler_comparateur(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    prompt = config.get("prompt") or contexte.get("prompt") or "Explique ce qu'est le RAG en une phrase."
-    modele_a = config.get("modele_a", "llama3.2:3b")
-    modele_b = config.get("modele_b", "qwen2.5:7b-instruct")
+    prompt = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Explique ce qu'est le RAG en une phrase.")
+    modele_a = _modele_valide(config, "modele_a", "llama3.2:3b")
+    modele_b = _modele_valide(config, "modele_b", "qwen2.5:7b-instruct")
 
     reponse_a = await ollama.generate(modele_a, prompt)
     etapes.append({"brique": "comparateur", "detail": f"{modele_a} -> {reponse_a}"})
@@ -344,7 +370,7 @@ async def _handler_synthese_map_reduce(config: dict, contexte: dict, etapes: lis
 
 
 async def _handler_moderation(config: dict, contexte: dict, etapes: list[dict]) -> dict:
-    prompt = config.get("prompt") or contexte.get("prompt") or ""
+    prompt = _texte_borne(config.get("prompt") or contexte.get("prompt"), "")
     prompt_minuscule = prompt.lower()
     mot_bloque = next((m for m in _MOTS_BLOQUES if m in prompt_minuscule), None)
 
@@ -363,7 +389,7 @@ async def _handler_verification(config: dict, contexte: dict, etapes: list[dict]
     if contexte.get("bloque"):
         return contexte
 
-    prompt = config.get("prompt") or contexte.get("prompt") or "Combien font 17 fois 23 ?"
+    prompt = _texte_borne(config.get("prompt") or contexte.get("prompt"), "Combien font 17 fois 23 ?")
     brouillon = await ollama.generate(MODELE_LLM, prompt)
     etapes.append({"brique": "verification", "detail": f"Brouillon de réponse : {brouillon}"})
 
@@ -396,7 +422,19 @@ _HANDLERS = {
 }
 
 
+_MAX_NOEUDS = 20
+_MAX_ARETES = 40
+
+
 async def executer_graphe(nodes: list[dict], edges: list[dict]) -> dict:
+    # Chaque nœud peut déclencher plusieurs appels à Ollama (jusqu'à 4 itérations pour un
+    # agent ReAct, un appel par chunk pour le résumé hiérarchique...) : sans plafond, un
+    # graphe démesurément grand pourrait saturer l'Ollama partagé du homelab.
+    if len(nodes) > _MAX_NOEUDS:
+        raise ValueError(f"Trop de nœuds dans le graphe (max {_MAX_NOEUDS}).")
+    if len(edges) > _MAX_ARETES:
+        raise ValueError(f"Trop d'arêtes dans le graphe (max {_MAX_ARETES}).")
+
     ordre = _topological_sort(nodes, edges)
     noeuds_par_id = {n["id"]: n for n in nodes}
 
