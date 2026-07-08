@@ -121,6 +121,7 @@ def _entrainer_sentiment(job_id: str) -> None:
         Trainer,
         TrainerCallback,
         TrainingArguments,
+        set_seed,
     )
 
     class LossCallback(TrainerCallback):
@@ -134,6 +135,13 @@ def _entrainer_sentiment(job_id: str) -> None:
                     }
                 )
 
+    # Seed fixée avant le chargement du modèle : sans ça, la tête de classification
+    # (initialisée aléatoirement) part dans une direction différente à chaque run, ce qui
+    # combiné à un taux d'apprentissage trop élevé pouvait faire "s'effondrer" le modèle
+    # vers une seule classe (observé : loss qui oscille au lieu de descendre, et des avis
+    # clairement positifs classés "négatif" après entraînement).
+    set_seed(42)
+
     textes, labels = _lire_csv(_DATASET_SENTIMENT)
     tokenizer = AutoTokenizer.from_pretrained(_BASE_MODEL_SENTIMENT)
     model = AutoModelForSequenceClassification.from_pretrained(_BASE_MODEL_SENTIMENT, num_labels=2)
@@ -144,7 +152,11 @@ def _entrainer_sentiment(job_id: str) -> None:
     args = TrainingArguments(
         output_dir=f"/tmp/iaeasy-training-{job_id}",
         per_device_train_batch_size=8,
-        num_train_epochs=4,
+        num_train_epochs=10,
+        learning_rate=2e-5,
+        warmup_ratio=0.1,
+        max_grad_norm=1.0,
+        seed=42,
         logging_steps=1,
         save_strategy="no",
         report_to=[],
