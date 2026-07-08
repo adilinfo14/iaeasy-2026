@@ -1092,3 +1092,47 @@ button:disabled {
 .metier-lien:hover {
   text-decoration: underline;
 }
+
+/* --- Simulateur coût/latence --- */
+.simulateur-prompt {
+  width: 100%;
+  max-width: 640px;
+  display: block;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  margin-bottom: 0.8rem;
+  resize: vertical;
+}
+
+.simulateur-graphique {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-top: 1.2rem;
+}
+
+.simulateur-graphique h4 {
+  margin-top: 0;
+}
+
+.simulateur-detail {
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.simulateur-detail:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.simulateur-detail h5 {
+  margin: 0 0 0.2rem;
+}

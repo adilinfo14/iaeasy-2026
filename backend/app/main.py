@@ -10,6 +10,7 @@ from .catalogue.router import router as catalogue_router
 from .glossaire.router import router as glossaire_router
 from .metiers.router import router as metiers_router
 from .progress.router import router as progress_router
+from .simulateur.router import router as simulateur_router
 from .stats.router import router as stats_router
 from .strategie_test.router import router as strategie_test_router
 from .training.router import router as training_router
@@ -35,6 +36,7 @@ app.include_router(stats_router, prefix="/api")
 app.include_router(strategie_test_router, prefix="/api")
 app.include_router(glossaire_router, prefix="/api")
 app.include_router(metiers_router, prefix="/api")
+app.include_router(simulateur_router, prefix="/api")
 
 
 @app.get("/api/health")

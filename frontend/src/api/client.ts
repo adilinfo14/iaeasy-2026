@@ -144,3 +144,16 @@ export async function listerMetiers() {
   const r = await fetch(`${BASE}/metiers`)
   return r.json()
 }
+
+export async function comparerModeles(prompt?: string) {
+  const r = await fetch(`${BASE}/simulateur/comparer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt || null }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erreur pendant la comparaison des modèles')
+  }
+  return r.json()
+}

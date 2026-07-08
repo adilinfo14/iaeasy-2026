@@ -8,6 +8,7 @@ import Entrainement from './pages/Entrainement'
 import Glossaire from './pages/Glossaire'
 import Metiers from './pages/Metiers'
 import Parcours from './pages/Parcours'
+import Simulateur from './pages/Simulateur'
 import StrategieTest from './pages/StrategieTest'
 
 function useTheme() {
@@ -48,6 +49,7 @@ export default function App() {
           <NavLink to="/strategie-test">Stratégie de tests</NavLink>
           <NavLink to="/glossaire">Glossaire</NavLink>
           <NavLink to="/metiers">Mon métier</NavLink>
+          <NavLink to="/simulateur">Simulateur</NavLink>
         </nav>
         <button
           className="theme-toggle"
@@ -68,6 +70,7 @@ export default function App() {
           <Route path="/strategie-test" element={<StrategieTest />} />
           <Route path="/glossaire" element={<Glossaire />} />
           <Route path="/metiers" element={<Metiers />} />
+          <Route path="/simulateur" element={<Simulateur />} />
         </Routes>
       </main>
     </div>
