@@ -139,3 +139,8 @@ export async function listerGlossaire() {
   const r = await fetch(`${BASE}/glossaire`)
   return r.json()
 }
+
+export async function listerMetiers() {
+  const r = await fetch(`${BASE}/metiers`)
+  return r.json()
+}

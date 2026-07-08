@@ -6,6 +6,7 @@ import Catalogue from './pages/Catalogue'
 import Constructeur from './pages/Constructeur'
 import Entrainement from './pages/Entrainement'
 import Glossaire from './pages/Glossaire'
+import Metiers from './pages/Metiers'
 import Parcours from './pages/Parcours'
 import StrategieTest from './pages/StrategieTest'
 
@@ -46,6 +47,7 @@ export default function App() {
           <NavLink to="/constructeur">Constructeur</NavLink>
           <NavLink to="/strategie-test">Stratégie de tests</NavLink>
           <NavLink to="/glossaire">Glossaire</NavLink>
+          <NavLink to="/metiers">Mon métier</NavLink>
         </nav>
         <button
           className="theme-toggle"
@@ -65,6 +67,7 @@ export default function App() {
           <Route path="/constructeur" element={<Constructeur />} />
           <Route path="/strategie-test" element={<StrategieTest />} />
           <Route path="/glossaire" element={<Glossaire />} />
+          <Route path="/metiers" element={<Metiers />} />
         </Routes>
       </main>
     </div>

@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from .agents.router import router as agents_router
 from .catalogue.router import router as catalogue_router
 from .glossaire.router import router as glossaire_router
+from .metiers.router import router as metiers_router
 from .progress.router import router as progress_router
 from .stats.router import router as stats_router
 from .strategie_test.router import router as strategie_test_router
@@ -33,6 +34,7 @@ app.include_router(progress_router, prefix="/api")
 app.include_router(stats_router, prefix="/api")
 app.include_router(strategie_test_router, prefix="/api")
 app.include_router(glossaire_router, prefix="/api")
+app.include_router(metiers_router, prefix="/api")
 
 
 @app.get("/api/health")

@@ -1058,3 +1058,37 @@ button:disabled {
   font-style: italic;
   color: var(--fg-muted);
 }
+
+/* --- Fiches métier --- */
+.metier-cas {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+}
+
+.metier-cas + .metier-cas {
+  margin-top: 0.6rem;
+}
+
+.metier-cas h5 {
+  margin: 0 0 0.3rem;
+  font-size: 0.9rem;
+}
+
+.metier-cas p {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin: 0 0 0.5rem;
+}
+
+.metier-lien {
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.metier-lien:hover {
+  text-decoration: underline;
+}
