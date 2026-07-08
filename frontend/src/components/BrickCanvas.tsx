@@ -6,6 +6,8 @@ import {
   Background,
   Controls,
   ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
   type Edge,
   type Node,
   type OnConnect,
@@ -21,7 +23,7 @@ type Props = {
   templateACharger: any | null
   resultatsParNoeud: Record<string, any> | null
   onExecuter: (nodes: { id: string; type: string; config: Record<string, unknown> }[], edges: { source: string; target: string }[]) => void
-  onNodeClick: (nodeId: string, brique: string) => void
+  onComposantInfo: (brique: string, noeudId?: string) => void
 }
 
 let compteurId = 1
@@ -34,9 +36,10 @@ const COULEURS_CATEGORIE: Record<string, string> = {
   outil: '#fb923c',
 }
 
-export default function BrickCanvas({ composants, templateACharger, resultatsParNoeud, onExecuter, onNodeClick }: Props) {
+function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExecuter, onComposantInfo }: Props) {
   const [nodes, setNodes] = useState<BriqueNode[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
+  const { fitView } = useReactFlow()
 
   useEffect(() => {
     if (!templateACharger) return
@@ -62,6 +65,8 @@ export default function BrickCanvas({ composants, templateACharger, resultatsPar
     setNodes(nouveauxNoeuds)
     setEdges(nouvellesAretes)
     compteurId = nouveauxNoeuds.length + 1
+    // Laisse react-flow calculer les positions avant de recentrer la vue.
+    requestAnimationFrame(() => fitView({ padding: 0.25, duration: 300 }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [templateACharger])
 
@@ -80,19 +85,24 @@ export default function BrickCanvas({ composants, templateACharger, resultatsPar
 
   function ajouterNoeud(composant: any) {
     const id = String(compteurId++)
-    setNodes((nds) => [
-      ...nds,
-      {
-        id,
-        position: { x: 80 + (nds.length % 3) * 220, y: 60 + Math.floor(nds.length / 3) * 140 },
-        data: { label: `${composant.icone} ${composant.titre}` },
-        brique: composant.id,
-        style: {
-          background: COULEURS_CATEGORIE[composant.categorie] ? `${COULEURS_CATEGORIE[composant.categorie]}22` : undefined,
-          borderColor: COULEURS_CATEGORIE[composant.categorie],
+    setNodes((nds) => {
+      const nouveaux = [
+        ...nds,
+        {
+          id,
+          position: { x: 80 + (nds.length % 3) * 220, y: 60 + Math.floor(nds.length / 3) * 140 },
+          data: { label: `${composant.icone} ${composant.titre}` },
+          brique: composant.id,
+          style: {
+            background: COULEURS_CATEGORIE[composant.categorie] ? `${COULEURS_CATEGORIE[composant.categorie]}22` : undefined,
+            borderColor: COULEURS_CATEGORIE[composant.categorie],
+          },
         },
-      },
-    ])
+      ]
+      requestAnimationFrame(() => fitView({ padding: 0.25, duration: 300 }))
+      return nouveaux
+    })
+    onComposantInfo(composant.id)
   }
 
   function executer() {
@@ -106,8 +116,9 @@ export default function BrickCanvas({ composants, templateACharger, resultatsPar
     <div className="canvas-layout">
       <aside className="palette">
         <h4>Briques d'architecture</h4>
+        <p className="texte-muted">Cliquez une brique pour l'ajouter au canvas et voir sa définition.</p>
         {composants.map((c) => (
-          <button key={c.id} onClick={() => ajouterNoeud(c)} title={c.description}>
+          <button key={c.id} onClick={() => ajouterNoeud(c)}>
             {c.icone} {c.titre}
           </button>
         ))}
@@ -122,7 +133,7 @@ export default function BrickCanvas({ composants, templateACharger, resultatsPar
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={(_, node) => onNodeClick(node.id, (node as BriqueNode).brique)}
+          onNodeClick={(_, node) => onComposantInfo((node as BriqueNode).brique, node.id)}
           fitView
         >
           <Background />
@@ -130,8 +141,16 @@ export default function BrickCanvas({ composants, templateACharger, resultatsPar
         </ReactFlow>
       </div>
       {resultatsParNoeud && (
-        <div className="canvas-hint">💡 Cliquez un nœud du graphe pour voir ce qu'il a produit.</div>
+        <div className="canvas-hint">💡 Cliquez un nœud du graphe pour revoir sa définition et ce qu'il a produit.</div>
       )}
     </div>
+  )
+}
+
+export default function BrickCanvas(props: Props) {
+  return (
+    <ReactFlowProvider>
+      <CanvasInterne {...props} />
+    </ReactFlowProvider>
   )
 }

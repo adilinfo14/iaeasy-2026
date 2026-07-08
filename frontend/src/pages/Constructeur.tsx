@@ -16,7 +16,8 @@ export default function Constructeur() {
   const [templateOuvert, setTemplateOuvert] = useState<string | null>(null)
   const [templateACharger, setTemplateACharger] = useState<any | null>(null)
   const [resultat, setResultat] = useState<any>(null)
-  const [noeudSelectionne, setNoeudSelectionne] = useState<{ id: string; brique: string } | null>(null)
+  const [briqueSelectionnee, setBriqueSelectionnee] = useState<string | null>(null)
+  const [noeudSelectionne, setNoeudSelectionne] = useState<string | null>(null)
   const [erreur, setErreur] = useState<string | null>(null)
 
   useEffect(() => {
@@ -30,7 +31,6 @@ export default function Constructeur() {
   ) {
     setErreur(null)
     setResultat(null)
-    setNoeudSelectionne(null)
     try {
       const r = await executerGraphe(nodes, edges)
       setResultat(r)
@@ -39,7 +39,13 @@ export default function Constructeur() {
     }
   }
 
-  const artefactNoeud = noeudSelectionne && resultat?.resultats_par_noeud?.[noeudSelectionne.id]
+  function afficherComposant(brique: string, noeudId?: string) {
+    setBriqueSelectionnee(brique)
+    setNoeudSelectionne(noeudId ?? null)
+  }
+
+  const composantAffiche = composants.find((c) => c.id === briqueSelectionnee)
+  const artefactNoeud = noeudSelectionne && resultat?.resultats_par_noeud?.[noeudSelectionne]
 
   return (
     <div className="page page-constructeur">
@@ -99,15 +105,26 @@ export default function Constructeur() {
         templateACharger={templateACharger}
         resultatsParNoeud={resultat?.resultats_par_noeud || null}
         onExecuter={executer}
-        onNodeClick={(id, brique) => setNoeudSelectionne({ id, brique })}
+        onComposantInfo={afficherComposant}
       />
 
       {erreur && <p className="erreur">{erreur}</p>}
 
-      {artefactNoeud && (
+      {composantAffiche && (
         <div className="explication-bloc">
-          <h4>Ce qu'a produit ce nœud ({noeudSelectionne!.brique})</h4>
-          <pre className="resultat">{JSON.stringify(artefactNoeud, null, 2)}</pre>
+          <h4>
+            {composantAffiche.icone} {composantAffiche.titre}
+          </h4>
+          <p>{composantAffiche.description}</p>
+          <p className="texte-muted">
+            <strong>Entrée / sortie :</strong> {composantAffiche.entree_sortie}
+          </p>
+          {artefactNoeud && (
+            <>
+              <h4>Ce que ce nœud a produit lors de la dernière exécution</h4>
+              <pre className="resultat">{JSON.stringify(artefactNoeud, null, 2)}</pre>
+            </>
+          )}
         </div>
       )}
 

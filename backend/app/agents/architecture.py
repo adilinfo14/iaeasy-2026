@@ -1,30 +1,125 @@
 COMPOSANTS = [
-    {"id": "source_document", "titre": "Source de documents", "icone": "📄", "categorie": "source",
-     "description": "Le document brut à traiter (contrat, FAQ, notice…)."},
-    {"id": "chunking", "titre": "Découpage (chunking)", "icone": "✂️", "categorie": "traitement",
-     "description": "Découpe un document long en petits morceaux exploitables par la base vectorielle."},
-    {"id": "base_vectorielle", "titre": "Base vectorielle", "icone": "🗄️", "categorie": "stockage",
-     "description": "Indexe les chunks sous forme de vecteurs et retrouve les plus pertinents pour une question."},
-    {"id": "llm_agent", "titre": "LLM", "icone": "🧠", "categorie": "modele",
-     "description": "Génère la réponse finale, avec ou sans contexte augmenté par le retrieval."},
-    {"id": "outil_mcp", "titre": "Outil / MCP", "icone": "🛠️", "categorie": "outil",
-     "description": "Un outil externe (calculatrice, recherche) appelable via MCP."},
-    {"id": "agent_unique", "titre": "Agent (boucle ReAct)", "icone": "🔁", "categorie": "modele",
-     "description": "Un LLM qui décide seul quels outils utiliser, en plusieurs étapes."},
-    {"id": "multi_agent", "titre": "Pipeline multi-agent", "icone": "🤝", "categorie": "modele",
-     "description": "Deux agents spécialisés qui collaborent (chercheur → rédacteur)."},
-    {"id": "llm_seul", "titre": "LLM seul (sans contexte)", "icone": "💬", "categorie": "modele",
-     "description": "Un LLM répond directement à un prompt, sans document ni outil."},
-    {"id": "rag", "titre": "RAG simplifié", "icone": "📚", "categorie": "modele",
-     "description": "Version tout-en-un du RAG (retrieval + génération en un seul nœud)."},
-    {"id": "comparateur", "titre": "Comparateur de modèles", "icone": "🆚", "categorie": "modele",
-     "description": "Envoie le même prompt à deux modèles différents et compare les réponses."},
-    {"id": "synthese_map_reduce", "titre": "Résumé hiérarchique", "icone": "🧩", "categorie": "traitement",
-     "description": "Résume chaque chunk séparément puis combine les résumés (map-reduce)."},
-    {"id": "moderation", "titre": "Filtre de modération", "icone": "🚧", "categorie": "outil",
-     "description": "Bloque une requête selon une liste de mots-clés avant de la transmettre au LLM."},
-    {"id": "verification", "titre": "Vérificateur / auto-critique", "icone": "✅", "categorie": "modele",
-     "description": "Génère un brouillon puis le vérifie/corrige avec un second appel LLM."},
+    {
+        "id": "source_document", "titre": "Source de documents", "icone": "📄", "categorie": "source",
+        "description": (
+            "Le point de départ d'un pipeline RAG : un document brut (contrat, FAQ, notice, "
+            "compte-rendu…) que l'on souhaite exploiter. Ce nœud ne fait aucun calcul, il fournit "
+            "simplement le texte de départ aux briques suivantes."
+        ),
+        "entree_sortie": "Entrée : rien (texte défini dans la config) → Sortie : le texte brut du document",
+    },
+    {
+        "id": "chunking", "titre": "Découpage (chunking)", "icone": "✂️", "categorie": "traitement",
+        "description": (
+            "Un document trop long ne peut pas être comparé efficacement à une question : ce nœud "
+            "le découpe en petits morceaux (chunks) de quelques phrases chacun. Étape purement "
+            "mécanique (pas de modèle IA), mais essentielle : un découpage mal fait dégrade toute "
+            "la suite du pipeline."
+        ),
+        "entree_sortie": "Entrée : un document texte → Sortie : une liste de chunks",
+    },
+    {
+        "id": "base_vectorielle", "titre": "Base vectorielle", "icone": "🗄️", "categorie": "stockage",
+        "description": (
+            "Transforme chaque chunk en vecteur (embedding), fait de même pour la question posée, "
+            "puis retrouve les chunks dont le vecteur est le plus proche (similarité cosinus). "
+            "C'est le cœur du RAG : l'endroit où le pipeline va chercher l'information pertinente "
+            "avant de répondre."
+        ),
+        "entree_sortie": "Entrée : des chunks + une question → Sortie : les 2 passages les plus pertinents",
+    },
+    {
+        "id": "llm_agent", "titre": "LLM", "icone": "🧠", "categorie": "modele",
+        "description": (
+            "Le modèle de langage qui génère la réponse finale. S'il reçoit des passages retrouvés "
+            "par une base vectorielle en amont, il les utilise comme contexte pour répondre plus "
+            "précisément (RAG) ; sinon, il répond directement à partir de ses connaissances générales."
+        ),
+        "entree_sortie": "Entrée : une question (+ contexte optionnel) → Sortie : la réponse finale",
+    },
+    {
+        "id": "outil_mcp", "titre": "Outil / MCP", "icone": "🛠️", "categorie": "outil",
+        "description": (
+            "Un outil externe que l'on appelle pour des tâches où un LLM seul n'est pas fiable "
+            "(calcul précis, recherche exacte). Exposé via le protocole MCP (Model Context "
+            "Protocol) — le même principe que celui utilisé par Claude Code pour appeler des outils."
+        ),
+        "entree_sortie": "Entrée : une expression ou une requête → Sortie : le résultat brut de l'outil",
+    },
+    {
+        "id": "agent_unique", "titre": "Agent (boucle ReAct)", "icone": "🔁", "categorie": "modele",
+        "description": (
+            "Un LLM qui raisonne en boucle : à chaque étape, il décide s'il doit appeler un outil "
+            "(calculatrice, recherche) ou s'il peut donner sa réponse finale. C'est le principe "
+            "ReAct (Reason + Act) — contrairement aux briques précédentes qui suivent un chemin "
+            "fixe, celle-ci choisit elle-même son parcours."
+        ),
+        "entree_sortie": "Entrée : une tâche → Sortie : la réponse finale, après 1 à 4 étapes de raisonnement",
+    },
+    {
+        "id": "multi_agent", "titre": "Pipeline multi-agent", "icone": "🤝", "categorie": "modele",
+        "description": (
+            "Deux agents aux rôles différents collaborent en séquence : un agent « chercheur » "
+            "rassemble les faits, puis un agent « rédacteur » les transforme en réponse claire. "
+            "Chacun a son propre prompt système, ce qui les rend plus fiables sur leur tâche "
+            "spécifique que s'ils devaient tout faire seuls."
+        ),
+        "entree_sortie": "Entrée : une tâche → Sortie : la réponse rédigée par le second agent",
+    },
+    {
+        "id": "llm_seul", "titre": "LLM seul (sans contexte)", "icone": "💬", "categorie": "modele",
+        "description": (
+            "La brique la plus simple : un LLM répond directement à un prompt, sans document, sans "
+            "outil, sans mémoire. Sert de point de comparaison pour mesurer l'apport réel des "
+            "autres briques (RAG, outils, agents)."
+        ),
+        "entree_sortie": "Entrée : un prompt → Sortie : la réponse générée directement",
+    },
+    {
+        "id": "rag", "titre": "RAG simplifié", "icone": "📚", "categorie": "modele",
+        "description": (
+            "Une version « tout-en-un » du RAG qui combine en un seul nœud la recherche du passage "
+            "pertinent et la génération de la réponse, au lieu de les séparer en Base vectorielle + "
+            "LLM. Pratique pour assembler un pipeline rapidement."
+        ),
+        "entree_sortie": "Entrée : une question → Sortie : la réponse augmentée par un passage retrouvé",
+    },
+    {
+        "id": "comparateur", "titre": "Comparateur de modèles", "icone": "🆚", "categorie": "modele",
+        "description": (
+            "Envoie le même prompt à deux modèles différents (par exemple un petit modèle rapide "
+            "et un plus gros modèle plus capable) et renvoie les deux réponses côte à côte. Utile "
+            "pour évaluer objectivement quel modèle convient le mieux à une tâche donnée."
+        ),
+        "entree_sortie": "Entrée : un prompt → Sortie : 2 réponses, une par modèle",
+    },
+    {
+        "id": "synthese_map_reduce", "titre": "Résumé hiérarchique", "icone": "🧩", "categorie": "traitement",
+        "description": (
+            "Résume chaque chunk indépendamment (l'étape « map »), puis combine tous ces résumés "
+            "partiels en une synthèse finale cohérente (l'étape « reduce »). Permet de résumer des "
+            "documents bien plus longs qu'un seul appel LLM ne le permettrait."
+        ),
+        "entree_sortie": "Entrée : une liste de chunks → Sortie : une synthèse finale",
+    },
+    {
+        "id": "moderation", "titre": "Filtre de modération", "icone": "🚧", "categorie": "outil",
+        "description": (
+            "Vérifie la requête par rapport à une liste de mots-clés interdits avant de la laisser "
+            "continuer vers le LLM. Si un mot bloqué est détecté, le pipeline s'arrête ici avec un "
+            "message de refus — les nœuds suivants ne sont pas exécutés."
+        ),
+        "entree_sortie": "Entrée : une requête → Sortie : inchangée (acceptée) ou blocage (refusée)",
+    },
+    {
+        "id": "verification", "titre": "Vérificateur / auto-critique", "icone": "✅", "categorie": "modele",
+        "description": (
+            "Le LLM génère d'abord un brouillon de réponse, puis un second appel relit ce brouillon "
+            "pour vérifier les calculs/faits et le corriger si besoin. Coûte deux appels au lieu "
+            "d'un, mais améliore la fiabilité sur les tâches à risque d'erreur."
+        ),
+        "entree_sortie": "Entrée : une question → Sortie : la réponse vérifiée/corrigée",
+    },
 ]
 
 _TEXTE_RAPPORT_CHANTIER = (

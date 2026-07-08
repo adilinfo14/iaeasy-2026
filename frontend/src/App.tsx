@@ -8,7 +8,7 @@ import Parcours from './pages/Parcours'
 
 function useTheme() {
   const [theme, setTheme] = useState<'sombre' | 'doux'>(
-    () => (localStorage.getItem('iaeasy-theme') as 'sombre' | 'doux') || 'sombre',
+    () => (localStorage.getItem('iaeasy-theme') as 'sombre' | 'doux') || 'doux',
   )
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function App() {
     <div className="app">
       <header className="topnav">
         <NavLink to="/" className="brand">
-          iaeasy
+          ☕ iaeasy
         </NavLink>
         <nav>
           <NavLink to="/catalogue">Catalogue</NavLink>
@@ -41,9 +41,10 @@ export default function App() {
         <button
           className="theme-toggle"
           onClick={() => setTheme(theme === 'doux' ? 'sombre' : 'doux')}
-          title="Changer d'ambiance"
+          title={theme === 'doux' ? 'Passer en mode sombre' : 'Passer en mode doux'}
+          aria-label="Changer d'ambiance"
         >
-          {theme === 'doux' ? '🌙 Mode sombre' : '☕ Mode doux'}
+          {theme === 'doux' ? '🌙' : '☕'}
         </button>
       </header>
       <main>
