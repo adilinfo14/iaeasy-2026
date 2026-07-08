@@ -41,7 +41,7 @@ export default function Accueil() {
 
   return (
     <div className="page page-accueil">
-      <h1>iaeasy — apprends l'IA en la construisant</h1>
+      <h1>☕ iaeasy — apprends l'IA en la construisant</h1>
       <p className="page-intro">
         Une plateforme 100% souveraine (auto-hébergée, modèles open-source) pour comprendre l'IA
         en la manipulant réellement : essayer des modèles, entraîner un algorithme sous tes yeux,
