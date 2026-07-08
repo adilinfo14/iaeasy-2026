@@ -24,18 +24,24 @@ _MODELS = _load_models()
 # soit une fonction (ref, texte) pour les modèles qui prennent une entrée libre.
 _DISPATCH_SANS_TEXTE = {
     "yolo-vision": lambda ref: vision_runner.run_detection(ref),
+    "yolo-vision-small": lambda ref: vision_runner.run_detection(ref),
     "yolo-classification": lambda ref: vision_runner.run_classification(ref),
+    "yolo-classification-small": lambda ref: vision_runner.run_classification(ref),
     "whisper-transcription": lambda ref: transformers_runner.run_transcription(ref),
     "chronos-previsions": lambda ref: timeseries_runner.run_prevision(ref),
     "isolation-forest-maintenance": lambda ref: timeseries_runner.run_anomalie(),
     "isolation-forest-fraude": lambda ref: timeseries_runner.run_fraude(),
+    "isolation-forest-four": lambda ref: timeseries_runner.run_anomalie_four(),
     "scoring-credit": lambda ref: ml_classique_runner.run_scoring_credit(),
+    "scoring-pret-immobilier": lambda ref: ml_classique_runner.run_scoring_pret(),
     "recommandation-films": lambda ref: ml_classique_runner.run_recommandation(),
+    "recommandation-materiaux": lambda ref: ml_classique_runner.run_recommandation_materiaux(),
 }
 
 _DISPATCH_AVEC_TEXTE = {
     "nomic-embeddings": lambda ref, texte: ollama_runner.run_embeddings(ref, texte),
     "mxbai-embeddings": lambda ref, texte: ollama_runner.run_embeddings(ref, texte),
+    "minilm-embeddings": lambda ref, texte: ollama_runner.run_embeddings(ref, texte),
     "camembert-sentiment": lambda ref, texte: transformers_runner.run_sentiment(ref, texte),
     "helsinki-traduction": lambda ref, texte: transformers_runner.run_traduction(ref, texte),
     "barthez-resume": lambda ref, texte: transformers_runner.run_resume(ref, texte),

@@ -370,3 +370,189 @@
     enonce: "Entraîner un modèle de recommandation sur une petite matrice de notes utilisateurs × films et suggérer un film."
     exemples: []
   statut: disponible
+
+- id: llama3-generaliste-8b
+  nom: "Llama 3 (8B)"
+  famille: llm_generatif
+  secteur: Généraliste (comparatif de taille)
+  moteur: ollama
+  moteur_ref: llama3:8b
+  taille: "8 milliards de paramètres"
+  description_pedagogique: >
+    Le grand frère de Llama 3.2 (3B) : même famille de modèle, plus de paramètres. À poser
+    la même question aux deux pour comparer directement l'effet de la taille sur la
+    qualité de réponse — voir aussi le Simulateur coût/latence pour comparer leur vitesse.
+  cas_usage:
+    enonce: "Comparer la qualité de réponse avec Llama 3.2 (3B) sur la même question."
+    exemples:
+      - label: "Logique en plusieurs étapes"
+        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
+      - label: "Explication scolaire"
+        input: "Explique en 3 phrases ce qu'est la photosynthèse, pour un collégien."
+  statut: disponible
+
+- id: mistral-7b
+  nom: "Mistral 7B Instruct"
+  famille: llm_generatif
+  secteur: Généraliste (comparatif)
+  moteur: ollama
+  moteur_ref: mistral:7b-instruct
+  taille: "7 milliards de paramètres"
+  description_pedagogique: >
+    Encore un modèle génératif de taille comparable à Qwen 2.5 (7B), mais d'un éditeur et
+    d'un entraînement différents — la meilleure preuve qu'à taille équivalente, deux
+    modèles ne répondent jamais exactement pareil à la même question. Bon candidat pour
+    le Simulateur coût/latence en complément des trois modèles déjà comparés.
+  cas_usage:
+    enonce: "Comparer la réponse avec Qwen 2.5 (7B) sur la même question."
+    exemples:
+      - label: "Logique en plusieurs étapes"
+        input: "J'ai 3 boîtes. La rouge contient 2 fois plus de billes que la bleue. La verte en contient 5 de moins que la rouge. Il y a 45 billes au total. Combien y en a-t-il dans chaque boîte ?"
+      - label: "Comparaison argumentée"
+        input: "Compare en 4 points les avantages et inconvénients du télétravail pour une PME de 10 salariés."
+  statut: disponible
+
+- id: gemma2-2b
+  nom: "Gemma 2 (2B)"
+  famille: llm_generatif
+  secteur: Généraliste — modèle très léger
+  moteur: ollama
+  moteur_ref: gemma2:2b
+  taille: "2 milliards de paramètres"
+  description_pedagogique: >
+    Un modèle de Google, plus petit encore que Llama 3.2 (3B) : bon exemple pour voir
+    qu'un modèle "léger" reste tout à fait utilisable en pratique sur des tâches simples,
+    avec une vitesse de réponse encore meilleure — au prix de plus d'erreurs sur les
+    raisonnements longs.
+  cas_usage:
+    enonce: "Tester les limites d'un tout petit modèle sur une tâche simple vs une tâche à plusieurs étapes."
+    exemples:
+      - label: "Tâche simple"
+        input: "Rédige une phrase de bienvenue pour un nouveau client."
+      - label: "Tâche à plusieurs étapes"
+        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
+  statut: disponible
+
+- id: phi3-mini
+  nom: "Phi-3 Mini"
+  famille: llm_generatif
+  secteur: Généraliste — modèle compact orienté raisonnement
+  moteur: ollama
+  moteur_ref: phi3:mini
+  taille: "3.8 milliards de paramètres"
+  description_pedagogique: >
+    Un modèle de Microsoft entraîné sur des données très sélectionnées plutôt que sur un
+    immense volume brut — preuve qu'un choix rigoureux des données d'entraînement peut
+    compenser en partie une taille plus petite, une autre façon de penser la
+    "spécialisation" qu'un simple nombre de paramètres.
+  cas_usage:
+    enonce: "Comparer avec les autres petits modèles (Llama 3.2, Gemma 2) sur un même problème."
+    exemples:
+      - label: "Calcul de facturation"
+        input: "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total facturé, étape par étape."
+      - label: "Reformulation professionnelle"
+        input: "Reformule cette phrase de façon plus polie : 'vous devez payer maintenant sinon on arrête tout'."
+  statut: disponible
+
+- id: minilm-embeddings
+  nom: "All-MiniLM"
+  famille: embeddings
+  secteur: Recherche sémantique (le plus petit du catalogue)
+  moteur: ollama
+  moteur_ref: all-minilm
+  taille: "23 millions de paramètres"
+  description_pedagogique: >
+    Le plus petit modèle d'embeddings du catalogue — à comparer avec Nomic Embed (137M)
+    et Mxbai Embed (335M) sur la même paire de phrases : un score de similarité correct
+    ne nécessite pas forcément un gros modèle, mais la finesse de la représentation peut
+    varier sur des cas plus subtils.
+  cas_usage:
+    enonce: "Comparer le score de similarité avec Nomic Embed et Mxbai Embed sur la même paire de phrases."
+    exemples:
+      - label: "Synonymes"
+        input: "Phrase A: le chat dort sur le canapé. Phrase B: un félin fait la sieste sur le sofa."
+      - label: "Sens opposé"
+        input: "Phrase A: le client est très satisfait du service. Phrase B: le client est furieux et veut être remboursé."
+  statut: disponible
+
+- id: yolo-vision-small
+  nom: "YOLOv8 (détection, small)"
+  famille: vision_detection
+  secteur: Agriculture / Drone — comparatif de taille
+  moteur: ultralytics
+  moteur_ref: yolov8s.pt
+  taille: "11.2 millions de paramètres"
+  description_pedagogique: >
+    La version "small" du même YOLOv8 nano vu plus haut — presque 4 fois plus de
+    paramètres. À essayer sur la même image d'exemple pour voir concrètement si la
+    détection change (objets supplémentaires détectés, confiance différente).
+  cas_usage:
+    enonce: "Comparer les détections avec la version nano sur la même image d'exemple."
+    exemples: []
+  statut: disponible
+
+- id: yolo-classification-small
+  nom: "YOLOv8 (classification, small)"
+  famille: vision_classification
+  secteur: Agriculture — comparatif de taille
+  moteur: ultralytics
+  moteur_ref: yolov8s-cls.pt
+  taille: "6.4 millions de paramètres"
+  description_pedagogique: >
+    La version "small" du classifieur YOLOv8 nano vu plus haut. Comparer le top-1 des
+    deux tailles sur la même image d'exemple montre qu'un plus gros modèle peut changer
+    la catégorie prédite, pas seulement affiner un peu le score.
+  cas_usage:
+    enonce: "Comparer le top-1/top-5 avec la version nano sur la même image d'exemple."
+    exemples: []
+  statut: disponible
+
+- id: isolation-forest-four
+  nom: "Isolation Forest — four industriel"
+  famille: anomalie
+  secteur: Industrie — surveillance de four
+  moteur: sklearn
+  moteur_ref: entraîné en direct (mêmes principes, données différentes)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Un troisième secteur pour le même algorithme de détection d'anomalie (après la
+    mécanique et la fraude bancaire) : la température d'un four industriel. Confirme
+    qu'un même type de modèle se transpose à des données très différentes, tant que le
+    signal (une mesure qui varie dans le temps) a la même forme statistique.
+  cas_usage:
+    enonce: "Entraîner un détecteur d'anomalie sur des mesures de température de four et repérer les écarts."
+    exemples: []
+  statut: disponible
+
+- id: scoring-pret-immobilier
+  nom: "Arbre de décision — scoring prêt immobilier"
+  famille: classification_classique
+  secteur: Banque — crédit immobilier
+  moteur: sklearn
+  moteur_ref: entraîné en direct (arbre de décision)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Un autre algorithme "classique" que la régression logistique du scoring crédit : un
+    arbre de décision. Sa décision se lit comme une suite de questions simples (ex :
+    apport &lt; 10% ET durée &gt; 25 ans → refus), encore plus directement explicable
+    qu'une régression logistique.
+  cas_usage:
+    enonce: "Entraîner un scoring de prêt immobilier sur des dossiers jouets et évaluer un nouveau dossier."
+    exemples: []
+  statut: disponible
+
+- id: recommandation-materiaux
+  nom: "Factorisation de matrice (NMF) — matériaux artisan"
+  famille: recommandation
+  secteur: BTP — recommandation de matériaux
+  moteur: sklearn
+  moteur_ref: entraîné en direct (factorisation de matrice NMF)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Le même algorithme que la recommandation de films, appliqué cette fois aux
+    préférences de matériaux d'un artisan à partir de ses chantiers passés — la
+    recommandation ne se limite pas au e-commerce grand public.
+  cas_usage:
+    enonce: "Entraîner un modèle de recommandation sur les matériaux déjà utilisés par un artisan et en suggérer un nouveau."
+    exemples: []
+  statut: disponible

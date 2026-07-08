@@ -247,6 +247,24 @@ export default function ResultRenderer({ resultat }: Props) {
         </div>
       )
 
+    case 'scoring_pret_immobilier':
+      return (
+        <div className="resultat-carte">
+          <p className="texte-muted">
+            Entraîné en direct sur {resultat.nb_dossiers_entrainement} dossiers jouets ({resultat.nb_dossiers_acceptes} acceptés).
+          </p>
+          <p className="texte-muted">Dossier testé :</p>
+          <ul className="liste-simple">
+            <li>Apport : {(resultat.dossier_teste.apport_pourcent * 100).toFixed(0)}%</li>
+            <li>Durée du prêt : {resultat.dossier_teste.duree_annees} ans</li>
+            <li>Revenu mensuel : {resultat.dossier_teste.revenu_mensuel} €</li>
+          </ul>
+          <Meter valeur={resultat.probabilite_acceptation} etiquette="Probabilité d'acceptation" />
+          <div className="badge-etiquette">{resultat.decision_suggeree}</div>
+          <p className="texte-muted">{resultat.explication}</p>
+        </div>
+      )
+
     case 'recommandation':
       return (
         <div className="resultat-carte">

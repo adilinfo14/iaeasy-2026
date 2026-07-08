@@ -82,9 +82,105 @@ def _recommandation_sync() -> dict:
     }
 
 
+def _toy_dossiers_pret():
+    rng = np.random.RandomState(9)
+    n = 60
+    apport = rng.normal(0.15, 0.08, n).clip(0.0, 0.5)
+    duree_annees = rng.normal(20, 5, n).clip(7, 30)
+    revenu = rng.normal(3200, 900, n).clip(1200, 8000)
+    accepte = (
+        (apport > 0.1).astype(int) + (revenu > 2200).astype(int) + (duree_annees < 25).astype(int) >= 2
+    ).astype(int)
+    return apport, duree_annees, revenu, accepte
+
+
+def _scoring_pret_sync() -> dict:
+    from sklearn.tree import DecisionTreeClassifier
+
+    apport, duree, revenu, accepte = _toy_dossiers_pret()
+    X = np.column_stack([apport, duree, revenu])
+    modele = DecisionTreeClassifier(max_depth=3, random_state=9)
+    modele.fit(X, accepte)
+
+    dossier_teste = {"apport_pourcent": 0.08, "duree_annees": 25, "revenu_mensuel": 2400}
+    nouveau = np.array([[dossier_teste["apport_pourcent"], dossier_teste["duree_annees"], dossier_teste["revenu_mensuel"]]])
+    proba_acceptation = float(modele.predict_proba(nouveau)[0][1])
+
+    return {
+        "type": "scoring_pret_immobilier",
+        "nb_dossiers_entrainement": len(accepte),
+        "nb_dossiers_acceptes": int(accepte.sum()),
+        "dossier_teste": dossier_teste,
+        "probabilite_acceptation": round(proba_acceptation, 3),
+        "decision_suggeree": "Acceptation probable" if proba_acceptation > 0.5 else "Refus probable / étude approfondie",
+        "explication": "Modèle (arbre de décision) entraîné en direct sur 60 dossiers de prêt immobilier "
+        "jouets — variables utilisées : taux d'apport, durée du prêt, revenu mensuel. Contrairement à la "
+        "régression logistique du scoring crédit, un arbre de décision explique sa décision par une suite "
+        "de seuils lisibles (ex: 'apport < 10% ET durée > 25 ans → refus').",
+    }
+
+
+async def run_scoring_pret() -> dict:
+    return await asyncio.to_thread(_scoring_pret_sync)
+
+
 async def run_scoring_credit() -> dict:
     return await asyncio.to_thread(_scoring_sync)
 
 
 async def run_recommandation() -> dict:
     return await asyncio.to_thread(_recommandation_sync)
+
+
+def _toy_notes_materiaux():
+    matrice = np.array(
+        [
+            [5, 4, 0, 1, 0],
+            [4, 5, 0, 0, 1],
+            [0, 0, 5, 4, 0],
+            [1, 0, 4, 5, 0],
+            [0, 1, 0, 0, 5],
+        ],
+        dtype=float,
+    )
+    materiaux = [
+        "Carrelage grès cérame",
+        "Carrelage grès cérame (autre gamme)",
+        "Parquet chêne massif",
+        "Parquet chêne massif (autre finition)",
+        "Sol vinyle",
+    ]
+    return matrice, materiaux
+
+
+def _recommandation_materiaux_sync() -> dict:
+    from sklearn.decomposition import NMF
+
+    matrice, materiaux = _toy_notes_materiaux()
+    modele = NMF(n_components=2, init="random", random_state=1, max_iter=500)
+    W = modele.fit_transform(matrice)
+    H = modele.components_
+    matrice_reconstruite = W @ H
+
+    artisan_idx = 0
+    deja_notes = matrice[artisan_idx] > 0
+    scores = matrice_reconstruite[artisan_idx].copy()
+    scores[deja_notes] = -1
+    recommande_idx = int(np.argmax(scores))
+
+    return {
+        "type": "recommandation",
+        "utilisateur": "Artisan 1",
+        "films_deja_notes": [
+            {"film": m, "note": int(n)} for m, n in zip(materiaux, matrice[artisan_idx]) if n > 0
+        ],
+        "film_recommande": materiaux[recommande_idx],
+        "score_prevu": round(float(scores[recommande_idx]), 2),
+        "explication": "Même principe (factorisation de matrice NMF) que la recommandation de films, "
+        "appliqué cette fois aux préférences de matériaux d'un artisan à partir de ses chantiers passés "
+        "— la recommandation ne se limite pas au e-commerce grand public.",
+    }
+
+
+async def run_recommandation_materiaux() -> dict:
+    return await asyncio.to_thread(_recommandation_materiaux_sync)

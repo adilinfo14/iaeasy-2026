@@ -2,7 +2,7 @@ import asyncio
 
 import numpy as np
 
-_chronos_pipeline = None
+_chronos_pipelines: dict[str, object] = {}
 
 
 def _toy_serie_economique() -> list[float]:
@@ -14,20 +14,19 @@ def _toy_serie_economique() -> list[float]:
 
 
 def _prevoir_sync(model_ref: str) -> dict:
-    global _chronos_pipeline
     import torch
 
-    if _chronos_pipeline is None:
+    if model_ref not in _chronos_pipelines:
         from chronos import BaseChronosPipeline
 
-        _chronos_pipeline = BaseChronosPipeline.from_pretrained(
+        _chronos_pipelines[model_ref] = BaseChronosPipeline.from_pretrained(
             model_ref, device_map="cpu", torch_dtype=torch.float32
         )
 
     historique = _toy_serie_economique()
     context = torch.tensor(historique)
     horizon = 6
-    quantiles, mean = _chronos_pipeline.predict_quantiles(
+    quantiles, mean = _chronos_pipelines[model_ref].predict_quantiles(
         inputs=context, prediction_length=horizon, quantile_levels=[0.1, 0.5, 0.9]
     )
 
@@ -107,6 +106,45 @@ def _detect_fraude_sync() -> dict:
         "explication": "Modèle entraîné en direct sur l'historique de montants de transactions : les "
         "valeurs identifiées s'écartent statistiquement du comportement d'achat habituel du client.",
     }
+
+
+def _toy_capteur_four() -> list[float]:
+    rng = np.random.RandomState(23)
+    mesures = rng.normal(loc=180, scale=4, size=150)
+    mesures[45] = 230
+    mesures[100] = 95
+    return mesures.tolist()
+
+
+def _detect_anomalie_four_sync() -> dict:
+    from sklearn.ensemble import IsolationForest
+
+    mesures = _toy_capteur_four()
+    X = np.array(mesures).reshape(-1, 1)
+    modele = IsolationForest(contamination=0.02, random_state=23)
+    modele.fit(X)
+    scores = modele.decision_function(X)
+    predictions = modele.predict(X)
+
+    anomalies = [
+        {"indice": i, "valeur": round(mesures[i], 1), "score": round(float(scores[i]), 3)}
+        for i, p in enumerate(predictions)
+        if p == -1
+    ]
+
+    return {
+        "type": "detection_anomalie",
+        "nb_mesures": len(mesures),
+        "mesures": [round(v, 1) for v in mesures],
+        "anomalies_detectees": anomalies,
+        "explication": "Même algorithme (Isolation Forest) que pour la maintenance mécanique ou la "
+        "fraude bancaire, appliqué cette fois à la température d'un four industriel — preuve qu'un "
+        "même type de modèle sert des secteurs très différents dès lors qu'on lui donne les bonnes données.",
+    }
+
+
+async def run_anomalie_four() -> dict:
+    return await asyncio.to_thread(_detect_anomalie_four_sync)
 
 
 async def run_prevision(model_ref: str) -> dict:

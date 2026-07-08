@@ -2,8 +2,8 @@ import asyncio
 import base64
 import io
 
-_yolo_model = None
-_yolo_cls_model = None
+_yolo_models: dict[str, object] = {}
+_yolo_cls_models: dict[str, object] = {}
 
 
 def _sample_image_path() -> str:
@@ -23,14 +23,13 @@ def _image_to_base64(annotated_bgr) -> str:
 
 
 def _detect_sync(model_ref: str) -> dict:
-    global _yolo_model
-    if _yolo_model is None:
+    if model_ref not in _yolo_models:
         from ultralytics import YOLO
 
-        _yolo_model = YOLO(model_ref)
+        _yolo_models[model_ref] = YOLO(model_ref)
 
     image_path = _sample_image_path()
-    results = _yolo_model(image_path, verbose=False)[0]
+    results = _yolo_models[model_ref](image_path, verbose=False)[0]
 
     detections = []
     for box in results.boxes:
@@ -53,14 +52,13 @@ def _detect_sync(model_ref: str) -> dict:
 
 
 def _classify_sync(model_ref: str) -> dict:
-    global _yolo_cls_model
-    if _yolo_cls_model is None:
+    if model_ref not in _yolo_cls_models:
         from ultralytics import YOLO
 
-        _yolo_cls_model = YOLO(model_ref)
+        _yolo_cls_models[model_ref] = YOLO(model_ref)
 
     image_path = _sample_image_path()
-    results = _yolo_cls_model(image_path, verbose=False)[0]
+    results = _yolo_cls_models[model_ref](image_path, verbose=False)[0]
 
     top5_idx = results.probs.top5
     top5_conf = results.probs.top5conf.tolist()
