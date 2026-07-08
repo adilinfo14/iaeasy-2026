@@ -23,6 +23,38 @@ const OPTIONS_ARETE = {
   markerEnd: { type: MarkerType.ArrowClosed, color: '#4f7cff' },
 }
 
+type Condition = 'autorise' | 'bloque' | undefined
+
+// Un lien conditionnel n'est proposé qu'en sortie d'un filtre de modération : c'est le seul
+// nœud du moteur qui produit une décision binaire (bloqué/autorisé) exploitable par le graphe.
+const BRIQUE_AVEC_CONDITION = 'moderation'
+
+function styleArete(condition: Condition) {
+  if (condition === 'autorise') {
+    return {
+      type: 'smoothstep' as const,
+      animated: true,
+      label: '✅ Si autorisé',
+      labelStyle: { fill: '#4ade80', fontWeight: 600, fontSize: 11 },
+      style: { stroke: '#4ade80' },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#4ade80' },
+      data: { condition },
+    }
+  }
+  if (condition === 'bloque') {
+    return {
+      type: 'smoothstep' as const,
+      animated: false,
+      label: '🚫 Si bloqué',
+      labelStyle: { fill: '#f87171', fontWeight: 600, fontSize: 11 },
+      style: { stroke: '#f87171', strokeDasharray: '5 4' },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#f87171' },
+      data: { condition },
+    }
+  }
+  return { ...OPTIONS_ARETE, data: { condition: undefined } }
+}
+
 const CLE_APERCU = ['prompt', 'texte', 'expression']
 
 function apercuConfig(config: Record<string, unknown>): string {
@@ -61,7 +93,10 @@ type Props = {
   composants: any[]
   templateACharger: any | null
   resultatsParNoeud: Record<string, any> | null
-  onExecuter: (nodes: { id: string; type: string; config: Record<string, unknown> }[], edges: { source: string; target: string }[]) => void
+  onExecuter: (
+    nodes: { id: string; type: string; config: Record<string, unknown> }[],
+    edges: { source: string; target: string; condition?: 'autorise' | 'bloque' }[],
+  ) => void
   onComposantInfo: (brique: string, noeudId: string | undefined, config: Record<string, unknown>) => void
 }
 
@@ -123,7 +158,7 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
       id: `tpl-${i}`,
       source: e.source,
       target: e.target,
-      ...OPTIONS_ARETE,
+      ...styleArete(e.condition),
     }))
     setNodes(nouveauxNoeuds)
     setEdges(nouvellesAretes)
@@ -142,9 +177,23 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
     [],
   )
   const onConnect: OnConnect = useCallback(
-    (connexion) => setEdges((eds) => addEdge({ ...connexion, ...OPTIONS_ARETE }, eds)),
-    [],
+    (connexion) => {
+      const noeudSource = nodes.find((n) => n.id === connexion.source)
+      // Un lien sortant d'un filtre de modération est conditionnel par défaut ("si autorisé") :
+      // c'est la seule brique qui produit une décision binaire exploitable par le graphe.
+      const condition: Condition = noeudSource?.brique === BRIQUE_AVEC_CONDITION ? 'autorise' : undefined
+      setEdges((eds) => addEdge({ ...connexion, ...styleArete(condition) }, eds))
+    },
+    [nodes],
   )
+
+  function onEdgeClick(_: unknown, edge: Edge) {
+    const noeudSource = nodes.find((n) => n.id === edge.source)
+    if (noeudSource?.brique !== BRIQUE_AVEC_CONDITION) return
+    const conditionActuelle = (edge.data as { condition?: Condition } | undefined)?.condition
+    const suivante: Condition = conditionActuelle === 'autorise' ? 'bloque' : 'autorise'
+    setEdges((eds) => eds.map((e) => (e.id === edge.id ? { ...e, ...styleArete(suivante) } : e)))
+  }
 
   function ajouterNoeud(composant: any) {
     const id = String(compteurId++)
@@ -174,7 +223,11 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
   function executer() {
     onExecuter(
       nodes.map((n) => ({ id: n.id, type: n.brique, config: n.config || {} })),
-      edges.map((e) => ({ source: e.source, target: e.target })),
+      edges.map((e) => ({
+        source: e.source,
+        target: e.target,
+        condition: (e.data as { condition?: Condition } | undefined)?.condition,
+      })),
     )
   }
 
@@ -203,6 +256,7 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
             const n = node as BriqueNode
             onComposantInfo(n.brique, n.id, n.config || {})
           }}
+          onEdgeClick={onEdgeClick}
           fitView
         >
           <Background />
@@ -213,6 +267,8 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
         <div className="canvas-hint">
           💡 Cliquez un nœud pour voir sa définition et <strong>remplir ou modifier son entrée</strong> avant d'exécuter.
           {resultatsParNoeud && ' Un second clic après exécution montre aussi ce que le nœud a produit.'}
+          {nodes.some((n) => n.brique === BRIQUE_AVEC_CONDITION) &&
+            ' Un lien tracé depuis un filtre de modération est conditionnel (✅ Si autorisé par défaut) — cliquez ce lien pour basculer vers 🚫 Si bloqué.'}
         </div>
       )}
     </div>

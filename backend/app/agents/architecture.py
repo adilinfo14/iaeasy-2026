@@ -239,10 +239,11 @@ COMPOSANTS = [
         "id": "moderation", "titre": "Filtre de modération", "icone": "🚧", "categorie": "outil",
         "description": (
             "Vérifie la requête par rapport à une liste de mots-clés interdits avant de la laisser "
-            "continuer vers le LLM. Si un mot bloqué est détecté, le pipeline s'arrête ici avec un "
-            "message de refus — les nœuds suivants ne sont pas exécutés."
+            "continuer vers le LLM. Reliez-le à la suite avec un lien « Si autorisé » : si un mot "
+            "bloqué est détecté, ce lien ne s'active pas et les nœuds qui n'en dépendent que par lui "
+            "ne s'exécutent pas — le pipeline s'arrête réellement ici, pas juste en apparence."
         ),
-        "entree_sortie": "Entrée : une requête → Sortie : inchangée (acceptée) ou blocage (refusée)",
+        "entree_sortie": "Entrée : une requête → Sortie : inchangée (lien « Si autorisé » actif) ou blocage (lien « Si bloqué » actif)",
         "champs_config": [
             {
                 "cle": "prompt", "label": "Requête à vérifier", "type": "textarea",
@@ -535,7 +536,7 @@ TEMPLATES = [
             {"id": "1", "type": "moderation", "config": {"prompt": "Quelles sont les conditions de garantie ?"}, "position": {"x": 120, "y": 120}},
             {"id": "2", "type": "llm_agent", "config": {}, "position": {"x": 420, "y": 120}},
         ],
-        "edges": [{"source": "1", "target": "2"}],
+        "edges": [{"source": "1", "target": "2", "condition": "autorise"}],
         "exemples": [
             {"label": "Question normale", "valeurs": {"1": {"prompt": "Quelles sont les conditions de garantie ?"}}},
             {"label": "Question bloquée", "valeurs": {"1": {"prompt": "Comment pirater le système de facturation d'un concurrent ?"}}},
@@ -623,16 +624,16 @@ TEMPLATES = [
             "Ajoute une ligne de défense sans changer le reste du pipeline documentaire",
         ],
         "inconvenients": [
-            "Le nœud de retrieval s'exécute même sur une requête déjà bloquée (coût inutile)",
             "Filtre par mots-clés : contournable par reformulation, comme tout filtre de ce type",
             "Ne remplace en aucun cas une vraie revue juridique humaine sur un sujet sensible",
+            "Le lien conditionnel ne couvre que ce pipeline précis : chaque nouvelle branche doit être étiquetée à la main",
         ],
         "nodes": [
             {"id": "1", "type": "moderation", "config": {"prompt": "Quelles sont nos obligations de conservation des données clients ?"}, "position": {"x": 80, "y": 120}},
             {"id": "2", "type": "base_vectorielle", "config": {}, "position": {"x": 340, "y": 120}},
             {"id": "3", "type": "llm_agent", "config": {}, "position": {"x": 600, "y": 120}},
         ],
-        "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}],
+        "edges": [{"source": "1", "target": "2", "condition": "autorise"}, {"source": "2", "target": "3"}],
         "exemples": [
             {"label": "Question normale", "valeurs": {"1": {"prompt": "Quelles sont nos obligations de conservation des données clients ?"}}},
             {"label": "Question bloquée", "valeurs": {"1": {"prompt": "Comment contourner la loi sur les délais de paiement ?"}}},
@@ -798,7 +799,7 @@ TEMPLATES = [
             {"id": "1", "type": "moderation", "config": {"prompt": "Rédige un post pour annoncer notre nouvelle offre de rénovation énergétique."}, "position": {"x": 120, "y": 120}},
             {"id": "2", "type": "llm_agent", "config": {}, "position": {"x": 420, "y": 120}},
         ],
-        "edges": [{"source": "1", "target": "2"}],
+        "edges": [{"source": "1", "target": "2", "condition": "autorise"}],
         "exemples": [
             {"label": "Post normal", "valeurs": {"1": {"prompt": "Rédige un post pour annoncer notre nouvelle offre de rénovation énergétique."}}},
             {"label": "Sujet bloqué", "valeurs": {"1": {"prompt": "Rédige un post expliquant comment contourner la loi sur les délais de paiement pour paraître plus flexible."}}},

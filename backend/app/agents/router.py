@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
@@ -17,6 +19,9 @@ class Noeud(BaseModel):
 class Arete(BaseModel):
     source: str = Field(max_length=64)
     target: str = Field(max_length=64)
+    # Lien conditionnel : ne s'active que si le nœud source (typiquement un filtre de
+    # modération) a produit le résultat attendu — None = lien normal, toujours actif.
+    condition: Literal["autorise", "bloque"] | None = None
 
 
 class GrapheRequest(BaseModel):

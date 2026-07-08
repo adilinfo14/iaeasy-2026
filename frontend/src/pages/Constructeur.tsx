@@ -43,7 +43,7 @@ export default function Constructeur() {
 
   async function executer(
     nodes: { id: string; type: string; config: Record<string, unknown> }[],
-    edges: { source: string; target: string }[],
+    edges: { source: string; target: string; condition?: 'autorise' | 'bloque' }[],
   ) {
     setErreur(null)
     setResultat(null)
@@ -251,7 +251,14 @@ export default function Constructeur() {
           {artefactNoeud && (
             <>
               <h4>Ce que ce nœud a produit lors de la dernière exécution</h4>
-              <pre className="resultat">{JSON.stringify(artefactNoeud, null, 2)}</pre>
+              {artefactNoeud.ignore ? (
+                <p className="texte-muted">
+                  🚫 Ce nœud n'a pas été exécuté : la condition de son lien entrant n'était pas remplie (branche non
+                  empruntée).
+                </p>
+              ) : (
+                <pre className="resultat">{JSON.stringify(artefactNoeud, null, 2)}</pre>
+              )}
             </>
           )}
         </div>

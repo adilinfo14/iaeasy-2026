@@ -445,10 +445,31 @@ async def executer_graphe(nodes: list[dict], edges: list[dict]) -> dict:
 
     ordre = _topological_sort(nodes, edges)
     noeuds_par_id = {n["id"]: n for n in nodes}
+    aretes_entrantes: dict[str, list[dict]] = {n["id"]: [] for n in nodes}
+    for e in edges:
+        aretes_entrantes[e["target"]].append(e)
 
     contexte: dict = {}
     etapes: list[dict] = []
     resultats_par_noeud: dict[str, dict] = {}
+    executes: set[str] = set()
+
+    def _noeud_actif(node_id: str) -> bool:
+        entrantes = aretes_entrantes[node_id]
+        if not entrantes:
+            return True
+        bloque_actuel = bool(contexte.get("bloque"))
+        for arete in entrantes:
+            if arete["source"] not in executes:
+                continue  # le nœud source a lui-même été ignoré : ce lien ne compte pas
+            condition = arete.get("condition")
+            if condition is None:
+                return True
+            if condition == "autorise" and not bloque_actuel:
+                return True
+            if condition == "bloque" and bloque_actuel:
+                return True
+        return False
 
     for node_id in ordre:
         noeud = noeuds_par_id[node_id]
@@ -456,7 +477,19 @@ async def executer_graphe(nodes: list[dict], edges: list[dict]) -> dict:
         handler = _HANDLERS.get(type_brique)
         if handler is None:
             raise ValueError(f"Type de brique inconnu : {type_brique}")
+
+        if not _noeud_actif(node_id):
+            etapes.append(
+                {
+                    "brique": type_brique,
+                    "detail": "Nœud ignoré : la condition du lien entrant n'est pas remplie (branche non empruntée).",
+                }
+            )
+            resultats_par_noeud[node_id] = {"ignore": True}
+            continue
+
         contexte = await handler(noeud.get("config", {}), contexte, etapes)
+        executes.add(node_id)
         resultats_par_noeud[node_id] = dict(contexte)
 
     return {
