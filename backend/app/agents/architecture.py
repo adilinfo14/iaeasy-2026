@@ -293,6 +293,31 @@ _TEXTE_COMPTE_RENDU = (
     "chantier. La prochaine réunion est fixée au 19 juin pour faire un nouveau point d'avancement."
 )
 
+_TEXTE_LIVRET_ACCUEIL = (
+    "Les salariés bénéficient de 25 jours de congés payés par an, à poser au moins 2 semaines à "
+    "l'avance auprès du responsable d'équipe. Le télétravail est possible 2 jours par semaine sur "
+    "accord préalable du manager, hors périodes de chantier nécessitant une présence terrain. En cas "
+    "d'arrêt maladie, l'arrêt doit être transmis aux ressources humaines dans les 48 heures. La période "
+    "d'essai est de 2 mois renouvelable une fois pour les postes non-cadres."
+)
+
+_TEXTE_FACTURE_CLIENT = (
+    "Facture n°245 émise le 3 mars pour le client Dupont : pose de carrelage 45m² à 38€/m² HT, soit "
+    "1710€ HT. Fourniture de matériaux complémentaires : 320€ HT. Total HT : 2030€, TVA à 10% : 203€, "
+    "total TTC : 2233€. Acompte déjà versé à la commande : 600€. Solde restant dû : 1633€, payable sous "
+    "30 jours. Facture n°246 émise le 5 mars pour le client Martin, montant total TTC de 1150€, "
+    "intégralement réglée par virement le 8 mars."
+)
+
+_TEXTE_RAPPORT_MARCHE = (
+    "Un concurrent régional vient de lancer une offre de rénovation énergétique clé en main avec "
+    "financement intégré, ciblant particulièrement les propriétaires de logements anciens. Le marché "
+    "de la rénovation énergétique devrait croître de 12% cette année selon une étude de la filière, "
+    "porté par le renforcement des aides publiques. Plusieurs artisans indépendants du secteur signalent "
+    "toutefois des difficultés à recruter de la main d'œuvre qualifiée, ce qui limite leur capacité à "
+    "répondre à la demande malgré la croissance du marché."
+)
+
 TEMPLATES = [
     {
         "id": "assistant_rag",
@@ -529,6 +554,247 @@ TEMPLATES = [
             {"label": "Calcul", "valeurs": {"1": {"prompt": "Combien font 17 fois 23 ?"}}},
             {"label": "Fait précis", "valeurs": {"1": {"prompt": "En quelle année la garantie décennale est-elle devenue obligatoire en France ?"}}},
             {"label": "Raisonnement en plusieurs étapes", "valeurs": {"1": {"prompt": "Un artisan facture 3 interventions de 2h à 45€/h. Quel est le total ?"}}},
+        ],
+    },
+    {
+        "id": "assistant_it_helpdesk",
+        "titre": "Support IT interne (helpdesk)",
+        "description": "Un agent qui répond aux questions IT courantes des salariés et décide seul de chercher dans la base de connaissances.",
+        "avantages": [
+            "Déployé aujourd'hui dans la plupart des grandes DSI pour absorber les tickets de premier niveau",
+            "Disponible 24h/24, réduit la charge des équipes IT sur les questions répétitives",
+            "Traçable : on voit exactement ce que l'agent a cherché avant de répondre",
+        ],
+        "inconvenients": [
+            "Ne peut pas agir lui-même (réinitialiser un mot de passe, ouvrir un ticket) sans intégration supplémentaire",
+            "Dépend entièrement de la qualité et de la fraîcheur de la base de connaissances",
+            "Risque de donner un faux sentiment de résolution sur un problème de sécurité qui mériterait une escalade humaine",
+        ],
+        "nodes": [{"id": "1", "type": "agent_unique", "config": {"prompt": "Comment réinitialiser mon mot de passe VPN ?"}, "position": {"x": 200, "y": 120}}],
+        "edges": [],
+        "exemples": [
+            {"label": "Mot de passe VPN", "valeurs": {"1": {"prompt": "Comment réinitialiser mon mot de passe VPN ?"}}},
+            {"label": "Imprimante réseau", "valeurs": {"1": {"prompt": "Mon imprimante réseau n'apparaît plus sur mon poste, que faire ?"}}},
+            {"label": "Demande de matériel", "valeurs": {"1": {"prompt": "Quelle est la procédure pour demander un nouvel ordinateur portable ?"}}},
+        ],
+    },
+    {
+        "id": "assistant_rh_onboarding",
+        "titre": "Assistant RH onboarding",
+        "description": "Répond aux questions des nouveaux salariés à partir du livret d'accueil : Document → Découpage → Base vectorielle → LLM.",
+        "avantages": [
+            "Pattern très répandu en RH pour absorber les questions répétitives des nouveaux arrivants",
+            "Réponses cohérentes et alignées sur le document officiel, jour et nuit",
+            "Libère du temps aux équipes RH pour les cas individuels complexes",
+        ],
+        "inconvenients": [
+            "Dépend entièrement de la mise à jour du livret d'accueil source",
+            "Ne gère pas les situations personnelles particulières (négociation, cas exceptionnel)",
+            "Une erreur ou une ambiguïté dans le document source se répercute directement sur la réponse",
+        ],
+        "nodes": [
+            {"id": "1", "type": "source_document", "config": {"texte": _TEXTE_LIVRET_ACCUEIL}, "position": {"x": 40, "y": 120}},
+            {"id": "2", "type": "chunking", "config": {}, "position": {"x": 280, "y": 120}},
+            {"id": "3", "type": "base_vectorielle", "config": {"prompt": "Combien de jours de congés payés ai-je par an ?"}, "position": {"x": 520, "y": 120}},
+            {"id": "4", "type": "llm_agent", "config": {}, "position": {"x": 760, "y": 120}},
+        ],
+        "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}, {"source": "3", "target": "4"}],
+        "exemples": [
+            {"label": "Congés payés", "valeurs": {"3": {"prompt": "Combien de jours de congés payés ai-je par an ?"}}},
+            {"label": "Télétravail", "valeurs": {"3": {"prompt": "Quelle est la procédure de télétravail ?"}}},
+            {"label": "Arrêt maladie", "valeurs": {"3": {"prompt": "Comment déclarer un arrêt maladie ?"}}},
+        ],
+    },
+    {
+        "id": "assistant_conformite_rgpd",
+        "titre": "Assistant conformité avec garde-fou",
+        "description": "Filtre la question avant de la transmettre à un assistant documentaire : Modération → Base vectorielle → LLM.",
+        "avantages": [
+            "Pattern standard dans les secteurs réglementés (juridique, santé, finance) avant tout assistant documentaire",
+            "Le blocage est tracé dans le déroulé — auditable a posteriori",
+            "Ajoute une ligne de défense sans changer le reste du pipeline documentaire",
+        ],
+        "inconvenients": [
+            "Le nœud de retrieval s'exécute même sur une requête déjà bloquée (coût inutile)",
+            "Filtre par mots-clés : contournable par reformulation, comme tout filtre de ce type",
+            "Ne remplace en aucun cas une vraie revue juridique humaine sur un sujet sensible",
+        ],
+        "nodes": [
+            {"id": "1", "type": "moderation", "config": {"prompt": "Quelles sont nos obligations de conservation des données clients ?"}, "position": {"x": 80, "y": 120}},
+            {"id": "2", "type": "base_vectorielle", "config": {}, "position": {"x": 340, "y": 120}},
+            {"id": "3", "type": "llm_agent", "config": {}, "position": {"x": 600, "y": 120}},
+        ],
+        "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}],
+        "exemples": [
+            {"label": "Question normale", "valeurs": {"1": {"prompt": "Quelles sont nos obligations de conservation des données clients ?"}}},
+            {"label": "Question bloquée", "valeurs": {"1": {"prompt": "Comment contourner la loi sur les délais de paiement ?"}}},
+            {"label": "Question limite", "valeurs": {"1": {"prompt": "Comment arnaquer un client sur le montant d'un devis ?"}}},
+        ],
+    },
+    {
+        "id": "assistant_comptable_factures",
+        "titre": "Assistant comptable (factures + calcul)",
+        "description": "Combine consultation de factures et calcul fiable : Document → Découpage → Base vectorielle → Agent.",
+        "avantages": [
+            "Réunit dans un même assistant la consultation documentaire ET le calcul, un besoin comptable très courant",
+            "Le calcul passe par une vraie calculatrice, pas par l'arithmétique approximative d'un LLM seul",
+            "Rapide sur les questions répétitives (montants, soldes, TVA)",
+        ],
+        "inconvenients": [
+            "Suppose des documents source bien structurés et à jour",
+            "Risque d'erreur si le LLM interprète mal la ligne de facture à extraire avant de calculer",
+            "Ne remplace pas un vrai logiciel de comptabilité pour la tenue légale des comptes",
+        ],
+        "nodes": [
+            {"id": "1", "type": "source_document", "config": {"texte": _TEXTE_FACTURE_CLIENT}, "position": {"x": 40, "y": 120}},
+            {"id": "2", "type": "chunking", "config": {}, "position": {"x": 280, "y": 120}},
+            {"id": "3", "type": "base_vectorielle", "config": {"prompt": "Quel est le solde restant dû sur la facture 245 ?"}, "position": {"x": 520, "y": 120}},
+            {"id": "4", "type": "agent_unique", "config": {}, "position": {"x": 760, "y": 120}},
+        ],
+        "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}, {"source": "3", "target": "4"}],
+        "exemples": [
+            {"label": "Solde dû", "valeurs": {"3": {"prompt": "Quel est le solde restant dû sur la facture 245 ?"}}},
+            {"label": "Statut de paiement", "valeurs": {"3": {"prompt": "La facture 246 du client Martin a-t-elle été payée ?"}}},
+            {"label": "Calcul de TVA", "valeurs": {"3": {"prompt": "Calcule 20% de TVA sur un montant HT de 2030€."}}},
+        ],
+    },
+    {
+        "id": "veille_concurrentielle",
+        "titre": "Veille concurrentielle et marché",
+        "description": "Résume de longs rapports ou articles de marché en une synthèse exploitable : Document → Découpage → Résumé hiérarchique.",
+        "avantages": [
+            "Usage très répandu en veille stratégique pour dépouiller rapidement rapports et articles longs",
+            "Traite des documents bien plus longs qu'un simple prompt ne le permettrait",
+            "Chaque section est résumée indépendamment, donc parallélisable à grande échelle",
+        ],
+        "inconvenients": [
+            "Un signal faible mais stratégiquement important peut être lissé/perdu lors de la synthèse finale",
+            "Plusieurs appels LLM : plus lent et plus coûteux qu'un résumé direct",
+            "Ne remplace pas l'analyse humaine pour une décision stratégique importante",
+        ],
+        "nodes": [
+            {"id": "1", "type": "source_document", "config": {"texte": _TEXTE_RAPPORT_MARCHE}, "position": {"x": 80, "y": 120}},
+            {"id": "2", "type": "chunking", "config": {}, "position": {"x": 340, "y": 120}},
+            {"id": "3", "type": "synthese_map_reduce", "config": {}, "position": {"x": 600, "y": 120}},
+        ],
+        "edges": [{"source": "1", "target": "2"}, {"source": "2", "target": "3"}],
+        "exemples": [
+            {"label": "Rapport de marché", "valeurs": {"1": {"texte": _TEXTE_RAPPORT_MARCHE}}},
+            {"label": "Article de presse", "valeurs": {"1": {"texte": _TEXTE_ARTICLE_PRESSE}}},
+            {"label": "Compte-rendu de réunion", "valeurs": {"1": {"texte": _TEXTE_COMPTE_RENDU}}},
+        ],
+    },
+    {
+        "id": "assistant_commercial_crm",
+        "titre": "Assistant commercial (consultation CRM)",
+        "description": "Un agent qui consulte l'historique client avant de répondre, pour préparer un appel ou une relance commerciale.",
+        "avantages": [
+            "Pattern de plus en plus intégré aux CRM (Salesforce, HubSpot...) pour préparer les commerciaux avant un appel",
+            "Accès rapide à l'information client sans changer d'outil",
+            "Peut aider à rédiger une relance personnalisée à partir de l'historique retrouvé",
+        ],
+        "inconvenients": [
+            "Ce mini-corpus de démonstration ne reflète pas un vrai CRM (nécessiterait une vraie intégration)",
+            "Risque de réponse trop générique si l'agent ne trouve rien de pertinent dans sa base",
+            "Ne doit jamais remplacer la vérification humaine avant l'envoi d'une communication client sensible",
+        ],
+        "nodes": [{"id": "1", "type": "agent_unique", "config": {"prompt": "Prépare un argumentaire pour relancer un client inactif depuis 6 mois."}, "position": {"x": 200, "y": 120}}],
+        "edges": [],
+        "exemples": [
+            {"label": "Relance client inactif", "valeurs": {"1": {"prompt": "Prépare un argumentaire pour relancer un client inactif depuis 6 mois."}}},
+            {"label": "Historique client", "valeurs": {"1": {"prompt": "Que sait-on du protocole MCP, pour argumenter face à un client technique ?"}}},
+            {"label": "Calcul de remise commerciale", "valeurs": {"1": {"prompt": "Un client fidèle depuis 5 ans demande une remise. Calcule 8% de remise sur un devis de 3400€."}}},
+        ],
+    },
+    {
+        "id": "assistant_recrutement",
+        "titre": "Assistant recrutement (sourcing + rédaction)",
+        "description": "Deux agents collaborent : un agent rassemble les critères du poste, un second rédige l'annonce ou les questions d'entretien.",
+        "avantages": [
+            "Usage de plus en plus courant en RH pour accélérer la rédaction des offres et des trames d'entretien",
+            "Sépare la collecte d'informations de la rédaction finale, chacun des deux agents reste spécialisé",
+            "Gain de temps réel sur les tâches rédactionnelles répétitives des recruteurs",
+        ],
+        "inconvenients": [
+            "Ne remplace jamais le jugement humain sur l'adéquation réelle d'un candidat",
+            "Risque de style trop générique ou de biais hérité des données d'entraînement du modèle",
+            "Deux fois plus d'appels LLM que passer directement par un agent unique",
+        ],
+        "nodes": [{"id": "1", "type": "multi_agent", "config": {"prompt": "Rédige une offre d'emploi pour un poste de plombier confirmé."}, "position": {"x": 200, "y": 120}}],
+        "edges": [],
+        "exemples": [
+            {"label": "Rédiger une offre d'emploi", "valeurs": {"1": {"prompt": "Rédige une offre d'emploi pour un poste de plombier confirmé."}}},
+            {"label": "Questions d'entretien", "valeurs": {"1": {"prompt": "Prépare 5 questions d'entretien pour un poste de chef de chantier."}}},
+            {"label": "Message de refus bienveillant", "valeurs": {"1": {"prompt": "Rédige un message de refus bienveillant pour un candidat non retenu."}}},
+        ],
+    },
+    {
+        "id": "traduction_assistee_verifiee",
+        "titre": "Traduction assistée avec double vérification",
+        "description": "Une première traduction est générée, puis une seconde passe relit et corrige avant l'envoi à un client international.",
+        "avantages": [
+            "Pratique courante avant l'envoi de contenu contractuel ou technique à un client à l'étranger",
+            "Réduit le risque d'erreur de traduction sur un terme technique ou juridique sensible",
+            "Le brouillon ET la correction restent visibles, donc vérifiables par un humain avant envoi",
+        ],
+        "inconvenients": [
+            "Coûte deux fois plus cher/lent qu'une traduction simple en un seul appel",
+            "Le prompt de vérification reste générique (pensé pour des calculs/faits), pas spécialisé traduction",
+            "Ne remplace pas un traducteur professionnel pour du contenu à fort enjeu juridique",
+        ],
+        "nodes": [{"id": "1", "type": "verification", "config": {"prompt": "Traduis en anglais : Veuillez trouver ci-joint le devis signé."}, "position": {"x": 200, "y": 120}}],
+        "edges": [],
+        "exemples": [
+            {"label": "Devis signé", "valeurs": {"1": {"prompt": "Traduis en anglais : Veuillez trouver ci-joint le devis signé."}}},
+            {"label": "Garantie décennale", "valeurs": {"1": {"prompt": "Traduis en anglais : la garantie décennale couvre le gros œuvre."}}},
+            {"label": "Formule de politesse", "valeurs": {"1": {"prompt": "Traduis en anglais : nous restons à votre disposition pour toute question."}}},
+        ],
+    },
+    {
+        "id": "choix_modele_migration",
+        "titre": "Choix de modèle avant migration (réduction de coûts)",
+        "description": "Compare un modèle actuel et un modèle candidat moins coûteux sur des cas réels, avant de décider de migrer.",
+        "avantages": [
+            "Démarche standard en entreprise avant de réduire les coûts d'inférence en changeant de modèle",
+            "Décision basée sur des cas d'usage réels plutôt que sur des benchmarks génériques publics",
+            "Documente objectivement l'écart de qualité perçu avant tout engagement de migration",
+        ],
+        "inconvenients": [
+            "Ne teste qu'un échantillon limité de cas, pas exhaustif de tous les usages réels",
+            "La « meilleure » réponse reste in fine un jugement humain subjectif",
+            "Double le coût d'inférence pendant toute la phase d'évaluation elle-même",
+        ],
+        "nodes": [{"id": "1", "type": "comparateur", "config": {"prompt": "Rédige une réponse standard à un client demandant un délai de paiement supplémentaire."}, "position": {"x": 200, "y": 120}}],
+        "edges": [],
+        "exemples": [
+            {"label": "Réponse client (délai de paiement)", "valeurs": {"1": {"prompt": "Rédige une réponse standard à un client demandant un délai de paiement supplémentaire."}}},
+            {"label": "Résumé de compte-rendu", "valeurs": {"1": {"prompt": "Résume ce compte-rendu de réunion en 3 points : " + _TEXTE_COMPTE_RENDU}}},
+            {"label": "Explication acompte/arrhes", "valeurs": {"1": {"prompt": "Explique la différence entre acompte et arrhes à un client."}}},
+        ],
+    },
+    {
+        "id": "assistant_marketing_garde_fou",
+        "titre": "Générateur de contenu marketing avec garde-fou de marque",
+        "description": "Filtre les sujets sensibles avant de laisser un outil de génération de contenu en libre-service produire un texte.",
+        "avantages": [
+            "Pattern de plus en plus déployé pour sécuriser les outils de génération de contenu en libre-service",
+            "Évite qu'un contenu marketing associé à un sujet sensible ou interdit pour la marque ne soit généré",
+            "Chaque refus est tracé dans le déroulé, exploitable pour un audit de conformité éditoriale",
+        ],
+        "inconvenients": [
+            "Filtre par mots-clés simple : à combiner avec une vraie relecture humaine avant toute publication",
+            "Peut bloquer une demande légitime contenant un mot sensible utilisé dans un autre contexte",
+            "Ne juge en rien la qualité ou la pertinence marketing du contenu généré, seulement sa conformité",
+        ],
+        "nodes": [
+            {"id": "1", "type": "moderation", "config": {"prompt": "Rédige un post pour annoncer notre nouvelle offre de rénovation énergétique."}, "position": {"x": 120, "y": 120}},
+            {"id": "2", "type": "llm_agent", "config": {}, "position": {"x": 420, "y": 120}},
+        ],
+        "edges": [{"source": "1", "target": "2"}],
+        "exemples": [
+            {"label": "Post normal", "valeurs": {"1": {"prompt": "Rédige un post pour annoncer notre nouvelle offre de rénovation énergétique."}}},
+            {"label": "Sujet bloqué", "valeurs": {"1": {"prompt": "Rédige un post expliquant comment contourner la loi sur les délais de paiement pour paraître plus flexible."}}},
+            {"label": "Sujet limite", "valeurs": {"1": {"prompt": "Rédige un post qui compare notre entreprise à un concurrent en le tournant en dérision."}}},
         ],
     },
 ]
