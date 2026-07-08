@@ -281,6 +281,106 @@ export default function ResultRenderer({ resultat }: Props) {
         </div>
       )
 
+    case 'segmentation_image':
+      return (
+        <div className="resultat-carte">
+          <img
+            src={`data:image/jpeg;base64,${resultat.image_annotee_base64}`}
+            alt="Segmentation d'objets"
+            style={{ maxWidth: '100%', borderRadius: 8 }}
+          />
+          <ul className="liste-simple">
+            {resultat.objets_segmentes.map((o: any, i: number) => (
+              <li key={i}>
+                {o.etiquette} — {(o.confiance * 100).toFixed(0)}% ({o.nb_points_contour} points de contour)
+              </li>
+            ))}
+          </ul>
+          <p className="texte-muted note">{resultat.note}</p>
+        </div>
+      )
+
+    case 'estimation_pose':
+      return (
+        <div className="resultat-carte">
+          <img
+            src={`data:image/jpeg;base64,${resultat.image_annotee_base64}`}
+            alt="Estimation de pose"
+            style={{ maxWidth: '100%', borderRadius: 8 }}
+          />
+          <ul className="liste-simple">
+            {resultat.personnes_detectees.map((p: any, i: number) => (
+              <li key={i}>
+                Personne {p.personne} — {p.points_cles_detectes}/{p.points_cles_total} points clés détectés
+              </li>
+            ))}
+          </ul>
+          <p className="texte-muted note">{resultat.note}</p>
+        </div>
+      )
+
+    case 'clustering':
+      return (
+        <div className="resultat-carte">
+          <p className="texte-muted">
+            {resultat.nb_clients_total} clients répartis en {resultat.nb_groupes} groupes, découverts sans étiquette fournie :
+          </p>
+          <ul className="liste-simple">
+            {resultat.groupes_decouverts.map((g: any, i: number) => (
+              <li key={i}>
+                Groupe {g.groupe} — {g.nb_clients} clients, panier moyen {g.montant_moyen_facture}€,{' '}
+                {g.frequence_moyenne_par_an}x/an
+              </li>
+            ))}
+          </ul>
+          <p className="texte-muted">{resultat.explication}</p>
+        </div>
+      )
+
+    case 'similarite_image':
+      return (
+        <div className="resultat-carte">
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <img
+              src={`data:image/jpeg;base64,${resultat.image_a_base64}`}
+              alt="Image A"
+              style={{ maxWidth: '48%', borderRadius: 8 }}
+            />
+            <img
+              src={`data:image/jpeg;base64,${resultat.image_b_base64}`}
+              alt="Image B"
+              style={{ maxWidth: '48%', borderRadius: 8 }}
+            />
+          </div>
+          <Meter valeur={resultat.similarite_cosinus} etiquette="Similarité cosinus" />
+          <p className="texte-muted">{resultat.explication}</p>
+        </div>
+      )
+
+    case 'ocr_texte':
+      return (
+        <div className="resultat-carte">
+          <img
+            src={`data:image/png;base64,${resultat.image_base64}`}
+            alt="Document à lire"
+            style={{ maxWidth: '100%', borderRadius: 8 }}
+          />
+          <p className="texte-muted">Texte extrait :</p>
+          <pre className="traduction-cible">{resultat.texte_extrait}</pre>
+          <p className="texte-muted note">{resultat.note}</p>
+        </div>
+      )
+
+    case 'synthese_vocale':
+      return (
+        <div className="resultat-carte">
+          <p className="texte-muted">Texte source :</p>
+          <p className="texte-original">{resultat.texte_source}</p>
+          <audio controls src={`data:audio/wav;base64,${resultat.audio_base64}`} style={{ width: '100%' }} />
+          <p className="texte-muted note">{resultat.note}</p>
+        </div>
+      )
+
     default:
       return <pre className="resultat">{JSON.stringify(resultat, null, 2)}</pre>
   }

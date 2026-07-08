@@ -556,3 +556,106 @@
     enonce: "Entraîner un modèle de recommandation sur les matériaux déjà utilisés par un artisan et en suggérer un nouveau."
     exemples: []
   statut: disponible
+
+- id: yolo-segmentation
+  nom: "YOLOv8 (segmentation)"
+  famille: vision_segmentation
+  secteur: BTP / Agriculture — mesure de surface
+  moteur: ultralytics
+  moteur_ref: yolov8n-seg.pt
+  taille: "3.4 millions de paramètres"
+  description_pedagogique: >
+    Contrairement à la détection (un simple rectangle autour de l'objet), la segmentation
+    délimite le contour exact de chaque objet, pixel par pixel. Utile dès qu'on a besoin
+    de mesurer une surface réelle (une toiture, une parcelle) plutôt que juste repérer une présence.
+  cas_usage:
+    enonce: "Segmenter précisément chaque objet de l'image d'exemple (contour, pas juste un rectangle)."
+    exemples: []
+  statut: disponible
+
+- id: yolo-pose
+  nom: "YOLOv8 (estimation de pose)"
+  famille: vision_pose
+  secteur: BTP / Industrie — sécurité au travail
+  moteur: ultralytics
+  moteur_ref: yolov8n-pose.pt
+  taille: "3.3 millions de paramètres"
+  description_pedagogique: >
+    Une tâche de vision différente de la détection ou la classification : repérer les
+    points clés du corps humain (épaules, coudes, genoux...). Base de nombreux usages de
+    sécurité au travail (détecter une chute, une position à risque) ou de sport.
+  cas_usage:
+    enonce: "Repérer les points clés du corps des personnes visibles sur une photo d'exemple."
+    exemples: []
+  statut: disponible
+
+- id: kmeans-clustering-clients
+  nom: "KMeans — segmentation de clientèle"
+  famille: clustering
+  secteur: Artisanat — segmentation de clientèle
+  moteur: sklearn
+  moteur_ref: entraîné en direct (KMeans, non supervisé)
+  taille: "algorithme classique, pas un réseau de neurones"
+  description_pedagogique: >
+    Différence fondamentale avec le scoring crédit ou la classification classique : ici
+    aucune étiquette n'est fournie au modèle. Il découvre lui-même des groupes de clients
+    cohérents à partir de leurs seules habitudes (montant moyen, fréquence), sans qu'on
+    lui dise à l'avance ce que ces groupes représentent.
+  cas_usage:
+    enonce: "Découvrir automatiquement des groupes de clients à partir de leurs habitudes d'achat, sans étiquette fournie."
+    exemples: []
+  statut: disponible
+
+- id: resnet-similarite-image
+  nom: "ResNet-18 — similarité visuelle"
+  famille: recherche_image
+  secteur: E-commerce / Immobilier — recherche visuelle
+  moteur: torchvision
+  moteur_ref: resnet18 (ImageNet)
+  taille: "11.7 millions de paramètres"
+  description_pedagogique: >
+    L'équivalent visuel des embeddings de texte (module Embeddings) : chaque image est
+    transformée en un vecteur de nombres qui capture son contenu visuel, ce qui permet de
+    comparer deux images par leur sens plutôt que pixel par pixel — base de la recherche
+    d'image ("trouver des produits similaires à cette photo").
+  cas_usage:
+    enonce: "Comparer la similarité visuelle de deux images d'exemple via leurs vecteurs."
+    exemples: []
+  statut: disponible
+
+- id: tesseract-ocr
+  nom: "Tesseract OCR"
+  famille: ocr
+  secteur: Comptabilité / Administratif — numérisation de documents
+  moteur: tesseract
+  moteur_ref: tesseract-ocr (moteur classique, pas un LLM)
+  taille: "quelques dizaines de Mo (modèle de reconnaissance de caractères, pas un LLM)"
+  description_pedagogique: >
+    Extraire le texte contenu dans une image (une facture scannée, une photo de document)
+    plutôt que de le taper à la main. Un moteur mature et éprouvé plutôt qu'un tout
+    nouveau modèle — bon rappel que beaucoup d'IA utile au quotidien n'est pas un LLM.
+  cas_usage:
+    enonce: "Extraire le texte d'une image de facture générée automatiquement pour l'exemple."
+    exemples: []
+  statut: disponible
+
+- id: espeak-tts
+  nom: "eSpeak NG — synthèse vocale"
+  famille: synthese_vocale
+  secteur: Accessibilité — lecture à voix haute
+  moteur: espeak-ng
+  moteur_ref: espeak-ng (moteur à règles phonétiques, pas un réseau de neurones)
+  taille: "quelques Mo (pas un réseau de neurones)"
+  description_pedagogique: >
+    L'inverse de Whisper (texte → son au lieu de son → texte). Ce moteur classique
+    (règles phonétiques codées à la main) est très léger et rapide, avec une voix
+    nettement plus robotique qu'un moteur neuronal moderne — bon exemple pour discuter du
+    compromis légèreté/qualité, au-delà du seul cas des LLM.
+  cas_usage:
+    enonce: "Convertir un texte libre en audio (voix synthétique)."
+    exemples:
+      - label: "Message d'accueil"
+        input: "Bienvenue chez nous, comment puis-je vous aider aujourd'hui ?"
+      - label: "Rappel de rendez-vous"
+        input: "Nous vous rappelons votre rendez-vous demain à quatorze heures."
+  statut: disponible

@@ -3,7 +3,16 @@ from pathlib import Path
 import yaml
 from fastapi import APIRouter, HTTPException
 
-from .runners import ml_classique_runner, ollama_runner, timeseries_runner, transformers_runner, vision_runner
+from .runners import (
+    image_embedding_runner,
+    ml_classique_runner,
+    ocr_runner,
+    ollama_runner,
+    timeseries_runner,
+    transformers_runner,
+    tts_runner,
+    vision_runner,
+)
 from .schemas import EssaiRequest, ModelCard
 
 router = APIRouter(prefix="/catalogue", tags=["catalogue"])
@@ -36,6 +45,11 @@ _DISPATCH_SANS_TEXTE = {
     "scoring-pret-immobilier": lambda ref: ml_classique_runner.run_scoring_pret(),
     "recommandation-films": lambda ref: ml_classique_runner.run_recommandation(),
     "recommandation-materiaux": lambda ref: ml_classique_runner.run_recommandation_materiaux(),
+    "yolo-segmentation": lambda ref: vision_runner.run_segmentation(ref),
+    "yolo-pose": lambda ref: vision_runner.run_pose(ref),
+    "kmeans-clustering-clients": lambda ref: ml_classique_runner.run_clustering(),
+    "resnet-similarite-image": lambda ref: image_embedding_runner.run_similarite(),
+    "tesseract-ocr": lambda ref: ocr_runner.run_ocr(),
 }
 
 _DISPATCH_AVEC_TEXTE = {
@@ -48,6 +62,7 @@ _DISPATCH_AVEC_TEXTE = {
     "camembert-ner": lambda ref, texte: transformers_runner.run_ner(ref, texte),
     "camembert-qa": lambda ref, texte: transformers_runner.run_qa(ref, texte),
     "fasttext-langue": lambda ref, texte: transformers_runner.run_langid(texte),
+    "espeak-tts": lambda ref, texte: tts_runner.run_tts(texte),
 }
 
 

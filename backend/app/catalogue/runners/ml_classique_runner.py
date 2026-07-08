@@ -184,3 +184,55 @@ def _recommandation_materiaux_sync() -> dict:
 
 async def run_recommandation_materiaux() -> dict:
     return await asyncio.to_thread(_recommandation_materiaux_sync)
+
+
+def _toy_clients_artisan():
+    rng = np.random.RandomState(15)
+    # 3 groupes de clients volontairement distincts, mais SANS étiquette de groupe fournie
+    # au modèle — c'est justement le principe du clustering : les découvrir tout seul.
+    occasionnels = rng.normal([300, 1], [80, 0.5], (20, 2))
+    reguliers = rng.normal([900, 4], [150, 1], (20, 2))
+    gros_comptes = rng.normal([3500, 8], [400, 2], (15, 2))
+    montants_frequences = np.vstack([occasionnels, reguliers, gros_comptes])
+    # Bornes réalistes appliquées séparément par colonne (le montant et la fréquence n'ont
+    # évidemment pas la même échelle) pour éviter une valeur aberrante négative ou nulle.
+    montants_frequences[:, 0] = montants_frequences[:, 0].clip(min=50)
+    montants_frequences[:, 1] = montants_frequences[:, 1].clip(min=0.5)
+    return montants_frequences
+
+
+def _clustering_sync() -> dict:
+    from sklearn.cluster import KMeans
+
+    donnees = _toy_clients_artisan()
+    modele = KMeans(n_clusters=3, n_init=10, random_state=15)
+    labels = modele.fit_predict(donnees)
+
+    groupes = []
+    for cluster_id in sorted(set(labels)):
+        membres = donnees[labels == cluster_id]
+        groupes.append(
+            {
+                "groupe": int(cluster_id) + 1,
+                "nb_clients": int(len(membres)),
+                "montant_moyen_facture": round(float(membres[:, 0].mean()), 0),
+                "frequence_moyenne_par_an": round(float(membres[:, 1].mean()), 1),
+            }
+        )
+    groupes.sort(key=lambda g: g["montant_moyen_facture"])
+
+    return {
+        "type": "clustering",
+        "nb_clients_total": len(donnees),
+        "nb_groupes": 3,
+        "groupes_decouverts": groupes,
+        "explication": "Le modèle (KMeans) n'a reçu QUE deux chiffres par client (montant moyen de "
+        "facture, fréquence annuelle) — sans jamais qu'on lui dise combien de groupes chercher ni ce "
+        "qu'ils représentent. Il a découvert seul 3 profils de clients à partir de leurs seules "
+        "habitudes, une différence fondamentale avec le scoring crédit qui, lui, apprend à partir "
+        "d'exemples déjà étiquetés 'à risque' ou 'sain'.",
+    }
+
+
+async def run_clustering() -> dict:
+    return await asyncio.to_thread(_clustering_sync)

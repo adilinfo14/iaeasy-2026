@@ -19,3 +19,4 @@ tiktoken
 sentencepiece
 protobuf
 soundfile
+pytesseract
