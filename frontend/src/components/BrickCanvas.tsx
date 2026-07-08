@@ -188,11 +188,11 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
             {c.icone} {c.titre}
           </button>
         ))}
-        <button className="executer-btn" onClick={executer} disabled={nodes.length === 0}>
-          Exécuter le graphe
-        </button>
       </aside>
       <div className="canvas">
+        <button className="executer-flottant" onClick={executer} disabled={nodes.length === 0}>
+          ▶ Exécuter le graphe
+        </button>
         <ReactFlow
           nodes={nodes}
           edges={edges}
