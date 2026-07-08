@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { lireProgression, lireVisiteurs, listerBriques } from '../api/client'
+import { lireBadges, lireProgression, lireVisiteurs, listerBriques } from '../api/client'
 
 const MODULES = [
   {
@@ -34,17 +34,37 @@ const MODULES = [
     titre: 'Stratégie de tests',
     pitch: "Comment vérifier sérieusement chaque famille de modèle — cahiers de test à réutiliser.",
   },
+  {
+    to: '/glossaire',
+    icone: '📖',
+    titre: 'Glossaire',
+    pitch: "Le jargon de l'IA expliqué simplement, un terme à la fois.",
+  },
+  {
+    to: '/metiers',
+    icone: '🧭',
+    titre: 'Mon métier',
+    pitch: "L'IA dans votre métier : des cas d'usage concrets, pas des promesses abstraites.",
+  },
+  {
+    to: '/simulateur',
+    icone: '⚖️',
+    titre: 'Simulateur',
+    pitch: 'Comparez en direct la vitesse et le coût réel de plusieurs modèles.',
+  },
 ]
 
 export default function Accueil() {
   const [debloquees, setDebloquees] = useState(0)
   const [total, setTotal] = useState(5)
   const [visiteurs, setVisiteurs] = useState<number | null>(null)
+  const [badges, setBadges] = useState(0)
 
   useEffect(() => {
     listerBriques().then((b) => setTotal(b.length))
     lireProgression().then((p) => setDebloquees(p.debloquees.length))
     lireVisiteurs().then((v) => setVisiteurs(v.total_visiteurs_uniques))
+    lireBadges().then((b) => setBadges(b.badges.length))
   }, [])
 
   return (
@@ -58,6 +78,7 @@ export default function Accueil() {
 
       <div className="progression-globale">
         <span>🔓 {debloquees}/{total} briques débloquées dans le Parcours</span>
+        <span> · 🏅 {badges}/{total} quiz réussis</span>
         {visiteurs != null && <span> · 👀 {visiteurs} visiteur{visiteurs > 1 ? 's' : ''} unique{visiteurs > 1 ? 's' : ''}</span>}
       </div>
 

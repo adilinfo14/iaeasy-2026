@@ -1136,3 +1136,72 @@ button:disabled {
 .simulateur-detail h5 {
   margin: 0 0 0.2rem;
 }
+
+/* --- Quiz de fin de brique --- */
+.quiz-bloc {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-top: 1rem;
+}
+
+.quiz-badge-acquis {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--fg-muted);
+  margin-left: 0.4rem;
+}
+
+.quiz-question {
+  margin: 0.8rem 0;
+}
+
+.quiz-question p {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.quiz-option {
+  text-align: left;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.88rem;
+}
+
+.quiz-option.selectionne {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.quiz-option.correcte {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.quiz-option.incorrecte {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.quiz-resultat {
+  font-weight: 600;
+  margin-top: 0.6rem;
+}
+
+.quiz-resultat-ok {
+  color: #22c55e;
+}
+
+.quiz-resultat-ko {
+  color: #ef4444;
+}

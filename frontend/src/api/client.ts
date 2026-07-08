@@ -135,6 +135,16 @@ export async function debloquerBrique(id: string) {
   return r.json()
 }
 
+export async function lireBadges() {
+  const r = await fetch(`${BASE}/progress/badges`)
+  return r.json()
+}
+
+export async function validerBadge(id: string) {
+  const r = await fetch(`${BASE}/progress/badges/${id}`, { method: 'POST' })
+  return r.json()
+}
+
 export async function listerGlossaire() {
   const r = await fetch(`${BASE}/glossaire`)
   return r.json()

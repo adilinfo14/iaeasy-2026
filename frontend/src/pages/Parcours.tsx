@@ -1,9 +1,11 @@
 import { Fragment, useEffect, useState } from 'react'
-import { debloquerBrique, executerGraphe, lireProgression, listerBriques } from '../api/client'
+import { debloquerBrique, executerGraphe, lireBadges, lireProgression, listerBriques, validerBadge } from '../api/client'
+import Quiz from '../components/Quiz'
 
 export default function Parcours() {
   const [briques, setBriques] = useState<any[]>([])
   const [debloquees, setDebloquees] = useState<string[]>([])
+  const [badges, setBadges] = useState<string[]>([])
   const [resultats, setResultats] = useState<Record<string, any>>({})
   const [enCours, setEnCours] = useState<string | null>(null)
 
@@ -23,7 +25,13 @@ export default function Parcours() {
   useEffect(() => {
     listerBriques().then(setBriques)
     lireProgression().then((p) => setDebloquees(p.debloquees))
+    lireBadges().then((b) => setBadges(b.badges))
   }, [])
+
+  async function reussirQuiz(briqueId: string) {
+    const b = await validerBadge(briqueId)
+    setBadges(b.badges)
+  }
 
   function construireGraphe(brique: any) {
     switch (brique.id) {
@@ -175,7 +183,7 @@ export default function Parcours() {
               className={debloquee ? 'etape debloquee' : prerequisOk ? 'etape disponible' : 'etape verrouillee'}
             >
               <h3>
-                {b.icone} {b.ordre}. {b.titre}
+                {b.icone} {b.ordre}. {b.titre} {badges.includes(b.id) && <span title="Badge obtenu">🏅</span>}
               </h3>
               <p className="mise-en-situation">{b.mise_en_situation}</p>
 
@@ -232,6 +240,14 @@ export default function Parcours() {
                 </div>
               )}
               {resultat?.erreur && <p className="erreur">{resultat.erreur}</p>}
+
+              {resultat && !resultat.erreur && b.quiz && (
+                <Quiz
+                  questions={b.quiz}
+                  dejaReussi={badges.includes(b.id)}
+                  onReussite={() => reussirQuiz(b.id)}
+                />
+              )}
             </li>
           )
         })}
