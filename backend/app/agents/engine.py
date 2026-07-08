@@ -11,7 +11,15 @@ MODELE_EMBED = "nomic-embed-text"
 # notamment le 70B présent sur l'Ollama partagé du homelab mais volontairement écarté ailleurs
 # pour sa lourdeur. Sans ce filtre, un appel direct à /api/agents/run pourrait forcer son
 # chargement et dégrader tous les autres services du serveur.
-_MODELES_AUTORISES = {"qwen2.5:7b-instruct", "llama3.2:3b", "deepseek-coder:6.7b"}
+_MODELES_AUTORISES = {
+    "qwen2.5:7b-instruct",
+    "llama3.2:3b",
+    "deepseek-coder:6.7b",
+    "llama3:8b",
+    "mistral:7b-instruct",
+    "gemma2:2b",
+    "phi3:mini",
+}
 
 
 def _modele_valide(config: dict, cle: str, defaut: str) -> str:

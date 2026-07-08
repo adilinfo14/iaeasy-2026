@@ -1,4 +1,12 @@
-_MODELES_DISPONIBLES = ["qwen2.5:7b-instruct", "llama3.2:3b", "deepseek-coder:6.7b"]
+_MODELES_DISPONIBLES = [
+    "qwen2.5:7b-instruct",
+    "llama3.2:3b",
+    "deepseek-coder:6.7b",
+    "llama3:8b",
+    "mistral:7b-instruct",
+    "gemma2:2b",
+    "phi3:mini",
+]
 
 COMPOSANTS = [
     {

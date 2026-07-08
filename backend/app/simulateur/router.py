@@ -11,9 +11,13 @@ router = APIRouter(prefix="/simulateur", tags=["simulateur"])
 # uniquement pédagogique (l'estimation d'énergie qui en découle est une approximation
 # proportionnelle, PAS une mesure réelle de consommation).
 _MODELES = [
+    {"id": "gemma2:2b", "nom": "Gemma 2 (2B)", "parametres_milliards": 2.0},
     {"id": "llama3.2:3b", "nom": "Llama 3.2 (3B)", "parametres_milliards": 3.2},
+    {"id": "phi3:mini", "nom": "Phi-3 Mini", "parametres_milliards": 3.8},
     {"id": "deepseek-coder:6.7b", "nom": "DeepSeek Coder (6.7B)", "parametres_milliards": 6.7},
+    {"id": "mistral:7b-instruct", "nom": "Mistral 7B Instruct", "parametres_milliards": 7.0},
     {"id": "qwen2.5:7b-instruct", "nom": "Qwen 2.5 7B Instruct", "parametres_milliards": 7.6},
+    {"id": "llama3:8b", "nom": "Llama 3 (8B)", "parametres_milliards": 8.0},
 ]
 
 _PROMPT_DEFAUT = "Explique en 3 phrases ce qu'est la garantie décennale."
