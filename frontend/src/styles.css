@@ -619,6 +619,30 @@ button:disabled {
   border-color: var(--accent);
 }
 
+.champ-exemples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.config-champ .champ-exemples-label {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+  text-transform: none;
+  font-weight: 400;
+}
+
+.chip-exemple {
+  cursor: pointer;
+}
+
+.chip-exemple:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
 /* --- Résultats riches (ResultRenderer) --- */
 .resultat-carte {
   margin-top: 1rem;

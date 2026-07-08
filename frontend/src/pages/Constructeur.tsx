@@ -166,16 +166,34 @@ export default function Constructeur() {
             <div className="config-form">
               <h5>✏️ Entrée de ce nœud (modifiable)</h5>
               <p className="texte-muted">
-                C'est ici que vous fournissez ce qui est vraiment envoyé à ce nœud. Changez la valeur,
-                puis cliquez « Exécuter le graphe » pour voir l'effet de votre modification.
+                C'est ici que vous fournissez ce qui est vraiment envoyé à ce nœud — uniquement du texte
+                (pas de fichier ni d'image ici, voir le Catalogue pour tester les modèles de vision).
+                Cliquez un exemple pour le reprendre tel quel ou vous en inspirer, modifiez-le librement,
+                puis cliquez « Exécuter le graphe » pour voir l'effet de votre saisie.
               </p>
               {composantAffiche.champs_config.map((champ: any) => (
                 <label key={champ.cle} className="config-champ">
                   <span>{champ.label}</span>
+                  {champ.exemples?.length > 0 && (
+                    <div className="champ-exemples">
+                      <span className="champ-exemples-label">💡 Exemples :</span>
+                      {champ.exemples.map((ex: any, i: number) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className="chip chip-exemple"
+                          onClick={() => modifierConfig(champ.cle, ex.valeur)}
+                        >
+                          {ex.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   {champ.type === 'textarea' && (
                     <textarea
                       value={configNoeudSelectionne[champ.cle] ?? ''}
                       onChange={(e) => modifierConfig(champ.cle, e.target.value)}
+                      placeholder={champ.exemples?.[0] ? `Ex : ${champ.exemples[0].valeur}` : ''}
                       rows={4}
                     />
                   )}
@@ -184,6 +202,7 @@ export default function Constructeur() {
                       type="text"
                       value={configNoeudSelectionne[champ.cle] ?? ''}
                       onChange={(e) => modifierConfig(champ.cle, e.target.value)}
+                      placeholder={champ.exemples?.[0] ? `Ex : ${champ.exemples[0].valeur}` : ''}
                     />
                   )}
                   {champ.type === 'nombre' && (

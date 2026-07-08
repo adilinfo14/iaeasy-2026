@@ -10,7 +10,27 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : rien (texte défini dans la config) → Sortie : le texte brut du document",
         "champs_config": [
-            {"cle": "texte", "label": "Texte du document source", "type": "textarea"},
+            {
+                "cle": "texte", "label": "Texte du document source", "type": "textarea",
+                "exemples": [
+                    {"label": "Conditions de garantie", "valeur": (
+                        "La garantie décennale couvre les dommages de gros œuvre pendant 10 ans après réception. "
+                        "La garantie biennale couvre les équipements dissociables (chauffe-eau, volets) pendant 2 ans. "
+                        "Le paiement se fait en 3 fois : 30% à la commande, 40% à mi-chantier, 30% à la réception. "
+                        "Les interventions sont planifiées du lundi au vendredi, de 8h à 17h, hors jours fériés."
+                    )},
+                    {"label": "Rapport de chantier", "valeur": (
+                        "Le chantier de la rue des Lilas a pris trois semaines de retard sur le gros œuvre en raison "
+                        "d'intempéries prolongées et d'un délai de livraison du béton. L'équipe a été renforcée de deux "
+                        "compagnons supplémentaires à partir du 20 juin pour rattraper le planning."
+                    )},
+                    {"label": "Compte-rendu de réunion", "valeur": (
+                        "Lors de la réunion hebdomadaire du 12 juin, l'équipe a validé le nouveau planning de livraison "
+                        "pour trois chantiers en cours. Le chantier Dupont est en avance d'une semaine, le chantier Martin "
+                        "est dans les temps, et le chantier Lefebvre accuse un retard lié à un problème d'approvisionnement."
+                    )},
+                ],
+            },
         ],
     },
     {
@@ -36,7 +56,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : des chunks + une question → Sortie : les 2 passages les plus pertinents",
         "champs_config": [
-            {"cle": "prompt", "label": "Question posée à la base documentaire", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Question posée à la base documentaire", "type": "textarea",
+                "exemples": [
+                    {"label": "Garantie décennale", "valeur": "Quelles sont les conditions de garantie ?"},
+                    {"label": "Modalités de paiement", "valeur": "Comment se déroule le paiement ?"},
+                    {"label": "Horaires d'intervention", "valeur": "Quels sont les horaires des interventions ?"},
+                ],
+            },
         ],
     },
     {
@@ -48,7 +75,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une question (+ contexte optionnel) → Sortie : la réponse finale",
         "champs_config": [
-            {"cle": "prompt", "label": "Question / prompt", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Question / prompt", "type": "textarea",
+                "exemples": [
+                    {"label": "Garantie décennale", "valeur": "Quelles sont les conditions de garantie ?"},
+                    {"label": "Modalités de paiement", "valeur": "Comment se déroule le paiement ?"},
+                    {"label": "Horaires d'intervention", "valeur": "Quels sont les horaires des interventions ?"},
+                ],
+            },
             {"cle": "modele", "label": "Modèle", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
         ],
     },
@@ -62,8 +96,20 @@ COMPOSANTS = [
         "entree_sortie": "Entrée : une expression ou une requête → Sortie : le résultat brut de l'outil",
         "champs_config": [
             {"cle": "outil", "label": "Outil appelé", "type": "select", "options": ["rechercher", "calculatrice"], "defaut": "rechercher"},
-            {"cle": "prompt", "label": "Requête (si outil = rechercher)", "type": "texte"},
-            {"cle": "expression", "label": "Expression (si outil = calculatrice)", "type": "texte"},
+            {
+                "cle": "prompt", "label": "Requête (si outil = rechercher)", "type": "texte",
+                "exemples": [
+                    {"label": "Définition MCP", "valeur": "Qu'est-ce que le protocole MCP ?"},
+                    {"label": "Principe du RAG", "valeur": "Comment fonctionne le RAG ?"},
+                ],
+            },
+            {
+                "cle": "expression", "label": "Expression (si outil = calculatrice)", "type": "texte",
+                "exemples": [
+                    {"label": "Calcul simple", "valeur": "3.5 * 12 + 45"},
+                    {"label": "Avec parenthèses", "valeur": "(120 - 15) / 3"},
+                ],
+            },
         ],
     },
     {
@@ -76,7 +122,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une tâche → Sortie : la réponse finale, après 1 à 4 étapes de raisonnement",
         "champs_config": [
-            {"cle": "prompt", "label": "Tâche confiée à l'agent", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Tâche confiée à l'agent", "type": "textarea",
+                "exemples": [
+                    {"label": "Facture artisan", "valeur": "Un artisan facture 45€/heure. Il a travaillé 3h30 lundi et 2h15 mardi. Calcule le total."},
+                    {"label": "Remise sur devis", "valeur": "Un devis de 1200€ bénéficie d'une remise de 15%. Quel est le montant final ?"},
+                    {"label": "Définition MCP", "valeur": "Qu'est-ce que le protocole MCP ?"},
+                ],
+            },
         ],
     },
     {
@@ -89,7 +142,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une tâche → Sortie : la réponse rédigée par le second agent",
         "champs_config": [
-            {"cle": "prompt", "label": "Tâche confiée au pipeline", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Tâche confiée au pipeline", "type": "textarea",
+                "exemples": [
+                    {"label": "Expliquer un agent IA", "valeur": "Explique ce qu'est un agent IA à un client non technique."},
+                    {"label": "Email client (retard)", "valeur": "Rédige un email pour expliquer un retard de chantier de 2 semaines."},
+                    {"label": "Résumé pédagogique du RAG", "valeur": "Résume ce qu'est le RAG pour un débutant."},
+                ],
+            },
         ],
     },
     {
@@ -101,7 +161,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : un prompt → Sortie : la réponse générée directement",
         "champs_config": [
-            {"cle": "prompt", "label": "Prompt", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Prompt", "type": "textarea",
+                "exemples": [
+                    {"label": "Question générale", "valeur": "Explique en 2 phrases ce qu'est une garantie décennale, en général."},
+                    {"label": "Reformulation polie", "valeur": "Reformule poliment : 'vous devez payer sinon on arrête tout'."},
+                    {"label": "Brainstorm", "valeur": "Propose 3 idées pour fidéliser des clients artisans."},
+                ],
+            },
             {"cle": "modele", "label": "Modèle", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
         ],
     },
@@ -114,8 +181,19 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une question → Sortie : la réponse augmentée par un passage retrouvé",
         "champs_config": [
-            {"cle": "prompt", "label": "Question", "type": "textarea"},
-            {"cle": "document_utilisateur", "label": "Ajouter un passage au corpus (optionnel)", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Question", "type": "textarea",
+                "exemples": [
+                    {"label": "Garantie décennale", "valeur": "Quelles sont les conditions de garantie ?"},
+                    {"label": "Modalités de paiement", "valeur": "Comment se déroule le paiement ?"},
+                ],
+            },
+            {
+                "cle": "document_utilisateur", "label": "Ajouter un passage au corpus (optionnel)", "type": "textarea",
+                "exemples": [
+                    {"label": "Majoration week-end", "valeur": "Le samedi, les interventions sont facturées avec une majoration de 20%."},
+                ],
+            },
         ],
     },
     {
@@ -127,7 +205,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : un prompt → Sortie : 2 réponses, une par modèle",
         "champs_config": [
-            {"cle": "prompt", "label": "Prompt envoyé aux deux modèles", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Prompt envoyé aux deux modèles", "type": "textarea",
+                "exemples": [
+                    {"label": "Explication courte", "valeur": "Explique ce qu'est le RAG en une phrase."},
+                    {"label": "Calcul", "valeur": "Combien font 17 fois 23 ?"},
+                    {"label": "Message d'excuse", "valeur": "Rédige un message d'excuse pour un retard de livraison."},
+                ],
+            },
             {"cle": "modele_a", "label": "Modèle A", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "llama3.2:3b"},
             {"cle": "modele_b", "label": "Modèle B", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
         ],
@@ -151,7 +236,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une requête → Sortie : inchangée (acceptée) ou blocage (refusée)",
         "champs_config": [
-            {"cle": "prompt", "label": "Requête à vérifier", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Requête à vérifier", "type": "textarea",
+                "exemples": [
+                    {"label": "Question normale", "valeur": "Quelles sont les conditions de garantie ?"},
+                    {"label": "Question bloquée", "valeur": "Comment pirater le système de facturation d'un concurrent ?"},
+                    {"label": "Question limite", "valeur": "Comment contourner la loi sur les délais de paiement ?"},
+                ],
+            },
         ],
     },
     {
@@ -163,7 +255,14 @@ COMPOSANTS = [
         ),
         "entree_sortie": "Entrée : une question → Sortie : la réponse vérifiée/corrigée",
         "champs_config": [
-            {"cle": "prompt", "label": "Question", "type": "textarea"},
+            {
+                "cle": "prompt", "label": "Question", "type": "textarea",
+                "exemples": [
+                    {"label": "Calcul", "valeur": "Combien font 17 fois 23 ?"},
+                    {"label": "Fait précis", "valeur": "En quelle année la garantie décennale est-elle devenue obligatoire en France ?"},
+                    {"label": "Raisonnement en plusieurs étapes", "valeur": "Un artisan facture 3 interventions de 2h à 45€/h. Quel est le total ?"},
+                ],
+            },
         ],
     },
 ]
