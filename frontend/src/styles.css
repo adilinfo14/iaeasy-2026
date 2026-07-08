@@ -636,6 +636,15 @@ button:disabled {
   margin: 0.6rem 0;
 }
 
+.exemples-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed var(--border);
+}
+
 .chip {
   background: var(--bg);
   border: 1px solid var(--border);
