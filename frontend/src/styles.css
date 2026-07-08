@@ -753,6 +753,43 @@ button:disabled {
   font-size: 1.3rem;
 }
 
+.schema-flow {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.6rem 0 1rem;
+}
+
+.schema-etape {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 90px;
+  text-align: center;
+}
+
+.schema-icone {
+  font-size: 1.3rem;
+}
+
+.schema-label {
+  font-size: 0.72rem;
+  color: var(--fg-muted);
+}
+
+.schema-fleche {
+  display: flex;
+  align-items: center;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
 .liste-etapes-trace {
   margin: 0;
   padding-left: 1.2rem;

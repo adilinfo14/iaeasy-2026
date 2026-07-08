@@ -18,6 +18,11 @@ BRIQUES = [
             "Un modèle de langage reçoit un prompt et répond directement, sans aucune "
             "aide extérieure. C'est la brique de base de tout agent."
         ),
+        "schema": [
+            {"icone": "💬", "label": "Votre question"},
+            {"icone": "🧠", "label": "LLM"},
+            {"icone": "✅", "label": "Réponse directe"},
+        ],
         "prerequis": [],
     },
     {
@@ -40,6 +45,13 @@ BRIQUES = [
             "dans un mini-corpus (via des embeddings), et on les ajoute au prompt du LLM. "
             "Le modèle répond alors avec des informations qu'il n'avait pas apprises par cœur."
         ),
+        "schema": [
+            {"icone": "❓", "label": "Votre question"},
+            {"icone": "🔎", "label": "Recherche dans les documents"},
+            {"icone": "📄", "label": "Passage retrouvé"},
+            {"icone": "🧠", "label": "LLM + ce passage"},
+            {"icone": "✅", "label": "Réponse"},
+        ],
         "prerequis": ["llm_seul"],
     },
     {
@@ -62,6 +74,12 @@ BRIQUES = [
             "et une recherche documentaire — exposé via le protocole MCP (Model Context "
             "Protocol), plutôt que de tout deviner par lui-même."
         ),
+        "schema": [
+            {"icone": "❓", "label": "Demande"},
+            {"icone": "🛠️", "label": "Appel de l'outil (MCP)"},
+            {"icone": "📊", "label": "Résultat de l'outil"},
+            {"icone": "✅", "label": "Réponse"},
+        ],
         "prerequis": ["rag"],
     },
     {
@@ -84,6 +102,13 @@ BRIQUES = [
             "résultat, puis décide de la suite — jusqu'à obtenir une réponse finale. "
             "C'est le principe de la boucle ReAct (Reason + Act)."
         ),
+        "schema": [
+            {"icone": "❓", "label": "Tâche"},
+            {"icone": "🤔", "label": "Le LLM réfléchit"},
+            {"icone": "🛠️", "label": "Appelle un outil si besoin"},
+            {"icone": "🔁", "label": "Répète jusqu'à avoir la réponse"},
+            {"icone": "✅", "label": "Réponse finale"},
+        ],
         "prerequis": ["outil_mcp"],
     },
     {
@@ -106,6 +131,13 @@ BRIQUES = [
             "l'information, puis un agent 'rédacteur' la met en forme. Chacun a un rôle "
             "et un prompt différent."
         ),
+        "schema": [
+            {"icone": "❓", "label": "Tâche"},
+            {"icone": "🔍", "label": "Agent chercheur"},
+            {"icone": "📝", "label": "Notes brutes"},
+            {"icone": "✍️", "label": "Agent rédacteur"},
+            {"icone": "✅", "label": "Réponse finale"},
+        ],
         "prerequis": ["agent_unique"],
     },
 ]

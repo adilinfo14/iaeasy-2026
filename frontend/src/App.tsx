@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
+import { enregistrerVisite } from './api/client'
 import Accueil from './pages/Accueil'
 import Catalogue from './pages/Catalogue'
 import Constructeur from './pages/Constructeur'
@@ -25,6 +26,10 @@ function useTheme() {
 
 export default function App() {
   const [theme, setTheme] = useTheme()
+
+  useEffect(() => {
+    enregistrerVisite()
+  }, [])
 
   return (
     <div className="app">

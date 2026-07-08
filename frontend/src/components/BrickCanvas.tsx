@@ -5,6 +5,7 @@ import {
   applyNodeChanges,
   Background,
   Controls,
+  MarkerType,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
@@ -15,6 +16,12 @@ import {
   type OnNodesChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+
+const OPTIONS_ARETE = {
+  type: 'smoothstep' as const,
+  animated: true,
+  markerEnd: { type: MarkerType.ArrowClosed, color: '#4f7cff' },
+}
 
 type BriqueNode = Node & { brique: string }
 
@@ -61,6 +68,7 @@ function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExec
       id: `tpl-${i}`,
       source: e.source,
       target: e.target,
+      ...OPTIONS_ARETE,
     }))
     setNodes(nouveauxNoeuds)
     setEdges(nouvellesAretes)
@@ -79,7 +87,7 @@ function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExec
     [],
   )
   const onConnect: OnConnect = useCallback(
-    (connexion) => setEdges((eds) => addEdge(connexion, eds)),
+    (connexion) => setEdges((eds) => addEdge({ ...connexion, ...OPTIONS_ARETE }, eds)),
     [],
   )
 

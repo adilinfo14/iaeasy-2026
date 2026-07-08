@@ -44,6 +44,14 @@ export default function Constructeur() {
     setNoeudSelectionne(noeudId ?? null)
   }
 
+  function chargerExemple(template: any, exemple: any) {
+    setResultat(null)
+    setErreur(null)
+    setBriqueSelectionnee(null)
+    setNoeudSelectionne(null)
+    setTemplateACharger(fusionnerExemple(template, exemple))
+  }
+
   const composantAffiche = composants.find((c) => c.id === briqueSelectionnee)
   const artefactNoeud = noeudSelectionne && resultat?.resultats_par_noeud?.[noeudSelectionne]
 
@@ -88,7 +96,7 @@ export default function Constructeur() {
                   <p className="texte-muted">Charger sur le canvas avec l'exemple :</p>
                   <div className="exemples-chips">
                     {t.exemples.map((ex: any, i: number) => (
-                      <button key={i} className="chip" onClick={() => setTemplateACharger(fusionnerExemple(t, ex))}>
+                      <button key={i} className="chip" onClick={() => chargerExemple(t, ex)}>
                         {ex.label}
                       </button>
                     ))}
@@ -109,6 +117,26 @@ export default function Constructeur() {
       />
 
       {erreur && <p className="erreur">{erreur}</p>}
+
+      {templateACharger && (
+        <div className="explication-bloc">
+          <h4>Comment ça marche, étape par étape</h4>
+          <p className="texte-muted">
+            Ce graphe n'a pas encore été exécuté — voici ce que chaque brique va faire, dans l'ordre,
+            avant même de cliquer sur « Exécuter le graphe ».
+          </p>
+          <ol className="liste-etapes-trace">
+            {templateACharger.nodes.map((n: any, i: number) => {
+              const c = composants.find((c) => c.id === n.type)
+              return (
+                <li key={i}>
+                  {c?.icone} <strong>{c?.titre || n.type}</strong> — {c?.description}
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+      )}
 
       {composantAffiche && (
         <div className="explication-bloc">

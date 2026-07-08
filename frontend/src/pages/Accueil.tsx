@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { lireProgression, listerBriques } from '../api/client'
+import { lireProgression, lireVisiteurs, listerBriques } from '../api/client'
 
 const MODULES = [
   {
@@ -33,10 +33,12 @@ const MODULES = [
 export default function Accueil() {
   const [debloquees, setDebloquees] = useState(0)
   const [total, setTotal] = useState(5)
+  const [visiteurs, setVisiteurs] = useState<number | null>(null)
 
   useEffect(() => {
     listerBriques().then((b) => setTotal(b.length))
     lireProgression().then((p) => setDebloquees(p.debloquees.length))
+    lireVisiteurs().then((v) => setVisiteurs(v.total_visiteurs_uniques))
   }, [])
 
   return (
@@ -50,6 +52,7 @@ export default function Accueil() {
 
       <div className="progression-globale">
         <span>🔓 {debloquees}/{total} briques débloquées dans le Parcours</span>
+        {visiteurs != null && <span> · 👀 {visiteurs} visiteur{visiteurs > 1 ? 's' : ''} unique{visiteurs > 1 ? 's' : ''}</span>}
       </div>
 
       <div className="modules-grille">

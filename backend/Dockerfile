@@ -27,4 +27,7 @@ ENV HF_HOME=/data/hf_cache
 RUN mkdir -p /data
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/app"]
+# timeout-graceful-shutdown borne l'attente de fermeture des connexions ouvertes (ex: un flux
+# SSE d'entraînement en cours) lors d'un rechargement --reload, pour ne jamais bloquer le site
+# indéfiniment pour un visiteur en train de l'utiliser.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/app", "--timeout-graceful-shutdown", "5"]

@@ -1,5 +1,24 @@
 const BASE = '/api'
 
+export async function enregistrerVisite() {
+  let visiteurId = localStorage.getItem('iaeasy-visiteur-id')
+  if (!visiteurId) {
+    visiteurId = crypto.randomUUID()
+    localStorage.setItem('iaeasy-visiteur-id', visiteurId)
+  }
+  const r = await fetch(`${BASE}/stats/visiteur`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visiteur_id: visiteurId }),
+  })
+  return r.json()
+}
+
+export async function lireVisiteurs() {
+  const r = await fetch(`${BASE}/stats/visiteur`)
+  return r.json()
+}
+
 export async function listerModeles() {
   const r = await fetch(`${BASE}/catalogue`)
   return r.json()

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { debloquerBrique, executerGraphe, lireProgression, listerBriques } from '../api/client'
 
 export default function Parcours() {
@@ -189,6 +189,19 @@ export default function Parcours() {
                   <span className="avant-apres-label">Après cette brique</span>
                   <p>{b.apres}</p>
                 </div>
+              </div>
+
+              <p className="texte-muted">Comment ça marche, étape par étape :</p>
+              <div className="schema-flow">
+                {b.schema.map((s: any, i: number) => (
+                  <Fragment key={i}>
+                    <div className="schema-etape">
+                      <div className="schema-icone">{s.icone}</div>
+                      <div className="schema-label">{s.label}</div>
+                    </div>
+                    {i < b.schema.length - 1 && <div className="schema-fleche">→</div>}
+                  </Fragment>
+                ))}
               </div>
 
               {prerequisOk ? (
