@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .agents.router import router as agents_router
 from .aide.router import router as aide_router
+from .avis.router import router as avis_router
 from .catalogue.router import router as catalogue_router
 from .glossaire.router import router as glossaire_router
 from .metiers.router import router as metiers_router
@@ -39,6 +40,7 @@ app.include_router(glossaire_router, prefix="/api")
 app.include_router(metiers_router, prefix="/api")
 app.include_router(simulateur_router, prefix="/api")
 app.include_router(aide_router, prefix="/api")
+app.include_router(avis_router, prefix="/api")
 
 
 @app.get("/api/health")

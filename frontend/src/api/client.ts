@@ -1,15 +1,19 @@
 const BASE = '/api'
 
-export async function enregistrerVisite() {
+export function obtenirVisiteurId() {
   let visiteurId = localStorage.getItem('iaeasy-visiteur-id')
   if (!visiteurId) {
     visiteurId = crypto.randomUUID()
     localStorage.setItem('iaeasy-visiteur-id', visiteurId)
   }
+  return visiteurId
+}
+
+export async function enregistrerVisite() {
   const r = await fetch(`${BASE}/stats/visiteur`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ visiteur_id: visiteurId }),
+    body: JSON.stringify({ visiteur_id: obtenirVisiteurId() }),
   })
   return r.json()
 }
@@ -165,6 +169,32 @@ export async function demanderAide(message: string, historique: { role: string; 
     const err = await r.json().catch(() => ({}))
     throw new Error(err.detail || "Erreur pendant la discussion avec l'assistant")
   }
+  return r.json()
+}
+
+export type StatsAvis = { total: number; moyenne: number | null; distribution: Record<string, number> }
+export type Avis = { note: number; commentaire: string | null; horodatage: string }
+
+export async function envoyerAvis(note: number, commentaire?: string): Promise<StatsAvis> {
+  const r = await fetch(`${BASE}/avis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ visiteur_id: obtenirVisiteurId(), note, commentaire: commentaire || null }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || "Erreur pendant l'envoi de l'avis")
+  }
+  return r.json()
+}
+
+export async function lireStatsAvis(): Promise<StatsAvis> {
+  const r = await fetch(`${BASE}/avis/stats`)
+  return r.json()
+}
+
+export async function listerAvis(): Promise<Avis[]> {
+  const r = await fetch(`${BASE}/avis`)
   return r.json()
 }
 

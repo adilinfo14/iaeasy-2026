@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { lireBadges, lireProgression, lireVisiteurs, listerBriques } from '../api/client'
+import { lireBadges, lireProgression, lireStatsAvis, lireVisiteurs, listerBriques, StatsAvis } from '../api/client'
 
 const MODULES = [
   {
@@ -52,6 +52,12 @@ const MODULES = [
     titre: 'Simulateur',
     pitch: 'Comparez en direct la vitesse et le coût réel de plusieurs modèles.',
   },
+  {
+    to: '/avis',
+    icone: '⭐',
+    titre: 'Avis',
+    pitch: 'Notez le site en 2 secondes et lisez les avis des autres visiteurs.',
+  },
 ]
 
 export default function Accueil() {
@@ -59,12 +65,14 @@ export default function Accueil() {
   const [total, setTotal] = useState(5)
   const [visiteurs, setVisiteurs] = useState<number | null>(null)
   const [badges, setBadges] = useState(0)
+  const [statsAvis, setStatsAvis] = useState<StatsAvis | null>(null)
 
   useEffect(() => {
     listerBriques().then((b) => setTotal(b.length))
     lireProgression().then((p) => setDebloquees(p.debloquees.length))
     lireVisiteurs().then((v) => setVisiteurs(v.total_visiteurs_uniques))
     lireBadges().then((b) => setBadges(b.badges.length))
+    lireStatsAvis().then(setStatsAvis)
   }, [])
 
   return (
@@ -80,6 +88,12 @@ export default function Accueil() {
         <span>🔓 {debloquees}/{total} briques débloquées dans le Parcours</span>
         <span> · 🏅 {badges}/{total} quiz réussis</span>
         {visiteurs != null && <span> · 👀 {visiteurs} visiteur{visiteurs > 1 ? 's' : ''} unique{visiteurs > 1 ? 's' : ''}</span>}
+        {statsAvis?.moyenne != null && (
+          <span>
+            {' '}
+            · <Link to="/avis">⭐ {statsAvis.moyenne.toFixed(2)}/5 ({statsAvis.total} avis)</Link>
+          </span>
+        )}
       </div>
 
       <div className="modules-grille">

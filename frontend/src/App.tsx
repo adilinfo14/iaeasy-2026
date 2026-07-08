@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from 'react-router-dom'
 import { enregistrerVisite } from './api/client'
 import AssistantAide from './components/AssistantAide'
 import Accueil from './pages/Accueil'
+import Avis from './pages/Avis'
 import Catalogue from './pages/Catalogue'
 import Constructeur from './pages/Constructeur'
 import Entrainement from './pages/Entrainement'
@@ -51,6 +52,7 @@ export default function App() {
           <NavLink to="/glossaire">Glossaire</NavLink>
           <NavLink to="/metiers">Mon métier</NavLink>
           <NavLink to="/simulateur">Simulateur</NavLink>
+          <NavLink to="/avis">Avis</NavLink>
         </nav>
         <button
           className="theme-toggle"
@@ -72,6 +74,7 @@ export default function App() {
           <Route path="/glossaire" element={<Glossaire />} />
           <Route path="/metiers" element={<Metiers />} />
           <Route path="/simulateur" element={<Simulateur />} />
+          <Route path="/avis" element={<Avis />} />
         </Routes>
       </main>
       <AssistantAide />
