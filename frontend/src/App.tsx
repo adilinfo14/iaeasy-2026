@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { enregistrerVisite } from './api/client'
+import AssistantAide from './components/AssistantAide'
 import Accueil from './pages/Accueil'
 import Catalogue from './pages/Catalogue'
 import Constructeur from './pages/Constructeur'
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="/simulateur" element={<Simulateur />} />
         </Routes>
       </main>
+      <AssistantAide />
     </div>
   )
 }

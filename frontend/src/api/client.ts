@@ -155,6 +155,19 @@ export async function listerMetiers() {
   return r.json()
 }
 
+export async function demanderAide(message: string, historique: { role: string; content: string }[]) {
+  const r = await fetch(`${BASE}/aide/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, historique }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || "Erreur pendant la discussion avec l'assistant")
+  }
+  return r.json()
+}
+
 export async function comparerModeles(prompt?: string) {
   const r = await fetch(`${BASE}/simulateur/comparer`, {
     method: 'POST',

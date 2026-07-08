@@ -1205,3 +1205,116 @@ button:disabled {
 .quiz-resultat-ko {
   color: #ef4444;
 }
+
+/* --- Assistant d'aide contextuelle (widget flottant) --- */
+.assistant-aide {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.assistant-bouton {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.assistant-panneau {
+  width: min(340px, calc(100vw - 2.4rem));
+  height: 440px;
+  max-height: calc(100vh - 6rem);
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.assistant-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.assistant-fermer {
+  background: none;
+  border: none;
+  color: var(--fg-muted);
+  padding: 0.1rem 0.4rem;
+  font-size: 0.9rem;
+}
+
+.assistant-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.assistant-msg {
+  max-width: 88%;
+  padding: 0.5rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.assistant-msg-bot {
+  align-self: flex-start;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.assistant-msg-user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: white;
+}
+
+.assistant-msg-attente {
+  font-style: italic;
+  color: var(--fg-muted);
+}
+
+.assistant-saisie {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.assistant-saisie textarea {
+  flex: 1;
+  resize: none;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+@media (max-width: 500px) {
+  .assistant-aide {
+    right: 0.6rem;
+    bottom: 0.6rem;
+  }
+}
