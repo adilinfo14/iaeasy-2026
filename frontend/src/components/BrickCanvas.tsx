@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import {
   addEdge,
   applyEdgeChanges,
@@ -23,14 +23,50 @@ const OPTIONS_ARETE = {
   markerEnd: { type: MarkerType.ArrowClosed, color: '#4f7cff' },
 }
 
-type BriqueNode = Node & { brique: string }
+const CLE_APERCU = ['prompt', 'texte', 'expression']
+
+function apercuConfig(config: Record<string, unknown>): string {
+  for (const cle of CLE_APERCU) {
+    const valeur = config?.[cle]
+    if (typeof valeur === 'string' && valeur.trim()) {
+      return valeur.length > 60 ? `${valeur.slice(0, 60)}…` : valeur
+    }
+  }
+  return ''
+}
+
+function completerConfig(composant: any, configExistant: Record<string, unknown>) {
+  const config = { ...(configExistant || {}) }
+  for (const champ of composant?.champs_config || []) {
+    if (config[champ.cle] === undefined) {
+      config[champ.cle] = champ.defaut !== undefined ? champ.defaut : champ.type === 'select' ? champ.options?.[0] : ''
+    }
+  }
+  return config
+}
+
+function construireLabel(titre: string, icone: string, config: Record<string, unknown>) {
+  const apercu = apercuConfig(config)
+  return (
+    <div className="noeud-contenu">
+      <strong>{icone} {titre}</strong>
+      {apercu ? <div className="noeud-apercu">« {apercu} »</div> : <div className="noeud-apercu noeud-apercu-vide">(aucune entrée définie — cliquez pour en ajouter une)</div>}
+    </div>
+  )
+}
+
+type BriqueNode = Node & { brique: string; config: Record<string, unknown> }
 
 type Props = {
   composants: any[]
   templateACharger: any | null
   resultatsParNoeud: Record<string, any> | null
   onExecuter: (nodes: { id: string; type: string; config: Record<string, unknown> }[], edges: { source: string; target: string }[]) => void
-  onComposantInfo: (brique: string, noeudId?: string) => void
+  onComposantInfo: (brique: string, noeudId: string | undefined, config: Record<string, unknown>) => void
+}
+
+export type BrickCanvasHandle = {
+  modifierConfigNoeud: (noeudId: string, cle: string, valeur: unknown) => void
 }
 
 let compteurId = 1
@@ -43,24 +79,43 @@ const COULEURS_CATEGORIE: Record<string, string> = {
   outil: '#fb923c',
 }
 
-function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExecuter, onComposantInfo }: Props) {
+const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasInterne(
+  { composants, templateACharger, resultatsParNoeud, onExecuter, onComposantInfo },
+  ref,
+) {
   const [nodes, setNodes] = useState<BriqueNode[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const { fitView } = useReactFlow()
+
+  useImperativeHandle(ref, () => ({
+    modifierConfigNoeud(noeudId, cle, valeur) {
+      setNodes((nds) =>
+        nds.map((n) => {
+          if (n.id !== noeudId) return n
+          const composant = composants.find((c) => c.id === n.brique)
+          const nouvelleConfig = { ...n.config, [cle]: valeur }
+          return { ...n, config: nouvelleConfig, data: { label: construireLabel(composant?.titre || n.brique, composant?.icone || '', nouvelleConfig) } }
+        }),
+      )
+    },
+  }))
 
   useEffect(() => {
     if (!templateACharger) return
     const composantParType = new Map(composants.map((c) => [c.id, c]))
     const nouveauxNoeuds: BriqueNode[] = templateACharger.nodes.map((n: any) => {
       const composant = composantParType.get(n.type)
+      const config = completerConfig(composant, n.config || {})
       return {
         id: n.id,
         position: n.position || { x: 100, y: 100 },
-        data: { label: `${composant?.icone || ''} ${composant?.titre || n.type}` },
+        data: { label: construireLabel(composant?.titre || n.type, composant?.icone || '', config) },
         brique: n.type,
+        config,
         style: {
           background: COULEURS_CATEGORIE[composant?.categorie] ? `${COULEURS_CATEGORIE[composant.categorie]}22` : undefined,
           borderColor: COULEURS_CATEGORIE[composant?.categorie],
+          width: 220,
         },
       }
     })
@@ -93,29 +148,32 @@ function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExec
 
   function ajouterNoeud(composant: any) {
     const id = String(compteurId++)
+    const config = completerConfig(composant, {})
     setNodes((nds) => {
       const nouveaux = [
         ...nds,
         {
           id,
           position: { x: 80 + (nds.length % 3) * 220, y: 60 + Math.floor(nds.length / 3) * 140 },
-          data: { label: `${composant.icone} ${composant.titre}` },
+          data: { label: construireLabel(composant.titre, composant.icone, config) },
           brique: composant.id,
+          config,
           style: {
             background: COULEURS_CATEGORIE[composant.categorie] ? `${COULEURS_CATEGORIE[composant.categorie]}22` : undefined,
             borderColor: COULEURS_CATEGORIE[composant.categorie],
+            width: 220,
           },
         },
       ]
       requestAnimationFrame(() => fitView({ padding: 0.25, duration: 300 }))
       return nouveaux
     })
-    onComposantInfo(composant.id)
+    onComposantInfo(composant.id, id, config)
   }
 
   function executer() {
     onExecuter(
-      nodes.map((n) => ({ id: n.id, type: n.brique, config: {} })),
+      nodes.map((n) => ({ id: n.id, type: n.brique, config: n.config || {} })),
       edges.map((e) => ({ source: e.source, target: e.target })),
     )
   }
@@ -141,24 +199,32 @@ function CanvasInterne({ composants, templateACharger, resultatsParNoeud, onExec
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={(_, node) => onComposantInfo((node as BriqueNode).brique, node.id)}
+          onNodeClick={(_, node) => {
+            const n = node as BriqueNode
+            onComposantInfo(n.brique, n.id, n.config || {})
+          }}
           fitView
         >
           <Background />
           <Controls />
         </ReactFlow>
       </div>
-      {resultatsParNoeud && (
-        <div className="canvas-hint">💡 Cliquez un nœud du graphe pour revoir sa définition et ce qu'il a produit.</div>
+      {nodes.length > 0 && (
+        <div className="canvas-hint">
+          💡 Cliquez un nœud pour voir sa définition et <strong>remplir ou modifier son entrée</strong> avant d'exécuter.
+          {resultatsParNoeud && ' Un second clic après exécution montre aussi ce que le nœud a produit.'}
+        </div>
       )}
     </div>
   )
-}
+})
 
-export default function BrickCanvas(props: Props) {
+const BrickCanvas = forwardRef<BrickCanvasHandle, Props>(function BrickCanvas(props, ref) {
   return (
     <ReactFlowProvider>
-      <CanvasInterne {...props} />
+      <CanvasInterne {...props} ref={ref} />
     </ReactFlowProvider>
   )
-}
+})
+
+export default BrickCanvas

@@ -1,3 +1,5 @@
+_MODELES_DISPONIBLES = ["qwen2.5:7b-instruct", "llama3.2:3b", "deepseek-coder:6.7b"]
+
 COMPOSANTS = [
     {
         "id": "source_document", "titre": "Source de documents", "icone": "📄", "categorie": "source",
@@ -7,6 +9,9 @@ COMPOSANTS = [
             "simplement le texte de départ aux briques suivantes."
         ),
         "entree_sortie": "Entrée : rien (texte défini dans la config) → Sortie : le texte brut du document",
+        "champs_config": [
+            {"cle": "texte", "label": "Texte du document source", "type": "textarea"},
+        ],
     },
     {
         "id": "chunking", "titre": "Découpage (chunking)", "icone": "✂️", "categorie": "traitement",
@@ -17,6 +22,9 @@ COMPOSANTS = [
             "la suite du pipeline."
         ),
         "entree_sortie": "Entrée : un document texte → Sortie : une liste de chunks",
+        "champs_config": [
+            {"cle": "taille_chunk", "label": "Taille d'un chunk (caractères)", "type": "nombre", "defaut": 120},
+        ],
     },
     {
         "id": "base_vectorielle", "titre": "Base vectorielle", "icone": "🗄️", "categorie": "stockage",
@@ -27,6 +35,9 @@ COMPOSANTS = [
             "avant de répondre."
         ),
         "entree_sortie": "Entrée : des chunks + une question → Sortie : les 2 passages les plus pertinents",
+        "champs_config": [
+            {"cle": "prompt", "label": "Question posée à la base documentaire", "type": "textarea"},
+        ],
     },
     {
         "id": "llm_agent", "titre": "LLM", "icone": "🧠", "categorie": "modele",
@@ -36,6 +47,10 @@ COMPOSANTS = [
             "précisément (RAG) ; sinon, il répond directement à partir de ses connaissances générales."
         ),
         "entree_sortie": "Entrée : une question (+ contexte optionnel) → Sortie : la réponse finale",
+        "champs_config": [
+            {"cle": "prompt", "label": "Question / prompt", "type": "textarea"},
+            {"cle": "modele", "label": "Modèle", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
+        ],
     },
     {
         "id": "outil_mcp", "titre": "Outil / MCP", "icone": "🛠️", "categorie": "outil",
@@ -45,6 +60,11 @@ COMPOSANTS = [
             "Protocol) — le même principe que celui utilisé par Claude Code pour appeler des outils."
         ),
         "entree_sortie": "Entrée : une expression ou une requête → Sortie : le résultat brut de l'outil",
+        "champs_config": [
+            {"cle": "outil", "label": "Outil appelé", "type": "select", "options": ["rechercher", "calculatrice"], "defaut": "rechercher"},
+            {"cle": "prompt", "label": "Requête (si outil = rechercher)", "type": "texte"},
+            {"cle": "expression", "label": "Expression (si outil = calculatrice)", "type": "texte"},
+        ],
     },
     {
         "id": "agent_unique", "titre": "Agent (boucle ReAct)", "icone": "🔁", "categorie": "modele",
@@ -55,6 +75,9 @@ COMPOSANTS = [
             "fixe, celle-ci choisit elle-même son parcours."
         ),
         "entree_sortie": "Entrée : une tâche → Sortie : la réponse finale, après 1 à 4 étapes de raisonnement",
+        "champs_config": [
+            {"cle": "prompt", "label": "Tâche confiée à l'agent", "type": "textarea"},
+        ],
     },
     {
         "id": "multi_agent", "titre": "Pipeline multi-agent", "icone": "🤝", "categorie": "modele",
@@ -65,6 +88,9 @@ COMPOSANTS = [
             "spécifique que s'ils devaient tout faire seuls."
         ),
         "entree_sortie": "Entrée : une tâche → Sortie : la réponse rédigée par le second agent",
+        "champs_config": [
+            {"cle": "prompt", "label": "Tâche confiée au pipeline", "type": "textarea"},
+        ],
     },
     {
         "id": "llm_seul", "titre": "LLM seul (sans contexte)", "icone": "💬", "categorie": "modele",
@@ -74,6 +100,10 @@ COMPOSANTS = [
             "autres briques (RAG, outils, agents)."
         ),
         "entree_sortie": "Entrée : un prompt → Sortie : la réponse générée directement",
+        "champs_config": [
+            {"cle": "prompt", "label": "Prompt", "type": "textarea"},
+            {"cle": "modele", "label": "Modèle", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
+        ],
     },
     {
         "id": "rag", "titre": "RAG simplifié", "icone": "📚", "categorie": "modele",
@@ -83,6 +113,10 @@ COMPOSANTS = [
             "LLM. Pratique pour assembler un pipeline rapidement."
         ),
         "entree_sortie": "Entrée : une question → Sortie : la réponse augmentée par un passage retrouvé",
+        "champs_config": [
+            {"cle": "prompt", "label": "Question", "type": "textarea"},
+            {"cle": "document_utilisateur", "label": "Ajouter un passage au corpus (optionnel)", "type": "textarea"},
+        ],
     },
     {
         "id": "comparateur", "titre": "Comparateur de modèles", "icone": "🆚", "categorie": "modele",
@@ -92,6 +126,11 @@ COMPOSANTS = [
             "pour évaluer objectivement quel modèle convient le mieux à une tâche donnée."
         ),
         "entree_sortie": "Entrée : un prompt → Sortie : 2 réponses, une par modèle",
+        "champs_config": [
+            {"cle": "prompt", "label": "Prompt envoyé aux deux modèles", "type": "textarea"},
+            {"cle": "modele_a", "label": "Modèle A", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "llama3.2:3b"},
+            {"cle": "modele_b", "label": "Modèle B", "type": "select", "options": _MODELES_DISPONIBLES, "defaut": "qwen2.5:7b-instruct"},
+        ],
     },
     {
         "id": "synthese_map_reduce", "titre": "Résumé hiérarchique", "icone": "🧩", "categorie": "traitement",
@@ -101,6 +140,7 @@ COMPOSANTS = [
             "documents bien plus longs qu'un seul appel LLM ne le permettrait."
         ),
         "entree_sortie": "Entrée : une liste de chunks → Sortie : une synthèse finale",
+        "champs_config": [],
     },
     {
         "id": "moderation", "titre": "Filtre de modération", "icone": "🚧", "categorie": "outil",
@@ -110,6 +150,9 @@ COMPOSANTS = [
             "message de refus — les nœuds suivants ne sont pas exécutés."
         ),
         "entree_sortie": "Entrée : une requête → Sortie : inchangée (acceptée) ou blocage (refusée)",
+        "champs_config": [
+            {"cle": "prompt", "label": "Requête à vérifier", "type": "textarea"},
+        ],
     },
     {
         "id": "verification", "titre": "Vérificateur / auto-critique", "icone": "✅", "categorie": "modele",
@@ -119,6 +162,9 @@ COMPOSANTS = [
             "d'un, mais améliore la fiabilité sur les tâches à risque d'erreur."
         ),
         "entree_sortie": "Entrée : une question → Sortie : la réponse vérifiée/corrigée",
+        "champs_config": [
+            {"cle": "prompt", "label": "Question", "type": "textarea"},
+        ],
     },
 ]
 

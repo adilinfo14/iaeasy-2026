@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { executerGraphe, listerComposants, listerTemplates } from '../api/client'
-import BrickCanvas from '../components/BrickCanvas'
+import BrickCanvas, { type BrickCanvasHandle } from '../components/BrickCanvas'
 
 function fusionnerExemple(template: any, exemple: any) {
   const nodes = template.nodes.map((n: any) => {
@@ -18,7 +18,9 @@ export default function Constructeur() {
   const [resultat, setResultat] = useState<any>(null)
   const [briqueSelectionnee, setBriqueSelectionnee] = useState<string | null>(null)
   const [noeudSelectionne, setNoeudSelectionne] = useState<string | null>(null)
+  const [configNoeudSelectionne, setConfigNoeudSelectionne] = useState<Record<string, any>>({})
   const [erreur, setErreur] = useState<string | null>(null)
+  const canvasRef = useRef<BrickCanvasHandle>(null)
 
   useEffect(() => {
     listerComposants().then(setComposants)
@@ -39,9 +41,16 @@ export default function Constructeur() {
     }
   }
 
-  function afficherComposant(brique: string, noeudId?: string) {
+  function afficherComposant(brique: string, noeudId: string | undefined, config: Record<string, any>) {
     setBriqueSelectionnee(brique)
     setNoeudSelectionne(noeudId ?? null)
+    setConfigNoeudSelectionne(config || {})
+  }
+
+  function modifierConfig(cle: string, valeur: unknown) {
+    if (!noeudSelectionne) return
+    setConfigNoeudSelectionne((c) => ({ ...c, [cle]: valeur }))
+    canvasRef.current?.modifierConfigNoeud(noeudSelectionne, cle, valeur)
   }
 
   function chargerExemple(template: any, exemple: any) {
@@ -49,6 +58,7 @@ export default function Constructeur() {
     setErreur(null)
     setBriqueSelectionnee(null)
     setNoeudSelectionne(null)
+    setConfigNoeudSelectionne({})
     setTemplateACharger(fusionnerExemple(template, exemple))
   }
 
@@ -61,7 +71,8 @@ export default function Constructeur() {
       <p className="page-intro">
         Le mode « architecte » : 10 modèles d'architecture réels, chacun avec ses avantages et ses
         inconvénients. Ouvrez-en un, choisissez un exemple pour le charger sur le canvas, puis
-        exécutez et inspectez ce que produit chaque étape intermédiaire.
+        <strong> cliquez sur chaque nœud pour voir et modifier ce qui lui est vraiment envoyé</strong>{' '}
+        avant d'exécuter et d'inspecter ce que produit chaque étape intermédiaire.
       </p>
 
       <div className="templates-liste">
@@ -109,6 +120,7 @@ export default function Constructeur() {
       </div>
 
       <BrickCanvas
+        ref={canvasRef}
         composants={composants}
         templateACharger={templateACharger}
         resultatsParNoeud={resultat?.resultats_par_noeud || null}
@@ -123,14 +135,16 @@ export default function Constructeur() {
           <h4>Comment ça marche, étape par étape</h4>
           <p className="texte-muted">
             Ce graphe n'a pas encore été exécuté — voici ce que chaque brique va faire, dans l'ordre,
-            avant même de cliquer sur « Exécuter le graphe ».
+            avec l'entrée qui lui sera réellement envoyée (modifiable en cliquant sur le nœud).
           </p>
           <ol className="liste-etapes-trace">
             {templateACharger.nodes.map((n: any, i: number) => {
               const c = composants.find((c) => c.id === n.type)
+              const apercu = n.config?.prompt || n.config?.texte || n.config?.expression
               return (
                 <li key={i}>
                   {c?.icone} <strong>{c?.titre || n.type}</strong> — {c?.description}
+                  {apercu && <div className="apercu-config">Entrée : « {apercu} »</div>}
                 </li>
               )
             })}
@@ -147,6 +161,55 @@ export default function Constructeur() {
           <p className="texte-muted">
             <strong>Entrée / sortie :</strong> {composantAffiche.entree_sortie}
           </p>
+
+          {composantAffiche.champs_config?.length > 0 && noeudSelectionne && (
+            <div className="config-form">
+              <h5>✏️ Entrée de ce nœud (modifiable)</h5>
+              <p className="texte-muted">
+                C'est ici que vous fournissez ce qui est vraiment envoyé à ce nœud. Changez la valeur,
+                puis cliquez « Exécuter le graphe » pour voir l'effet de votre modification.
+              </p>
+              {composantAffiche.champs_config.map((champ: any) => (
+                <label key={champ.cle} className="config-champ">
+                  <span>{champ.label}</span>
+                  {champ.type === 'textarea' && (
+                    <textarea
+                      value={configNoeudSelectionne[champ.cle] ?? ''}
+                      onChange={(e) => modifierConfig(champ.cle, e.target.value)}
+                      rows={4}
+                    />
+                  )}
+                  {champ.type === 'texte' && (
+                    <input
+                      type="text"
+                      value={configNoeudSelectionne[champ.cle] ?? ''}
+                      onChange={(e) => modifierConfig(champ.cle, e.target.value)}
+                    />
+                  )}
+                  {champ.type === 'nombre' && (
+                    <input
+                      type="number"
+                      value={configNoeudSelectionne[champ.cle] ?? champ.defaut ?? ''}
+                      onChange={(e) => modifierConfig(champ.cle, Number(e.target.value))}
+                    />
+                  )}
+                  {champ.type === 'select' && (
+                    <select
+                      value={configNoeudSelectionne[champ.cle] ?? champ.options?.[0] ?? ''}
+                      onChange={(e) => modifierConfig(champ.cle, e.target.value)}
+                    >
+                      {champ.options.map((opt: string) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </label>
+              ))}
+            </div>
+          )}
+
           {artefactNoeud && (
             <>
               <h4>Ce que ce nœud a produit lors de la dernière exécution</h4>

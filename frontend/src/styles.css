@@ -391,6 +391,69 @@ button:disabled {
   color: var(--fg-muted);
 }
 
+.noeud-contenu {
+  text-align: left;
+  line-height: 1.3;
+}
+
+.noeud-apercu {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--fg-muted);
+  white-space: normal;
+}
+
+.noeud-apercu-vide {
+  font-style: italic;
+  color: #d97706;
+}
+
+.config-form {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.config-champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.config-champ span {
+  font-weight: 600;
+  color: var(--fg-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.config-champ textarea,
+.config-champ input,
+.config-champ select {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.apercu-config {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  font-style: italic;
+}
+
 .templates-liste {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
