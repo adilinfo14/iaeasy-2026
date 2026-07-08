@@ -154,10 +154,16 @@ def _transcription_sync(model_ref: str) -> dict:
     echantillon = _get_sample_audio()
     resultat = _whisper_pipeline_cache[model_ref](echantillon["array"].copy())
 
+    import numpy as np
     import soundfile as sf
 
+    # soundfile écrit par défaut en PCM flottant (subtype DOUBLE/FLOAT) pour un tableau
+    # numpy float — un format que le décodeur audio natif des navigateurs (<audio>) ne lit
+    # pas de façon fiable (bouton lecture inerte, durée bloquée à 0:00/0:00). On force donc
+    # un PCM 16 bits, universellement supporté.
+    audio_int16 = (np.clip(echantillon["array"], -1.0, 1.0) * 32767).astype(np.int16)
     tampon = io.BytesIO()
-    sf.write(tampon, echantillon["array"], echantillon["sampling_rate"], format="WAV")
+    sf.write(tampon, audio_int16, echantillon["sampling_rate"], format="WAV", subtype="PCM_16")
     audio_b64 = base64.b64encode(tampon.getvalue()).decode()
 
     return {
