@@ -409,6 +409,7 @@ button:disabled {
 
 .template-carte.ouverte {
   border-color: var(--accent);
+  grid-column: 1 / -1;
 }
 
 .template-entete {
@@ -692,6 +693,19 @@ button:disabled {
 .cahier-test-table td:first-child {
   font-weight: 600;
   white-space: nowrap;
+}
+
+.cahier-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.cahier-pagination .chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* --- Tableaux d'aperçu de données (entraînement) --- */
