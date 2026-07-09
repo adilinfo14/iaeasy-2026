@@ -60,9 +60,18 @@ COMPOSANTS = [
             "Transforme chaque chunk en vecteur (embedding), fait de même pour la question posée, "
             "puis retrouve les chunks dont le vecteur est le plus proche (similarité cosinus). "
             "C'est le cœur du RAG : l'endroit où le pipeline va chercher l'information pertinente "
-            "avant de répondre."
+            "avant de répondre. ⚠️ Important : les chunks proviennent des nœuds connectés en amont "
+            "(« Source de documents » → « Découpage »). Sans rien connecté avant elle, cette brique "
+            "ne reste pas vide : elle cherche par défaut dans un petit corpus de démonstration "
+            "intégré (quelques phrases sur le RAG, MCP, ReAct...), pas dans un document que vous "
+            "auriez fourni. Le passage réellement trouvé est visible dans le « Déroulé complet » "
+            "après exécution, ou en cliquant à nouveau sur le nœud."
         ),
-        "entree_sortie": "Entrée : des chunks + une question → Sortie : les 2 passages les plus pertinents",
+        "entree_sortie": (
+            "Entrée : des chunks (fournis par « Source de documents » → « Découpage » en amont, "
+            "sinon un mini-corpus de démonstration intégré par défaut) + une question → "
+            "Sortie : les 2 passages les plus pertinents"
+        ),
         "champs_config": [
             {
                 "cle": "prompt", "label": "Question posée à la base documentaire", "type": "textarea",
