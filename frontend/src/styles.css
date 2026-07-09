@@ -94,7 +94,7 @@ p {
   background-color: #faf3e6;
   background-image:
     linear-gradient(180deg, #faf3e6 0%, #f3e6cd 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='6' y='40' font-size='30' opacity='0.14'%3E%E2%98%95%3C/text%3E%3Ctext x='80' y='110' font-size='30' opacity='0.14'%3E%E2%98%95%3C/text%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg transform='translate(28,32) rotate(-15) scale(0.55)' opacity='0.22'%3E%3Cellipse cx='30' cy='45' rx='26' ry='43' fill='%238a5a34'/%3E%3Cpath d='M30 8 C16 22,16 40,30 45 C44 50,44 68,30 82' fill='none' stroke='%233c2415' stroke-width='6' stroke-linecap='round'/%3E%3C/g%3E%3Cg transform='translate(112,108) rotate(20) scale(0.5)' opacity='0.22'%3E%3Cellipse cx='30' cy='45' rx='26' ry='43' fill='%238a5a34'/%3E%3Cpath d='M30 8 C16 22,16 40,30 45 C44 50,44 68,30 82' fill='none' stroke='%233c2415' stroke-width='6' stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E");
   background-repeat: no-repeat, repeat;
   background-attachment: fixed, fixed;
 }
@@ -102,6 +102,21 @@ p {
 :root[data-theme='doux'] .module-carte:hover,
 :root[data-theme='doux'] .model-card:hover {
   box-shadow: 0 10px 24px -14px rgba(176, 106, 53, 0.35);
+}
+
+/* Petite grappe de grains de café décoratifs (forme vectorielle, pas juste l'emoji ☕) —
+   utilisée en flourish sous le titre de l'Accueil. */
+.grains-cafe-deco {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: 0.1rem 0 1.1rem;
+}
+
+.grains-cafe-deco svg {
+  width: 20px;
+  height: 30px;
+  flex-shrink: 0;
 }
 
 .theme-toggle {

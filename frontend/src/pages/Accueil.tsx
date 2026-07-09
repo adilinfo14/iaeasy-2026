@@ -114,6 +114,20 @@ export default function Accueil() {
   return (
     <div className="page page-accueil">
       <h1>☕ iaeasy — apprendre l'IA en la construisant</h1>
+      <div className="grains-cafe-deco" aria-hidden="true">
+        {[-18, 6, -8].map((angle, i) => (
+          <svg key={i} viewBox="0 0 60 90" style={{ transform: `rotate(${angle}deg)` }}>
+            <ellipse cx="30" cy="45" rx="26" ry="43" fill="#8a5a34" />
+            <path
+              d="M30 8 C16 22,16 40,30 45 C44 50,44 68,30 82"
+              fill="none"
+              stroke="#3c2415"
+              strokeWidth="6"
+              strokeLinecap="round"
+            />
+          </svg>
+        ))}
+      </div>
       <p className="page-intro">
         Née de la conviction qu'on ne comprend véritablement l'intelligence artificielle qu'en la
         manipulant soi-même, iaeasy s'attache à porter une pédagogie à la fois exigeante et
