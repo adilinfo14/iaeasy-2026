@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
+  comparerClassification,
   comparerEmbeddings,
   comparerModeles,
+  comparerVision,
+  listerModelesClassification,
   listerModelesEmbeddings,
   listerModelesSimulateur,
+  listerModelesVision,
 } from '../api/client'
 
 const CATEGORIES = [
@@ -140,6 +144,15 @@ const PAIRES_EXEMPLES = [
   },
 ]
 
+const EXEMPLES_CLASSIFICATION = [
+  'Cliquez ici pour gagner un iPhone gratuitement maintenant.',
+  'Bonjour, voici le compte-rendu de la réunion de ce matin.',
+  'Urgent : votre compte sera fermé, confirmez vos données ici.',
+  'Merci de valider le devis ci-joint avant vendredi.',
+  'Vous avez gagné 10000€, réclamez votre prix immédiatement.',
+  'Le rendez-vous chantier est confirmé pour lundi 9h.',
+]
+
 const FAMILLES = [
   {
     id: 'llm_generatif',
@@ -156,14 +169,14 @@ const FAMILLES = [
   {
     id: 'vision',
     label: 'Vision',
-    disponible: false,
-    note: 'Prend une image en entrée, pas un texte — non comparable sur ce simulateur.',
+    disponible: true,
+    note: "Ces modèles analysent la même image d'exemple fournie par l'outil : on compare durée et objets détectés.",
   },
   {
     id: 'classification_classique',
     label: 'Classification classique',
-    disponible: false,
-    note: 'Entraîné en direct sur des données jouets, pas interrogeable par prompt libre.',
+    disponible: true,
+    note: 'Ces algorithmes s\'entraînent en direct sur le même jeu de données (spam) : on compare durée d\'entraînement et précision.',
   },
 ]
 
@@ -187,6 +200,24 @@ export default function Simulateur() {
   const [resultatEmbeddings, setResultatEmbeddings] = useState<any>(null)
   const [erreurEmbeddings, setErreurEmbeddings] = useState<string | null>(null)
 
+  // Famille Classification classique : entraînement en direct sur le même jeu de données, un
+  // message à classer plutôt qu'un prompt libre.
+  const [modelesClassification, setModelesClassification] = useState<any[]>([])
+  const [selectionnesClassification, setSelectionnesClassification] = useState<Set<string>>(new Set())
+  const [messageClassification, setMessageClassification] = useState(
+    'Cliquez ici pour gagner un iPhone gratuitement maintenant.',
+  )
+  const [enCoursClassification, setEnCoursClassification] = useState(false)
+  const [resultatClassification, setResultatClassification] = useState<any>(null)
+  const [erreurClassification, setErreurClassification] = useState<string | null>(null)
+
+  // Famille Vision : aucune saisie, l'outil fournit lui-même l'image d'exemple.
+  const [modelesVision, setModelesVision] = useState<any[]>([])
+  const [selectionnesVision, setSelectionnesVision] = useState<Set<string>>(new Set())
+  const [enCoursVision, setEnCoursVision] = useState(false)
+  const [resultatVision, setResultatVision] = useState<any>(null)
+  const [erreurVision, setErreurVision] = useState<string | null>(null)
+
   useEffect(() => {
     listerModelesSimulateur().then((liste) => {
       setModeles(liste)
@@ -195,6 +226,14 @@ export default function Simulateur() {
     listerModelesEmbeddings().then((liste) => {
       setModelesEmbeddings(liste)
       setSelectionnesEmbeddings(new Set(liste.map((m: any) => m.id)))
+    })
+    listerModelesClassification().then((liste) => {
+      setModelesClassification(liste)
+      setSelectionnesClassification(new Set(liste.map((m: any) => m.id)))
+    })
+    listerModelesVision().then((liste) => {
+      setModelesVision(liste)
+      setSelectionnesVision(new Set(liste.map((m: any) => m.id)))
     })
   }, [])
 
@@ -209,6 +248,24 @@ export default function Simulateur() {
 
   function basculerModeleEmbeddings(id: string) {
     setSelectionnesEmbeddings((s) => {
+      const copie = new Set(s)
+      if (copie.has(id)) copie.delete(id)
+      else copie.add(id)
+      return copie
+    })
+  }
+
+  function basculerModeleClassification(id: string) {
+    setSelectionnesClassification((s) => {
+      const copie = new Set(s)
+      if (copie.has(id)) copie.delete(id)
+      else copie.add(id)
+      return copie
+    })
+  }
+
+  function basculerModeleVision(id: string) {
+    setSelectionnesVision((s) => {
       const copie = new Set(s)
       if (copie.has(id)) copie.delete(id)
       else copie.add(id)
@@ -244,15 +301,43 @@ export default function Simulateur() {
     }
   }
 
+  async function lancerClassification() {
+    setEnCoursClassification(true)
+    setErreurClassification(null)
+    setResultatClassification(null)
+    try {
+      const r = await comparerClassification(messageClassification, Array.from(selectionnesClassification))
+      setResultatClassification(r)
+    } catch (e: any) {
+      setErreurClassification(e.message)
+    } finally {
+      setEnCoursClassification(false)
+    }
+  }
+
+  async function lancerVision() {
+    setEnCoursVision(true)
+    setErreurVision(null)
+    setResultatVision(null)
+    try {
+      const r = await comparerVision(Array.from(selectionnesVision))
+      setResultatVision(r)
+    } catch (e: any) {
+      setErreurVision(e.message)
+    } finally {
+      setEnCoursVision(false)
+    }
+  }
+
   return (
     <div className="page page-simulateur">
       <h1>⚖️ Simulateur coût / latence des modèles</h1>
       <p className="page-intro">
         Le Simulateur soumet une même entrée, successivement, à l'ensemble des modèles sélectionnés
-        au sein d'une même famille — LLM génératif (un prompt en texte libre) ou embeddings (deux
-        phrases à comparer). Les modèles de vision ou de classification classique échappent en
-        revanche à cette comparaison, le premier attendant une image et le second n'étant
-        interrogeable qu'après un entraînement en direct. La{' '}
+        au sein d'une même famille — un prompt en texte libre pour les LLM génératifs, deux phrases
+        à comparer pour les embeddings, un message à classer pour les algorithmes de classification
+        classique (entraînés en direct sous vos yeux), ou une image d'exemple fournie par l'outil
+        pour les modèles de vision. La{' '}
         <strong>durée affichée constitue une mesure réelle</strong>, effectuée en direct sur cette
         machine, quand l'énergie relative (LLM uniquement) demeure une{' '}
         <strong>approximation illustrative</strong>, proportionnelle au nombre de paramètres de
@@ -331,6 +416,67 @@ export default function Simulateur() {
                     type="checkbox"
                     checked={selectionnesEmbeddings.has(m.id)}
                     onChange={() => basculerModeleEmbeddings(m.id)}
+                  />
+                  {m.nom} <span className="texte-muted">({m.parametres_millions} M)</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+
+        {familleActive === 'classification_classique' && modelesClassification.length > 0 && (
+          <>
+            <p className="texte-muted">
+              2. Choisissez les algorithmes à entraîner sur le même jeu de données (
+              {selectionnesClassification.size}/{modelesClassification.length} sélectionnés) :
+            </p>
+            <div className="exemples-chips">
+              <button
+                className="chip"
+                onClick={() => setSelectionnesClassification(new Set(modelesClassification.map((m) => m.id)))}
+              >
+                Tout sélectionner
+              </button>
+              <button className="chip" onClick={() => setSelectionnesClassification(new Set())}>
+                Tout désélectionner
+              </button>
+            </div>
+            <div className="simulateur-modeles-liste">
+              {modelesClassification.map((m) => (
+                <label key={m.id} className="simulateur-modele-case">
+                  <input
+                    type="checkbox"
+                    checked={selectionnesClassification.has(m.id)}
+                    onChange={() => basculerModeleClassification(m.id)}
+                  />
+                  {m.nom}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+
+        {familleActive === 'vision' && modelesVision.length > 0 && (
+          <>
+            <p className="texte-muted">
+              2. Choisissez les modèles de détection à comparer sur la même image (
+              {selectionnesVision.size}/{modelesVision.length} sélectionnés) :
+            </p>
+            <div className="exemples-chips">
+              <button className="chip" onClick={() => setSelectionnesVision(new Set(modelesVision.map((m) => m.id)))}>
+                Tout sélectionner
+              </button>
+              <button className="chip" onClick={() => setSelectionnesVision(new Set())}>
+                Tout désélectionner
+              </button>
+            </div>
+            <div className="simulateur-modeles-liste">
+              {modelesVision.map((m) => (
+                <label key={m.id} className="simulateur-modele-case">
+                  <input
+                    type="checkbox"
+                    checked={selectionnesVision.has(m.id)}
+                    onChange={() => basculerModeleVision(m.id)}
                   />
                   {m.nom} <span className="texte-muted">({m.parametres_millions} M)</span>
                 </label>
@@ -523,6 +669,161 @@ export default function Simulateur() {
                       {r.duree_secondes}s · vecteur de {r.dimension_vecteur} dimensions · similarité
                       cosinus : {r.similarite_cosinus}
                     </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {familleActive === 'classification_classique' && (
+        <>
+          <p className="texte-muted">
+            3. Choisissez un message à classer (spam ou légitime) — un exemple type, ou le vôtre :
+          </p>
+          <div className="exemples-chips">
+            {EXEMPLES_CLASSIFICATION.map((ex, i) => (
+              <button
+                key={i}
+                className={ex === messageClassification ? 'chip actif' : 'chip'}
+                onClick={() => setMessageClassification(ex)}
+              >
+                {ex.length > 50 ? `${ex.slice(0, 50)}…` : ex}
+              </button>
+            ))}
+          </div>
+
+          <textarea
+            className="simulateur-prompt"
+            value={messageClassification}
+            onChange={(e) => setMessageClassification(e.target.value)}
+            rows={3}
+            maxLength={300}
+          />
+
+          <button
+            onClick={lancerClassification}
+            disabled={
+              enCoursClassification || !messageClassification.trim() || selectionnesClassification.size === 0
+            }
+          >
+            {enCoursClassification
+              ? `Entraînement de ${selectionnesClassification.size} algorithme${selectionnesClassification.size > 1 ? 's' : ''} en cours…`
+              : selectionnesClassification.size === 0
+                ? 'Sélectionnez au moins un algorithme'
+                : 'Lancer la comparaison'}
+          </button>
+
+          {erreurClassification && <p className="erreur">{erreurClassification}</p>}
+
+          {resultatClassification && (
+            <>
+              <div className="simulateur-graphique">
+                <h4>Durée d'entraînement mesurée (secondes, sur ~34 exemples)</h4>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={resultatClassification.resultats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <YAxis label={{ value: 'secondes', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Bar dataKey="duree_secondes" name="Durée (s)" fill="#4f7cff" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="simulateur-graphique">
+                <h4>Précision en validation croisée (5 blocs, %)</h4>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={resultatClassification.resultats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip />
+                    <Bar dataKey="precision_validation_croisee_pourcent" name="Précision (%)" fill="#22c55e" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="explication-bloc">
+                <h4>Détail par algorithme</h4>
+                {resultatClassification.resultats.map((r: any) => (
+                  <div key={r.id} className="simulateur-detail">
+                    <h5>{r.nom}</h5>
+                    <p className="texte-muted">
+                      {r.duree_secondes}s d'entraînement · précision validation croisée :{' '}
+                      {r.precision_validation_croisee_pourcent}% · prédiction sur ce message :{' '}
+                      <strong>{r.prediction}</strong> ({Math.round(r.confiance * 100)}% de confiance)
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {familleActive === 'vision' && (
+        <>
+          <p className="texte-muted">
+            3. Aucune saisie nécessaire : l'outil fournit lui-même une image d'exemple, identique
+            pour chaque modèle comparé.
+          </p>
+
+          <button onClick={lancerVision} disabled={enCoursVision || selectionnesVision.size === 0}>
+            {enCoursVision
+              ? `${selectionnesVision.size} modèle${selectionnesVision.size > 1 ? 's' : ''} à comparer…`
+              : selectionnesVision.size === 0
+                ? 'Sélectionnez au moins un modèle'
+                : 'Lancer la comparaison'}
+          </button>
+
+          {erreurVision && <p className="erreur">{erreurVision}</p>}
+
+          {resultatVision && (
+            <>
+              {resultatVision.image_note && <p className="texte-muted">{resultatVision.image_note}</p>}
+
+              <div className="simulateur-graphique">
+                <h4>Durée d'analyse mesurée (secondes)</h4>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={resultatVision.resultats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <YAxis label={{ value: 'secondes', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Bar dataKey="duree_secondes" name="Durée (s)" fill="#4f7cff" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="simulateur-graphique">
+                <h4>Nombre d'objets détectés</h4>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={resultatVision.resultats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="nom" />
+                    <Tooltip />
+                    <Bar dataKey="nb_objets" name="Objets détectés" fill="#fb923c" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="explication-bloc">
+                <h4>Détail par modèle</h4>
+                {resultatVision.resultats.map((r: any) => (
+                  <div key={r.id} className="simulateur-detail">
+                    <h5>{r.nom} — ~{r.parametres_millions} millions de paramètres</h5>
+                    <p className="texte-muted">
+                      {r.duree_secondes}s · {r.nb_objets} objet{r.nb_objets > 1 ? 's' : ''} détecté
+                      {r.nb_objets > 1 ? 's' : ''} :{' '}
+                      {r.objets_detectes.map((o: any) => `${o.etiquette} (${Math.round(o.confiance * 100)}%)`).join(', ')}
+                    </p>
+                    <img
+                      src={`data:image/jpeg;base64,${r.image_annotee_base64}`}
+                      alt={`Détection annotée par ${r.nom}`}
+                      className="simulateur-image-vision"
+                    />
                   </div>
                 ))}
               </div>

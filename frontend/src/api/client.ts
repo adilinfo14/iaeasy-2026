@@ -248,3 +248,39 @@ export async function comparerEmbeddings(phraseA?: string, phraseB?: string, mod
   }
   return r.json()
 }
+
+export async function listerModelesClassification() {
+  const r = await fetch(`${BASE}/simulateur/modeles-classification`)
+  return r.json()
+}
+
+export async function comparerClassification(message?: string, modelesIds?: string[]) {
+  const r = await fetch(`${BASE}/simulateur/comparer-classification`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message || null, modeles_ids: modelesIds || null }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erreur pendant la comparaison des algorithmes')
+  }
+  return r.json()
+}
+
+export async function listerModelesVision() {
+  const r = await fetch(`${BASE}/simulateur/modeles-vision`)
+  return r.json()
+}
+
+export async function comparerVision(modelesIds?: string[]) {
+  const r = await fetch(`${BASE}/simulateur/comparer-vision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ modeles_ids: modelesIds || null }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(err.detail || 'Erreur pendant la comparaison des modèles de vision')
+  }
+  return r.json()
+}

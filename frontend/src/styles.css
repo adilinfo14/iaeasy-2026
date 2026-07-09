@@ -1749,6 +1749,15 @@ button:disabled {
   margin: 0 0 0.2rem;
 }
 
+.simulateur-image-vision {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-top: 0.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
 /* --- Quiz de fin de brique --- */
 .quiz-bloc {
   background: var(--bg-alt);
