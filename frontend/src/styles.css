@@ -183,6 +183,12 @@ main {
   max-width: 1600px;
 }
 
+/* La colonne de gauche (20 modèles d'architecture) + le canvas ont besoin de plus de place
+   que les 1100px par défaut pour ne pas se sentir à l'étroit. */
+.page-constructeur {
+  max-width: 1500px;
+}
+
 .page h1 {
   margin-bottom: 0.3rem;
 }
@@ -478,6 +484,55 @@ button:disabled {
 .verrou {
   color: var(--fg-muted);
   font-size: 0.9rem;
+}
+
+/* --- Constructeur : colonne des modèles à gauche, canvas au centre --- */
+.constructeur-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.templates-sidebar {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 1rem;
+}
+
+.templates-sidebar h4 {
+  margin: 0 0 0.7rem;
+}
+
+.templates-sidebar .templates-liste {
+  grid-template-columns: 1fr;
+  margin-bottom: 0;
+}
+
+.templates-sidebar .avantages-inconvenients {
+  grid-template-columns: 1fr;
+}
+
+.constructeur-principal {
+  /* Sans ça, un enfant de grille garde sa largeur intrinsèque minimale et peut déborder —
+     un piège classique de CSS grid avec un contenu flexible comme le canvas react-flow. */
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .constructeur-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .templates-sidebar {
+    position: static;
+    max-height: 420px;
+  }
 }
 
 .canvas-layout {

@@ -106,61 +106,68 @@ export default function Constructeur() {
         avant d'exécuter et d'inspecter ce que produit chaque étape intermédiaire.
       </p>
 
-      <div className="templates-liste">
-        {templates.map((t) => {
-          const ouvert = templateOuvert === t.id
-          return (
-            <div key={t.id} className={ouvert ? 'template-carte ouverte' : 'template-carte'}>
-              <button className="template-entete" onClick={() => setTemplateOuvert(ouvert ? null : t.id)}>
-                <strong>{t.titre}</strong>
-                <span>{t.description}</span>
-              </button>
-              {ouvert && (
-                <div className="template-details">
-                  <div className="avantages-inconvenients">
-                    <div>
-                      <h5>✅ Avantages</h5>
-                      <ul className="liste-simple">
-                        {t.avantages.map((a: string, i: number) => (
-                          <li key={i}>{a}</li>
+      <div className="constructeur-layout">
+        <aside className="templates-sidebar">
+          <h4>🏗️ {templates.length > 0 ? templates.length : ''} modèles d'architecture</h4>
+          <div className="templates-liste">
+            {templates.map((t) => {
+              const ouvert = templateOuvert === t.id
+              return (
+                <div key={t.id} className={ouvert ? 'template-carte ouverte' : 'template-carte'}>
+                  <button className="template-entete" onClick={() => setTemplateOuvert(ouvert ? null : t.id)}>
+                    <strong>{t.titre}</strong>
+                    <span>{t.description}</span>
+                  </button>
+                  {ouvert && (
+                    <div className="template-details">
+                      <div className="avantages-inconvenients">
+                        <div>
+                          <h5>✅ Avantages</h5>
+                          <ul className="liste-simple">
+                            {t.avantages.map((a: string, i: number) => (
+                              <li key={i}>{a}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <h5>⚠️ Inconvénients</h5>
+                          <ul className="liste-simple">
+                            {t.inconvenients.map((a: string, i: number) => (
+                              <li key={i}>{a}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                      <p className="texte-muted">Charger sur le canvas avec l'exemple :</p>
+                      <div className="exemples-chips">
+                        {t.exemples.map((ex: any, i: number) => (
+                          <button key={i} className="chip" onClick={() => chargerExemple(t, ex)}>
+                            {ex.label}
+                          </button>
                         ))}
-                      </ul>
+                      </div>
                     </div>
-                    <div>
-                      <h5>⚠️ Inconvénients</h5>
-                      <ul className="liste-simple">
-                        {t.inconvenients.map((a: string, i: number) => (
-                          <li key={i}>{a}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                  <p className="texte-muted">Charger sur le canvas avec l'exemple :</p>
-                  <div className="exemples-chips">
-                    {t.exemples.map((ex: any, i: number) => (
-                      <button key={i} className="chip" onClick={() => chargerExemple(t, ex)}>
-                        {ex.label}
-                      </button>
-                    ))}
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        </aside>
+
+        <div className="constructeur-principal">
+          <BrickCanvas
+            ref={canvasRef}
+            composants={composants}
+            templateACharger={templateACharger}
+            resultatsParNoeud={resultat?.resultats_par_noeud || null}
+            enCours={enCours}
+            onExecuter={executer}
+            onComposantInfo={afficherComposant}
+          />
+
+          {erreur && !modalOuverte && <p className="erreur">{erreur}</p>}
+        </div>
       </div>
-
-      <BrickCanvas
-        ref={canvasRef}
-        composants={composants}
-        templateACharger={templateACharger}
-        resultatsParNoeud={resultat?.resultats_par_noeud || null}
-        enCours={enCours}
-        onExecuter={executer}
-        onComposantInfo={afficherComposant}
-      />
-
-      {erreur && !modalOuverte && <p className="erreur">{erreur}</p>}
 
       {templateACharger && (
         <div className="explication-bloc">
