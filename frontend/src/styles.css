@@ -94,7 +94,7 @@ p {
   background-color: #faf3e6;
   background-image:
     linear-gradient(180deg, #faf3e6 0%, #f3e6cd 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='6' y='40' font-size='30' opacity='0.05'%3E%E2%98%95%3C/text%3E%3Ctext x='80' y='110' font-size='30' opacity='0.05'%3E%E2%98%95%3C/text%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Ctext x='6' y='40' font-size='30' opacity='0.14'%3E%E2%98%95%3C/text%3E%3Ctext x='80' y='110' font-size='30' opacity='0.14'%3E%E2%98%95%3C/text%3E%3C/svg%3E");
   background-repeat: no-repeat, repeat;
   background-attachment: fixed, fixed;
 }
@@ -1065,6 +1065,11 @@ button:disabled {
   max-width: 900px;
 }
 
+.progression-globale a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .progression-globale {
   display: inline-block;
   background: var(--bg-alt);
@@ -1079,18 +1084,19 @@ button:disabled {
 .modules-grille {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.2rem;
+  gap: 1.5rem;
 }
 
 .module-carte {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   background: var(--bg-alt);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.4rem;
+  border-top: 4px solid var(--border);
+  border-radius: 18px;
+  padding: 1.6rem 1.5rem;
   text-decoration: none;
   color: var(--fg);
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
@@ -1100,6 +1106,20 @@ button:disabled {
   transform: translateY(-4px);
   border-color: var(--accent);
   box-shadow: 0 10px 24px -12px rgba(79, 124, 255, 0.35);
+}
+
+/* Coloration par groupe (reprend les 2 sous-menus de la navigation + Avis à part) : casse le
+   monochrome d'une grille de 11 cartes identiques, sans introduire de couleurs hors palette. */
+.module-carte-pratiquer {
+  border-top-color: var(--accent);
+}
+
+.module-carte-ressources {
+  border-top-color: var(--success);
+}
+
+.module-carte-avis {
+  border-top-color: #c2437e;
 }
 
 .module-icone {

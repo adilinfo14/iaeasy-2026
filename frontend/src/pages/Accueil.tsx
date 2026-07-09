@@ -15,6 +15,7 @@ const MODULES = [
     to: '/catalogue',
     icone: '🗂️',
     titre: 'Catalogue',
+    groupe: 'pratiquer',
     // Complété dynamiquement (nombre de modèles/familles réel) une fois le catalogue chargé.
     pitch: "Des dizaines de modèles, des familles d'IA différentes — pas seulement des chatbots.",
   },
@@ -22,6 +23,7 @@ const MODULES = [
     to: '/parcours',
     icone: '🧭',
     titre: 'Parcours',
+    groupe: 'pratiquer',
     pitch: 'Construis ton assistant brique par brique, avec une vraie mise en situation.',
     recommande: true,
   },
@@ -29,54 +31,63 @@ const MODULES = [
     to: '/entrainement',
     icone: '📉',
     titre: 'Entraînement',
+    groupe: 'pratiquer',
     pitch: 'Regarde une vraie courbe de loss descendre, sur 3 cas d\'usage concrets.',
   },
   {
     to: '/constructeur',
     icone: '🏗️',
     titre: 'Constructeur',
+    groupe: 'pratiquer',
     pitch: "Mode architecte : assemble un vrai RAG, un agent, un pipeline multi-agent.",
+  },
+  {
+    to: '/simulateur',
+    icone: '⚖️',
+    titre: 'Simulateur',
+    groupe: 'pratiquer',
+    pitch: 'Comparez en direct la vitesse et le coût réel de plusieurs modèles.',
   },
   {
     to: '/strategie-test',
     icone: '🧪',
     titre: 'Stratégie de tests',
+    groupe: 'ressources',
     pitch: "Comment vérifier sérieusement chaque famille de modèle — cahiers de test à réutiliser.",
+  },
+  {
+    to: '/securite',
+    icone: '🛡️',
+    titre: 'Sécurité',
+    groupe: 'ressources',
+    pitch: "10 risques concrets d'un agent IA (OWASP) et les bonnes pratiques pour s'en protéger.",
   },
   {
     to: '/glossaire',
     icone: '📖',
     titre: 'Glossaire',
+    groupe: 'ressources',
     pitch: "Le jargon de l'IA expliqué simplement, un terme à la fois.",
   },
   {
     to: '/metiers',
     icone: '🧭',
     titre: 'Mon métier',
+    groupe: 'ressources',
     pitch: "L'IA dans votre métier : des cas d'usage concrets, pas des promesses abstraites.",
-  },
-  {
-    to: '/simulateur',
-    icone: '⚖️',
-    titre: 'Simulateur',
-    pitch: 'Comparez en direct la vitesse et le coût réel de plusieurs modèles.',
-  },
-  {
-    to: '/securite',
-    icone: '🛡️',
-    titre: 'Sécurité',
-    pitch: "10 risques concrets d'un agent IA (OWASP) et les bonnes pratiques pour s'en protéger.",
   },
   {
     to: '/videos',
     icone: '🎬',
     titre: 'Vidéos',
+    groupe: 'ressources',
     pitch: "Des schémas de conférences IA expliqués en français simple.",
   },
   {
     to: '/avis',
     icone: '⭐',
     titre: 'Avis',
+    groupe: 'avis',
     pitch: 'Notez le site en 2 secondes et lisez les avis des autres visiteurs.',
   },
 ]
@@ -129,7 +140,7 @@ export default function Accueil() {
 
       <div className="modules-grille">
         {MODULES.map((m) => (
-          <Link key={m.to} to={m.to} className="module-carte">
+          <Link key={m.to} to={m.to} className={`module-carte module-carte-${m.groupe}`}>
             {m.recommande && <span className="module-badge">Commence ici</span>}
             <div className="module-icone">{m.icone}</div>
             <h3>{m.titre}</h3>
