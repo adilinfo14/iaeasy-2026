@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { lireBadges, lireProgression, lireStatsAvis, lireVisiteurs, listerBriques, StatsAvis } from '../api/client'
+import {
+  lireBadges,
+  lireProgression,
+  lireStatsAvis,
+  lireVisiteurs,
+  listerBriques,
+  listerModeles,
+  StatsAvis,
+} from '../api/client'
 
 const MODULES = [
   {
     to: '/catalogue',
     icone: '🗂️',
     titre: 'Catalogue',
-    pitch: "19 modèles, 15 familles d'IA différentes — pas seulement des chatbots.",
+    // Complété dynamiquement (nombre de modèles/familles réel) une fois le catalogue chargé.
+    pitch: "Des dizaines de modèles, des familles d'IA différentes — pas seulement des chatbots.",
   },
   {
     to: '/parcours',
@@ -66,6 +75,7 @@ export default function Accueil() {
   const [visiteurs, setVisiteurs] = useState<number | null>(null)
   const [badges, setBadges] = useState(0)
   const [statsAvis, setStatsAvis] = useState<StatsAvis | null>(null)
+  const [catalogue, setCatalogue] = useState<{ nbModeles: number; nbFamilles: number } | null>(null)
 
   useEffect(() => {
     listerBriques().then((b) => setTotal(b.length))
@@ -73,6 +83,9 @@ export default function Accueil() {
     lireVisiteurs().then((v) => setVisiteurs(v.total_visiteurs_uniques))
     lireBadges().then((b) => setBadges(b.badges.length))
     lireStatsAvis().then(setStatsAvis)
+    listerModeles().then((modeles) =>
+      setCatalogue({ nbModeles: modeles.length, nbFamilles: new Set(modeles.map((m: any) => m.famille)).size }),
+    )
   }, [])
 
   return (
@@ -102,7 +115,11 @@ export default function Accueil() {
             {m.recommande && <span className="module-badge">Commence ici</span>}
             <div className="module-icone">{m.icone}</div>
             <h3>{m.titre}</h3>
-            <p>{m.pitch}</p>
+            <p>
+              {m.to === '/catalogue' && catalogue
+                ? `${catalogue.nbModeles} modèles, ${catalogue.nbFamilles} familles d'IA différentes — pas seulement des chatbots.`
+                : m.pitch}
+            </p>
           </Link>
         ))}
       </div>

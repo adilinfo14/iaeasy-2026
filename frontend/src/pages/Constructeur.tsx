@@ -83,8 +83,9 @@ export default function Constructeur() {
     <div className="page page-constructeur">
       <h1>Constructeur d'architecture</h1>
       <p className="page-intro">
-        Le mode « architecte » : 10 modèles d'architecture réels, chacun avec ses avantages et ses
-        inconvénients. Ouvrez-en un, choisissez un exemple pour le charger sur le canvas, puis
+        Le mode « architecte » : {templates.length > 0 ? templates.length : 'plusieurs'} modèles
+        d'architecture réels, chacun avec ses avantages et ses inconvénients. Ouvrez-en un,
+        choisissez un exemple pour le charger sur le canvas, puis
         <strong> cliquez sur chaque nœud pour voir et modifier ce qui lui est vraiment envoyé</strong>{' '}
         avant d'exécuter et d'inspecter ce que produit chaque étape intermédiaire.
       </p>

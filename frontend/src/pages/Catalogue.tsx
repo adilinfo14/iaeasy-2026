@@ -14,13 +14,15 @@ export default function Catalogue() {
 
   const familles = ['toutes', ...Array.from(new Set(modeles.map((m) => m.famille)))]
   const visibles = filtreFamille === 'toutes' ? modeles : modeles.filter((m) => m.famille === filtreFamille)
+  const nombreFamilles = familles.length - 1
 
   return (
     <div className="page">
       <h1>Catalogue de modèles</h1>
       <p className="page-intro">
-        Dix modèles, cinq familles d'IA différentes (pas seulement des chatbots) : à chaque fiche
-        son secteur, sa description pédagogique et un cas d'usage à essayer en direct.
+        {modeles.length > 0
+          ? `${modeles.length} modèles, ${nombreFamilles} familles d'IA différentes (pas seulement des chatbots) : à chaque fiche son secteur, sa description pédagogique, un lien pour l'installer chez soi et des idées d'usage pour s'en inspirer, en plus d'un cas d'usage à essayer en direct.`
+          : 'Chargement du catalogue…'}
       </p>
 
       <div className="filtres">
