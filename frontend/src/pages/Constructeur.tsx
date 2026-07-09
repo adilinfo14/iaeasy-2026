@@ -34,6 +34,8 @@ export default function Constructeur() {
   const [noeudSelectionne, setNoeudSelectionne] = useState<string | null>(null)
   const [configNoeudSelectionne, setConfigNoeudSelectionne] = useState<Record<string, any>>({})
   const [erreur, setErreur] = useState<string | null>(null)
+  const [enCours, setEnCours] = useState(false)
+  const [modalOuverte, setModalOuverte] = useState(false)
   const canvasRef = useRef<BrickCanvasHandle>(null)
 
   useEffect(() => {
@@ -41,17 +43,31 @@ export default function Constructeur() {
     listerTemplates().then(setTemplates)
   }, [])
 
+  useEffect(() => {
+    if (!modalOuverte) return
+    function surEchap(e: KeyboardEvent) {
+      if (e.key === 'Escape') setModalOuverte(false)
+    }
+    window.addEventListener('keydown', surEchap)
+    return () => window.removeEventListener('keydown', surEchap)
+  }, [modalOuverte])
+
   async function executer(
     nodes: { id: string; type: string; config: Record<string, unknown> }[],
     edges: { source: string; target: string; condition?: 'autorise' | 'bloque' }[],
   ) {
     setErreur(null)
     setResultat(null)
+    setEnCours(true)
     try {
       const r = await executerGraphe(nodes, edges)
       setResultat(r)
+      setModalOuverte(true)
     } catch (e: any) {
       setErreur(e.message)
+      setModalOuverte(true)
+    } finally {
+      setEnCours(false)
     }
   }
 
@@ -139,11 +155,12 @@ export default function Constructeur() {
         composants={composants}
         templateACharger={templateACharger}
         resultatsParNoeud={resultat?.resultats_par_noeud || null}
+        enCours={enCours}
         onExecuter={executer}
         onComposantInfo={afficherComposant}
       />
 
-      {erreur && <p className="erreur">{erreur}</p>}
+      {erreur && !modalOuverte && <p className="erreur">{erreur}</p>}
 
       {templateACharger && (
         <div className="explication-bloc">
@@ -281,6 +298,40 @@ export default function Constructeur() {
               <p className="traduction-cible">{resultat.reponse_finale}</p>
             </>
           )}
+        </div>
+      )}
+
+      {modalOuverte && (erreur || resultat) && (
+        <div className="modal-overlay" onClick={() => setModalOuverte(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <button className="drawer-close" onClick={() => setModalOuverte(false)} aria-label="Fermer">
+              ×
+            </button>
+            <h3>{erreur ? '⚠️ Échec de l\'exécution' : '✅ Résultat de l\'exécution'}</h3>
+            {erreur && <p className="erreur">{erreur}</p>}
+            {resultat && (
+              <>
+                <h4>Déroulé complet</h4>
+                <ol>
+                  {resultat.etapes.map((e: any, i: number) => (
+                    <li key={i}>
+                      <strong>{e.brique}</strong> — {e.detail}
+                    </li>
+                  ))}
+                </ol>
+                {resultat.reponse_finale && (
+                  <>
+                    <h4>Réponse finale</h4>
+                    <p className="traduction-cible">{resultat.reponse_finale}</p>
+                  </>
+                )}
+                <p className="texte-muted">
+                  Ce même déroulé reste consultable plus bas sur la page après fermeture, et cliquer un
+                  nœud du canvas montre ce qu'il a produit précisément.
+                </p>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

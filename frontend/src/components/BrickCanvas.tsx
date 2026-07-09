@@ -93,6 +93,7 @@ type Props = {
   composants: any[]
   templateACharger: any | null
   resultatsParNoeud: Record<string, any> | null
+  enCours: boolean
   onExecuter: (
     nodes: { id: string; type: string; config: Record<string, unknown> }[],
     edges: { source: string; target: string; condition?: 'autorise' | 'bloque' }[],
@@ -115,7 +116,7 @@ const COULEURS_CATEGORIE: Record<string, string> = {
 }
 
 const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasInterne(
-  { composants, templateACharger, resultatsParNoeud, onExecuter, onComposantInfo },
+  { composants, templateACharger, resultatsParNoeud, enCours, onExecuter, onComposantInfo },
   ref,
 ) {
   const [nodes, setNodes] = useState<BriqueNode[]>([])
@@ -243,8 +244,9 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
         ))}
       </aside>
       <div className="canvas">
-        <button className="executer-flottant" onClick={executer} disabled={nodes.length === 0}>
-          ▶ Exécuter le graphe
+        {enCours && <div className="canvas-chargement" />}
+        <button className="executer-flottant" onClick={executer} disabled={nodes.length === 0 || enCours}>
+          {enCours ? '⏳ Exécution en cours…' : '▶ Exécuter le graphe'}
         </button>
         <ReactFlow
           nodes={nodes}
