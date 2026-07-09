@@ -537,9 +537,9 @@ button:disabled {
 
 .canvas-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 1rem;
-  height: 620px;
+  height: min(78vh, 760px);
   margin-top: 1rem;
 }
 
@@ -561,13 +561,34 @@ button:disabled {
 
 .palette .texte-muted {
   flex-shrink: 0;
+  margin-bottom: 0.2rem;
 }
 
-.palette button {
+.palette-groupe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.palette-groupe-titre {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.4rem;
+}
+
+.palette-brique {
   background: var(--bg);
   border: 1px solid var(--border);
+  border-left: 3px solid transparent;
   color: var(--fg);
   text-align: left;
+}
+
+.palette-brique:hover {
+  border-color: var(--accent);
+  border-left-width: 3px;
 }
 
 .canvas {
@@ -575,6 +596,52 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+}
+
+.canvas-vide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.3rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.canvas-vide p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* --- Scrollbars discrètes pour les panneaux internes (sidebar templates, palette) --- */
+.templates-sidebar,
+.palette {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.templates-sidebar::-webkit-scrollbar,
+.palette::-webkit-scrollbar {
+  width: 8px;
+}
+
+.templates-sidebar::-webkit-scrollbar-track,
+.palette::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.templates-sidebar::-webkit-scrollbar-thumb,
+.palette::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+}
+
+.templates-sidebar::-webkit-scrollbar-thumb:hover,
+.palette::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent);
 }
 
 .executer-flottant {

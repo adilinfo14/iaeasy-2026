@@ -115,6 +115,27 @@ const COULEURS_CATEGORIE: Record<string, string> = {
   outil: '#fb923c',
 }
 
+const LABEL_CATEGORIE: Record<string, string> = {
+  source: 'Source',
+  traitement: 'Traitement',
+  stockage: 'Stockage',
+  modele: 'Modèle',
+  outil: 'Outil',
+}
+
+function grouperParCategorie(composants: any[]) {
+  const groupes: { categorie: string; items: any[] }[] = []
+  for (const c of composants) {
+    let groupe = groupes.find((g) => g.categorie === c.categorie)
+    if (!groupe) {
+      groupe = { categorie: c.categorie, items: [] }
+      groupes.push(groupe)
+    }
+    groupe.items.push(c)
+  }
+  return groupes
+}
+
 const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasInterne(
   { composants, templateACharger, resultatsParNoeud, enCours, onExecuter, onComposantInfo },
   ref,
@@ -237,10 +258,22 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
       <aside className="palette">
         <h4>Briques d'architecture</h4>
         <p className="texte-muted">Cliquez une brique pour l'ajouter au canvas et voir sa définition.</p>
-        {composants.map((c) => (
-          <button key={c.id} onClick={() => ajouterNoeud(c)}>
-            {c.icone} {c.titre}
-          </button>
+        {grouperParCategorie(composants).map((groupe) => (
+          <div key={groupe.categorie} className="palette-groupe">
+            <span className="palette-groupe-titre" style={{ color: COULEURS_CATEGORIE[groupe.categorie] }}>
+              {LABEL_CATEGORIE[groupe.categorie] || groupe.categorie}
+            </span>
+            {groupe.items.map((c) => (
+              <button
+                key={c.id}
+                className="palette-brique"
+                style={{ borderLeftColor: COULEURS_CATEGORIE[groupe.categorie] }}
+                onClick={() => ajouterNoeud(c)}
+              >
+                {c.icone} {c.titre}
+              </button>
+            ))}
+          </div>
         ))}
       </aside>
       <div className="canvas">
@@ -248,6 +281,12 @@ const CanvasInterne = forwardRef<BrickCanvasHandle, Props>(function CanvasIntern
         <button className="executer-flottant" onClick={executer} disabled={nodes.length === 0 || enCours}>
           {enCours ? '⏳ Exécution en cours…' : '▶ Exécuter le graphe'}
         </button>
+        {nodes.length === 0 && (
+          <div className="canvas-vide">
+            <p>👈 Choisissez un modèle d'architecture à gauche</p>
+            <p className="texte-muted">ou cliquez une brique ci-contre pour construire votre propre graphe.</p>
+          </div>
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
