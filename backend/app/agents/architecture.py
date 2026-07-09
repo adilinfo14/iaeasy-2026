@@ -330,6 +330,7 @@ _TEXTE_RAPPORT_MARCHE = (
 TEMPLATES = [
     {
         "id": "assistant_rag",
+        "categorie": "rag",
         "titre": "Assistant RAG documentaire",
         "description": "Répond aux questions à partir des documents de l'entreprise : Document → Découpage → Base vectorielle → LLM.",
         "avantages": [
@@ -357,6 +358,7 @@ TEMPLATES = [
     },
     {
         "id": "agent_calculatrice",
+        "categorie": "agents_outils",
         "titre": "Agent avec un outil (calculatrice)",
         "description": "Un agent qui décide seul de faire appel à une calculatrice pour répondre précisément.",
         "avantages": [
@@ -379,6 +381,7 @@ TEMPLATES = [
     },
     {
         "id": "agent_recherche",
+        "categorie": "agents_outils",
         "titre": "Agent avec recherche documentaire",
         "description": "Un agent qui décide seul de chercher dans un mini-corpus avant de répondre.",
         "avantages": [
@@ -401,6 +404,7 @@ TEMPLATES = [
     },
     {
         "id": "pipeline_multi_agent",
+        "categorie": "agents_outils",
         "titre": "Pipeline multi-agent",
         "description": "Deux agents spécialisés qui collaborent : un chercheur rassemble l'information, un rédacteur la met en forme.",
         "avantages": [
@@ -423,6 +427,7 @@ TEMPLATES = [
     },
     {
         "id": "llm_seul_reference",
+        "categorie": "fondamentaux",
         "titre": "LLM seul (référence)",
         "description": "L'architecture la plus simple, utile comme point de comparaison avec les autres.",
         "avantages": [
@@ -445,6 +450,7 @@ TEMPLATES = [
     },
     {
         "id": "rag_agent_combine",
+        "categorie": "rag",
         "titre": "RAG + Agent combiné",
         "description": "Combine retrieval documentaire et agent à outils : Document → Découpage → Base vectorielle → Agent.",
         "avantages": [
@@ -472,6 +478,7 @@ TEMPLATES = [
     },
     {
         "id": "comparateur_modeles",
+        "categorie": "fondamentaux",
         "titre": "Comparateur de deux modèles",
         "description": "Envoie le même prompt à deux modèles (Llama 3.2 et Qwen 2.5) et affiche les deux réponses côte à côte.",
         "avantages": [
@@ -494,6 +501,7 @@ TEMPLATES = [
     },
     {
         "id": "resume_hierarchique",
+        "categorie": "rag",
         "titre": "Résumé hiérarchique (map-reduce)",
         "description": "Découpe un long document, résume chaque morceau, puis combine les résumés en une synthèse finale.",
         "avantages": [
@@ -520,6 +528,7 @@ TEMPLATES = [
     },
     {
         "id": "filtre_moderation",
+        "categorie": "garde_fous",
         "titre": "Filtre de modération avant réponse",
         "description": "Vérifie la requête avec une liste de mots-clés avant de la transmettre (ou non) au LLM.",
         "avantages": [
@@ -545,6 +554,7 @@ TEMPLATES = [
     },
     {
         "id": "verification_auto_critique",
+        "categorie": "garde_fous",
         "titre": "Vérificateur / auto-critique",
         "description": "Le LLM génère un brouillon, puis une seconde passe vérifie et corrige la réponse si besoin.",
         "avantages": [
@@ -567,6 +577,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_it_helpdesk",
+        "categorie": "metiers",
         "titre": "Support IT interne (helpdesk)",
         "description": "Un agent qui répond aux questions IT courantes des salariés et décide seul de chercher dans la base de connaissances.",
         "avantages": [
@@ -589,6 +600,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_rh_onboarding",
+        "categorie": "metiers",
         "titre": "Assistant RH onboarding",
         "description": "Répond aux questions des nouveaux salariés à partir du livret d'accueil : Document → Découpage → Base vectorielle → LLM.",
         "avantages": [
@@ -616,6 +628,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_conformite_rgpd",
+        "categorie": "garde_fous",
         "titre": "Assistant conformité avec garde-fou",
         "description": "Filtre la question avant de la transmettre à un assistant documentaire : Modération → Base vectorielle → LLM.",
         "avantages": [
@@ -642,6 +655,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_comptable_factures",
+        "categorie": "metiers",
         "titre": "Assistant comptable (factures + calcul)",
         "description": "Combine consultation de factures et calcul fiable : Document → Découpage → Base vectorielle → Agent.",
         "avantages": [
@@ -669,6 +683,7 @@ TEMPLATES = [
     },
     {
         "id": "veille_concurrentielle",
+        "categorie": "metiers",
         "titre": "Veille concurrentielle et marché",
         "description": "Résume de longs rapports ou articles de marché en une synthèse exploitable : Document → Découpage → Résumé hiérarchique.",
         "avantages": [
@@ -695,6 +710,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_commercial_crm",
+        "categorie": "metiers",
         "titre": "Assistant commercial (consultation CRM)",
         "description": "Un agent qui consulte l'historique client avant de répondre, pour préparer un appel ou une relance commerciale.",
         "avantages": [
@@ -717,6 +733,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_recrutement",
+        "categorie": "metiers",
         "titre": "Assistant recrutement (sourcing + rédaction)",
         "description": "Deux agents collaborent : un agent rassemble les critères du poste, un second rédige l'annonce ou les questions d'entretien.",
         "avantages": [
@@ -739,6 +756,7 @@ TEMPLATES = [
     },
     {
         "id": "traduction_assistee_verifiee",
+        "categorie": "metiers",
         "titre": "Traduction assistée avec double vérification",
         "description": "Une première traduction est générée, puis une seconde passe relit et corrige avant l'envoi à un client international.",
         "avantages": [
@@ -761,6 +779,7 @@ TEMPLATES = [
     },
     {
         "id": "choix_modele_migration",
+        "categorie": "metiers",
         "titre": "Choix de modèle avant migration (réduction de coûts)",
         "description": "Compare un modèle actuel et un modèle candidat moins coûteux sur des cas réels, avant de décider de migrer.",
         "avantages": [
@@ -783,6 +802,7 @@ TEMPLATES = [
     },
     {
         "id": "assistant_marketing_garde_fou",
+        "categorie": "garde_fous",
         "titre": "Générateur de contenu marketing avec garde-fou de marque",
         "description": "Filtre les sujets sensibles avant de laisser un outil de génération de contenu en libre-service produire un texte.",
         "avantages": [

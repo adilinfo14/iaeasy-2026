@@ -24,6 +24,28 @@ function fusionnerExemple(template: any, exemple: any) {
   return { ...template, nodes, _n: Date.now() }
 }
 
+const ORDRE_CATEGORIES_TEMPLATE = ['fondamentaux', 'rag', 'agents_outils', 'garde_fous', 'metiers']
+
+const LABEL_CATEGORIE_TEMPLATE: Record<string, string> = {
+  fondamentaux: 'Fondamentaux',
+  rag: 'RAG documentaire',
+  agents_outils: 'Agents avec outils',
+  garde_fous: 'Garde-fous & sécurité',
+  metiers: 'Cas métiers',
+}
+
+function grouperTemplatesParCategorie(templates: any[]) {
+  const groupes: { categorie: string; items: any[] }[] = ORDRE_CATEGORIES_TEMPLATE.map((c) => ({
+    categorie: c,
+    items: [],
+  }))
+  for (const t of templates) {
+    const groupe = groupes.find((g) => g.categorie === t.categorie)
+    if (groupe) groupe.items.push(t)
+  }
+  return groupes.filter((g) => g.items.length > 0)
+}
+
 export default function Constructeur() {
   const [composants, setComposants] = useState<any[]>([])
   const [templates, setTemplates] = useState<any[]>([])
@@ -109,8 +131,13 @@ export default function Constructeur() {
       <div className="constructeur-layout">
         <aside className="templates-sidebar">
           <h4>🏗️ {templates.length > 0 ? templates.length : ''} modèles d'architecture</h4>
-          <div className="templates-liste">
-            {templates.map((t) => {
+          {grouperTemplatesParCategorie(templates).map((groupe) => (
+            <div key={groupe.categorie} className="templates-groupe">
+              <span className="palette-groupe-titre">
+                {LABEL_CATEGORIE_TEMPLATE[groupe.categorie] || groupe.categorie} · {groupe.items.length}
+              </span>
+              <div className="templates-liste">
+                {groupe.items.map((t) => {
               const ouvert = templateOuvert === t.id
               return (
                 <div key={t.id} className={ouvert ? 'template-carte ouverte' : 'template-carte'}>
@@ -150,8 +177,10 @@ export default function Constructeur() {
                   )}
                 </div>
               )
-            })}
-          </div>
+                })}
+              </div>
+            </div>
+          ))}
         </aside>
 
         <div className="constructeur-principal">
