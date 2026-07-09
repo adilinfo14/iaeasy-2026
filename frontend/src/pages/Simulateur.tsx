@@ -3,12 +3,13 @@ import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAx
 import {
   comparerClassification,
   comparerEmbeddings,
-  comparerModeles,
   comparerVision,
+  demarrerComparaisonModeles,
   listerModelesClassification,
   listerModelesEmbeddings,
   listerModelesSimulateur,
   listerModelesVision,
+  suivreComparaisonModeles,
 } from '../api/client'
 
 const CATEGORIES = [
@@ -276,13 +277,19 @@ export default function Simulateur() {
   async function lancer() {
     setEnCours(true)
     setErreur(null)
-    setResultat(null)
+    setResultat({ prompt, resultats: [] })
     try {
-      const r = await comparerModeles(prompt, Array.from(selectionnes))
-      setResultat(r)
+      const { job_id } = await demarrerComparaisonModeles(prompt, Array.from(selectionnes))
+      suivreComparaisonModeles(
+        job_id,
+        (r) => setResultat((prev: any) => ({ ...prev, resultats: [...(prev?.resultats ?? []), r] })),
+        (fin) => {
+          setEnCours(false)
+          if (fin.status === 'erreur') setErreur(fin.erreur || 'Erreur pendant la comparaison')
+        },
+      )
     } catch (e: any) {
       setErreur(e.message)
-    } finally {
       setEnCours(false)
     }
   }
@@ -522,7 +529,7 @@ export default function Simulateur() {
 
           <button onClick={lancer} disabled={enCours || !prompt.trim() || selectionnes.size === 0}>
             {enCours
-              ? `${selectionnes.size} modèle${selectionnes.size > 1 ? 's' : ''} à comparer, cela peut prendre quelques minutes…`
+              ? `${resultat?.resultats?.length ?? 0}/${selectionnes.size} modèle${selectionnes.size > 1 ? 's' : ''} comparé${(resultat?.resultats?.length ?? 0) > 1 ? 's' : ''}…`
               : selectionnes.size === 0
                 ? 'Sélectionnez au moins un modèle'
                 : 'Lancer la comparaison'}

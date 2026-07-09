@@ -1,9 +1,12 @@
 import asyncio
 import csv
+import json
 import time
+import uuid
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..catalogue.runners.vision_runner import run_detection
@@ -27,6 +30,16 @@ _MODELES = [
 _PROMPT_DEFAUT = "Explique en 3 phrases ce qu'est la garantie décennale."
 _LONGUEUR_MAX_PROMPT = 300
 _IDS_AUTORISES = {m["id"] for m in _MODELES}
+
+# La comparaison LLM interroge plusieurs modèles L'UN APRÈS L'AUTRE avant de renvoyer une seule
+# réponse JSON complète — sur un choix de plusieurs modèles, le total peut dépasser le délai
+# d'inactivité du tunnel Cloudflare (aucun octet renvoyé pendant la génération), qui coupe alors
+# la connexion côté client (observé en production : `POST /comparer` en 499 sur nginx, aussi bien
+# desktop que mobile). Fix : job en tâche de fond + flux SSE, un événement par modèle terminé, sur
+# le même principe déjà utilisé par le module Entraînement (voir training/router.py `/stream`).
+_comparer_jobs: dict[str, dict] = {}
+_MAX_COMPARER_JOBS_CONCURRENTS = 3
+_MAX_COMPARER_JOBS_CONSERVES = 50
 
 # Les 3 modèles d'embeddings du Catalogue — comparables entre eux sur la durée et le score de
 # similarité, contrairement aux LLM génératifs, mais selon une mécanique différente (2 phrases
@@ -183,32 +196,77 @@ def modeles_vision():
     return [{k: v for k, v in m.items() if k != "moteur_ref"} for m in _MODELES_VISION]
 
 
+async def _executer_comparaison(job_id: str, prompt: str, modeles_a_comparer: list[dict]) -> None:
+    plus_gros = max(m["parametres_milliards"] for m in _MODELES)
+    try:
+        for m in modeles_a_comparer:
+            debut = time.monotonic()
+            reponse = await ollama.generate(m["id"], prompt)
+            duree = time.monotonic() - debut
+            _comparer_jobs[job_id]["resultats"].append(
+                {
+                    "id": m["id"],
+                    "nom": m["nom"],
+                    "parametres_milliards": m["parametres_milliards"],
+                    "duree_secondes": round(duree, 2),
+                    "longueur_reponse": len(reponse),
+                    "reponse": reponse[:400],
+                    "estimation_energie_relative_pourcent": round(100 * m["parametres_milliards"] / plus_gros),
+                }
+            )
+        _comparer_jobs[job_id]["status"] = "termine"
+    except Exception as exc:  # noqa: BLE001 — l'erreur doit remonter côté IHM, pas planter la tâche
+        _comparer_jobs[job_id]["status"] = "erreur"
+        _comparer_jobs[job_id]["erreur"] = str(exc)
+
+
 @router.post("/comparer")
 async def comparer(requete: ComparerRequest):
     prompt = (requete.prompt or "").strip() or _PROMPT_DEFAUT
-    plus_gros = max(m["parametres_milliards"] for m in _MODELES)
-
     ids_choisis = [i for i in (requete.modeles_ids or []) if i in _IDS_AUTORISES]
     modeles_a_comparer = [m for m in _MODELES if m["id"] in ids_choisis] if ids_choisis else _MODELES
 
-    resultats = []
-    for m in modeles_a_comparer:
-        debut = time.monotonic()
-        reponse = await ollama.generate(m["id"], prompt)
-        duree = time.monotonic() - debut
-        resultats.append(
-            {
-                "id": m["id"],
-                "nom": m["nom"],
-                "parametres_milliards": m["parametres_milliards"],
-                "duree_secondes": round(duree, 2),
-                "longueur_reponse": len(reponse),
-                "reponse": reponse[:400],
-                "estimation_energie_relative_pourcent": round(100 * m["parametres_milliards"] / plus_gros),
-            }
+    en_cours = sum(1 for j in _comparer_jobs.values() if j["status"] == "en_cours")
+    if en_cours >= _MAX_COMPARER_JOBS_CONCURRENTS:
+        raise HTTPException(
+            400,
+            f"Trop de comparaisons en cours ({en_cours}/{_MAX_COMPARER_JOBS_CONCURRENTS}). "
+            "Réessayez dans quelques instants.",
         )
 
-    return {"prompt": prompt, "resultats": resultats}
+    if len(_comparer_jobs) >= _MAX_COMPARER_JOBS_CONSERVES:
+        plus_ancien = next(iter(_comparer_jobs))
+        _comparer_jobs.pop(plus_ancien, None)
+
+    job_id = uuid.uuid4().hex[:8]
+    _comparer_jobs[job_id] = {"status": "en_cours", "resultats": [], "erreur": None}
+    asyncio.create_task(_executer_comparaison(job_id, prompt, modeles_a_comparer))
+    return {"job_id": job_id, "prompt": prompt}
+
+
+@router.get("/comparer/{job_id}/stream")
+async def comparer_stream(job_id: str):
+    async def event_generator():
+        envoyes = 0
+        while True:
+            job = _comparer_jobs.get(job_id)
+            if job is None:
+                yield "event: erreur\ndata: job inconnu\n\n"
+                break
+
+            resultats = job["resultats"]
+            while envoyes < len(resultats):
+                yield f"event: modele\ndata: {json.dumps(resultats[envoyes])}\n\n"
+                envoyes += 1
+
+            if job["status"] != "en_cours":
+                payload = json.dumps({"status": job["status"], "erreur": job.get("erreur")})
+                yield f"event: fin\ndata: {payload}\n\n"
+                break
+
+            await asyncio.sleep(0.4)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.post("/comparer-embeddings")

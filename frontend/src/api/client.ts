@@ -218,7 +218,7 @@ export async function listerModelesSimulateur() {
   return r.json()
 }
 
-export async function comparerModeles(prompt?: string, modelesIds?: string[]) {
+export async function demarrerComparaisonModeles(prompt?: string, modelesIds?: string[]) {
   const r = await fetch(`${BASE}/simulateur/comparer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -226,9 +226,24 @@ export async function comparerModeles(prompt?: string, modelesIds?: string[]) {
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant la comparaison des modèles')
+    throw new Error(err.detail || 'Erreur pendant le lancement de la comparaison')
   }
   return r.json()
+}
+
+export function suivreComparaisonModeles(
+  jobId: string,
+  onModele: (resultat: any) => void,
+  onFin: (fin: { status: string; erreur: string | null }) => void,
+) {
+  const source = new EventSource(`${BASE}/simulateur/comparer/${jobId}/stream`)
+  source.addEventListener('modele', (e) => onModele(JSON.parse((e as MessageEvent).data)))
+  source.addEventListener('fin', (e) => {
+    onFin(JSON.parse((e as MessageEvent).data))
+    source.close()
+  })
+  source.addEventListener('erreur', () => source.close())
+  return () => source.close()
 }
 
 export async function listerModelesEmbeddings() {
