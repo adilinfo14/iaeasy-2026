@@ -62,6 +62,12 @@ const MODULES = [
     pitch: 'Comparez en direct la vitesse et le coût réel de plusieurs modèles.',
   },
   {
+    to: '/securite',
+    icone: '🛡️',
+    titre: 'Sécurité',
+    pitch: "10 risques concrets d'un agent IA (OWASP) et les bonnes pratiques pour s'en protéger.",
+  },
+  {
     to: '/videos',
     icone: '🎬',
     titre: 'Vidéos',

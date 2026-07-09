@@ -111,6 +111,11 @@ export async function listerVideos() {
   return r.json()
 }
 
+export async function listerSecurite() {
+  const r = await fetch(`${BASE}/securite`)
+  return r.json()
+}
+
 export async function executerGraphe(nodes: unknown[], edges: unknown[]) {
   const r = await fetch(`${BASE}/agents/run`, {
     method: 'POST',

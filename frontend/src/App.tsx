@@ -10,6 +10,7 @@ import Entrainement from './pages/Entrainement'
 import Glossaire from './pages/Glossaire'
 import Metiers from './pages/Metiers'
 import Parcours from './pages/Parcours'
+import Securite from './pages/Securite'
 import Simulateur from './pages/Simulateur'
 import StrategieTest from './pages/StrategieTest'
 import Videos from './pages/Videos'
@@ -66,6 +67,7 @@ export default function App() {
           <NavLink to="/parcours">Parcours</NavLink>
           <NavLink to="/constructeur">Constructeur</NavLink>
           <NavLink to="/strategie-test">Stratégie de tests</NavLink>
+          <NavLink to="/securite">Sécurité</NavLink>
           <NavLink to="/glossaire">Glossaire</NavLink>
           <NavLink to="/metiers">Mon métier</NavLink>
           <NavLink to="/simulateur">Simulateur</NavLink>
@@ -89,6 +91,7 @@ export default function App() {
           <Route path="/parcours" element={<Parcours />} />
           <Route path="/constructeur" element={<Constructeur />} />
           <Route path="/strategie-test" element={<StrategieTest />} />
+          <Route path="/securite" element={<Securite />} />
           <Route path="/glossaire" element={<Glossaire />} />
           <Route path="/metiers" element={<Metiers />} />
           <Route path="/simulateur" element={<Simulateur />} />
