@@ -19,8 +19,10 @@ export default function AssistantAide() {
   async function envoyer() {
     const texte = saisie.trim()
     if (!texte || enCours) return
-    // Tronqué défensivement (le backend accepte jusqu'à 2000 caractères par message d'historique)
-    const historique = messages.slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }))
+    // On envoie large (jusqu'au plafond dur du backend) : c'est le serveur qui décide, via un
+    // réglage ajustable en direct depuis /admin, combien de ces messages sont réellement gardés
+    // en mémoire par le modèle — augmenter ce réglage ne nécessite donc aucun changement ici.
+    const historique = messages.slice(-30).map((m) => ({ role: m.role, content: m.content.slice(0, 5000) }))
     setMessages((m) => [...m, { role: 'user', content: texte }])
     setSaisie('')
     setEnCours(true)

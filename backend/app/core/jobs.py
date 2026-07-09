@@ -14,6 +14,11 @@ class JobStore:
         self._max_concurrents = max_concurrents
         self._max_conserves = max_conserves
 
+    def definir_max_concurrents(self, n: int) -> None:
+        """Ajustable en direct (panneau /admin) — relu à chaque requête par l'appelant plutôt que
+        mis en cache, pour qu'un changement de réglage soit pris en compte immédiatement."""
+        self._max_concurrents = n
+
     def creer(self) -> str:
         en_cours = sum(1 for j in self._jobs.values() if j["status"] == "en_cours")
         if en_cours >= self._max_concurrents:

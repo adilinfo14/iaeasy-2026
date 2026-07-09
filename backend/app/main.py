@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from .admin.router import router as admin_router
 from .agents.router import router as agents_router
 from .aide.router import router as aide_router
 from .avis.router import router as avis_router
@@ -45,6 +46,7 @@ app.include_router(aide_router, prefix="/api")
 app.include_router(avis_router, prefix="/api")
 app.include_router(videos_router, prefix="/api")
 app.include_router(securite_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 
 @app.get("/api/health")

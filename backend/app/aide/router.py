@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from ..core.jobs import JobStore, flux_sse
 from ..core.ollama_client import ollama
+from ..core.reglages import get_reglages
 from ..glossaire.termes import get_termes
 
 router = APIRouter(prefix="/aide", tags=["aide"])
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/aide", tags=["aide"])
 # Job en tâche de fond + flux SSE plutôt qu'un simple appel synchrone : si le visiteur change
 # d'onglet/d'application sur mobile pendant la génération, la réponse continue de se construire
 # côté serveur — il lui suffit de revenir sur l'app pour la voir apparaître (voir core/jobs.py).
+# max_concurrents est réajusté à chaque requête depuis les réglages ajustables (voir /admin).
 _JOBS = JobStore(max_concurrents=5, max_conserves=100)
 
 # Un petit modèle (3B) improvisait de fausses définitions de termes techniques (ex: RAG confondu
@@ -69,23 +71,21 @@ def _systeme(termes_trouves: list[dict]) -> str:
     return base
 
 
-_LONGUEUR_MAX_MESSAGE = 500
-# Une réponse d'assistant (num_predict=300 tokens) dépasse très facilement 500 caractères en
-# français — appliquer la même limite qu'au message utilisateur faisait rejeter (422) tout
-# historique contenant une réponse précédente un peu longue, dès la 2e question d'une conversation
-# (observé en conditions réelles : "Désolé, une erreur est survenue : [object Object]").
-_LONGUEUR_MAX_MESSAGE_HISTORIQUE = 2000
-_MAX_HISTORIQUE = 8
+# Plafonds DURS (sécurité, non ajustables) — bornent Pydantic pour empêcher un payload abusif
+# quel que soit le réglage courant. Les limites RÉELLEMENT appliquées (plus basses par défaut,
+# ajustables en direct depuis /admin sans redéploiement) vivent dans core/reglages.py.
+_LONGUEUR_MAX_MESSAGE_PLAFOND = 5000
+_MAX_HISTORIQUE_PLAFOND = 30
 
 
 class MessageHistorique(BaseModel):
     role: str = Field(max_length=16)
-    content: str = Field(max_length=_LONGUEUR_MAX_MESSAGE_HISTORIQUE)
+    content: str = Field(max_length=_LONGUEUR_MAX_MESSAGE_PLAFOND)
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(min_length=1, max_length=_LONGUEUR_MAX_MESSAGE)
-    historique: list[MessageHistorique] = Field(default_factory=list, max_length=_MAX_HISTORIQUE)
+    message: str = Field(min_length=1, max_length=_LONGUEUR_MAX_MESSAGE_PLAFOND)
+    historique: list[MessageHistorique] = Field(default_factory=list, max_length=_MAX_HISTORIQUE_PLAFOND)
 
 
 async def _executer_chat(job_id: str, messages: list[dict]) -> None:
@@ -103,15 +103,27 @@ async def _executer_chat(job_id: str, messages: list[dict]) -> None:
 
 @router.post("/chat")
 async def chat(requete: ChatRequest):
+    reglages = get_reglages()
+    longueur_max_message = reglages["chat_longueur_max_message"]
+    longueur_max_historique = reglages["chat_longueur_max_message_historique"]
+    max_historique = reglages["chat_max_historique"]
+
+    if len(requete.message) > longueur_max_message:
+        raise HTTPException(400, f"Message trop long (max {longueur_max_message} caractères).")
+    for m in requete.historique:
+        if len(m.content) > longueur_max_historique:
+            raise HTTPException(400, "Historique de conversation invalide (message trop long).")
+
     contexte_recherche = requete.message + " " + " ".join(m.content for m in requete.historique[-2:])
     termes_trouves = _termes_pertinents(contexte_recherche)
 
     messages = [{"role": "system", "content": _systeme(termes_trouves)}]
-    for m in requete.historique[-_MAX_HISTORIQUE:]:
+    for m in requete.historique[-max_historique:]:
         role = m.role if m.role in ("user", "assistant") else "user"
         messages.append({"role": role, "content": m.content})
     messages.append({"role": "user", "content": requete.message})
 
+    _JOBS.definir_max_concurrents(reglages["chat_max_conversations_simultanees"])
     try:
         job_id = _JOBS.creer()
     except ValueError as exc:

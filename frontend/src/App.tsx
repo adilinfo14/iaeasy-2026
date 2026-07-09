@@ -3,6 +3,7 @@ import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { enregistrerVisite } from './api/client'
 import AssistantAide from './components/AssistantAide'
 import Accueil from './pages/Accueil'
+import AdminReglages from './pages/AdminReglages'
 import Avis from './pages/Avis'
 import Catalogue from './pages/Catalogue'
 import Constructeur from './pages/Constructeur'
@@ -153,6 +154,7 @@ export default function App() {
           <Route path="/simulateur" element={<Simulateur />} />
           <Route path="/videos" element={<Videos />} />
           <Route path="/avis" element={<Avis />} />
+          <Route path="/admin" element={<AdminReglages />} />
         </Routes>
       </main>
       <AssistantAide />

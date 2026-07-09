@@ -336,3 +336,36 @@ export async function comparerVision(modelesIds?: string[]) {
   }
   return r.json()
 }
+
+export type ReglagesChat = {
+  chat_max_historique: number
+  chat_longueur_max_message: number
+  chat_longueur_max_message_historique: number
+  chat_max_conversations_simultanees: number
+}
+
+export async function lireReglagesAdmin(motDePasse: string): Promise<ReglagesChat> {
+  const r = await fetch(`${BASE}/admin/reglages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mot_de_passe: motDePasse }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(messageErreur(err, "Erreur pendant la lecture des réglages"))
+  }
+  return r.json()
+}
+
+export async function modifierReglagesAdmin(motDePasse: string, reglages: ReglagesChat): Promise<ReglagesChat> {
+  const r = await fetch(`${BASE}/admin/reglages/modifier`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mot_de_passe: motDePasse, ...reglages }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(messageErreur(err, "Erreur pendant l'enregistrement des réglages"))
+  }
+  return r.json()
+}
