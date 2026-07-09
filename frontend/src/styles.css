@@ -1687,6 +1687,12 @@ button:disabled {
   margin: 0.8rem 0;
 }
 
+.simulateur-famille-note {
+  font-size: 0.8rem;
+  font-style: italic;
+  margin: 0.2rem 0 0.8rem;
+}
+
 .simulateur-modeles-liste {
   display: flex;
   flex-wrap: wrap;

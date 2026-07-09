@@ -107,6 +107,33 @@ const CATEGORIES = [
 
 const TOUS_LES_EXEMPLES = CATEGORIES.flatMap((c) => c.exemples)
 
+const FAMILLES = [
+  {
+    id: 'llm_generatif',
+    label: 'LLM génératif',
+    disponible: true,
+    note: 'Seule famille comparable ici : ces modèles répondent à un prompt en texte libre.',
+  },
+  {
+    id: 'embeddings',
+    label: 'Embeddings',
+    disponible: false,
+    note: "Pas de prompt en texte libre à comparer — un embedding produit un vecteur, pas une réponse.",
+  },
+  {
+    id: 'vision',
+    label: 'Vision',
+    disponible: false,
+    note: 'Prend une image en entrée, pas un texte — non comparable sur ce simulateur.',
+  },
+  {
+    id: 'classification_classique',
+    label: 'Classification classique',
+    disponible: false,
+    note: 'Entraîné en direct sur des données jouets, pas interrogeable par prompt libre.',
+  },
+]
+
 export default function Simulateur() {
   const [categorieActive, setCategorieActive] = useState(CATEGORIES[0].categorie)
   const [prompt, setPrompt] = useState(TOUS_LES_EXEMPLES[0])
@@ -115,6 +142,7 @@ export default function Simulateur() {
   const [erreur, setErreur] = useState<string | null>(null)
   const [modeles, setModeles] = useState<any[]>([])
   const [selectionnes, setSelectionnes] = useState<Set<string>>(new Set())
+  const [familleActive, setFamilleActive] = useState('llm_generatif')
 
   useEffect(() => {
     listerModelesSimulateur().then((liste) => {
@@ -159,38 +187,58 @@ export default function Simulateur() {
         véritablement observée.
       </p>
 
-      {modeles.length > 0 && (
-        <div className="simulateur-modeles-annonce">
-          <p className="texte-muted">
-            Famille de modèle : <strong>LLM génératif</strong> — choisissez lesquels comparer sur le même
-            prompt ({selectionnes.size}/{modeles.length} sélectionnés) :
-          </p>
-          <div className="exemples-chips">
-            <button className="chip" onClick={() => setSelectionnes(new Set(modeles.map((m) => m.id)))}>
-              Tout sélectionner
+      <div className="simulateur-modeles-annonce">
+        <p className="texte-muted">1. Choisissez la famille de modèle à comparer :</p>
+        <div className="exemples-chips">
+          {FAMILLES.map((f) => (
+            <button
+              key={f.id}
+              className={f.id === familleActive ? 'chip actif' : 'chip'}
+              disabled={!f.disponible}
+              title={f.note}
+              onClick={() => f.disponible && setFamilleActive(f.id)}
+            >
+              {f.label} {!f.disponible && '(bientôt)'}
             </button>
-            <button className="chip" onClick={() => setSelectionnes(new Set())}>
-              Tout désélectionner
-            </button>
-          </div>
-          <div className="simulateur-modeles-liste">
-            {modeles.map((m) => (
-              <label key={m.id} className="simulateur-modele-case">
-                <input
-                  type="checkbox"
-                  checked={selectionnes.has(m.id)}
-                  onChange={() => basculerModele(m.id)}
-                />
-                {m.nom} <span className="texte-muted">({m.parametres_milliards} Md)</span>
-              </label>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
+        <p className="texte-muted simulateur-famille-note">
+          {FAMILLES.find((f) => f.id === familleActive)?.note}
+        </p>
+
+        {modeles.length > 0 && (
+          <>
+            <p className="texte-muted">
+              2. Choisissez les modèles de cette famille à comparer sur le même prompt (
+              {selectionnes.size}/{modeles.length} sélectionnés) :
+            </p>
+            <div className="exemples-chips">
+              <button className="chip" onClick={() => setSelectionnes(new Set(modeles.map((m) => m.id)))}>
+                Tout sélectionner
+              </button>
+              <button className="chip" onClick={() => setSelectionnes(new Set())}>
+                Tout désélectionner
+              </button>
+            </div>
+            <div className="simulateur-modeles-liste">
+              {modeles.map((m) => (
+                <label key={m.id} className="simulateur-modele-case">
+                  <input
+                    type="checkbox"
+                    checked={selectionnes.has(m.id)}
+                    onChange={() => basculerModele(m.id)}
+                  />
+                  {m.nom} <span className="texte-muted">({m.parametres_milliards} Md)</span>
+                </label>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       <p className="texte-muted">
-        {TOUS_LES_EXEMPLES.length} exemples prêts à l'emploi, classés par type de tâche (ce ne sont pas
-        des familles de modèle différentes — tous les modèles ci-dessus appartiennent à la même famille) :
+        3. Choisissez un prompt parmi {TOUS_LES_EXEMPLES.length} exemples classés par type de tâche
+        (ce ne sont pas des familles de modèle différentes, juste des catégories de tâche à tester) :
       </p>
       <div className="exemples-categories">
         {CATEGORIES.map((c) => (
