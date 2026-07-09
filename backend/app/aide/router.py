@@ -70,12 +70,17 @@ def _systeme(termes_trouves: list[dict]) -> str:
 
 
 _LONGUEUR_MAX_MESSAGE = 500
+# Une réponse d'assistant (num_predict=300 tokens) dépasse très facilement 500 caractères en
+# français — appliquer la même limite qu'au message utilisateur faisait rejeter (422) tout
+# historique contenant une réponse précédente un peu longue, dès la 2e question d'une conversation
+# (observé en conditions réelles : "Désolé, une erreur est survenue : [object Object]").
+_LONGUEUR_MAX_MESSAGE_HISTORIQUE = 2000
 _MAX_HISTORIQUE = 8
 
 
 class MessageHistorique(BaseModel):
     role: str = Field(max_length=16)
-    content: str = Field(max_length=_LONGUEUR_MAX_MESSAGE)
+    content: str = Field(max_length=_LONGUEUR_MAX_MESSAGE_HISTORIQUE)
 
 
 class ChatRequest(BaseModel):

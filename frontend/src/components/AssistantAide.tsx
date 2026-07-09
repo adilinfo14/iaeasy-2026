@@ -19,7 +19,8 @@ export default function AssistantAide() {
   async function envoyer() {
     const texte = saisie.trim()
     if (!texte || enCours) return
-    const historique = messages.slice(-8).map((m) => ({ role: m.role, content: m.content }))
+    // Tronqué défensivement (le backend accepte jusqu'à 2000 caractères par message d'historique)
+    const historique = messages.slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }))
     setMessages((m) => [...m, { role: 'user', content: texte }])
     setSaisie('')
     setEnCours(true)

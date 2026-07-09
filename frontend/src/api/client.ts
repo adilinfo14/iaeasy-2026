@@ -1,5 +1,14 @@
 const BASE = '/api'
 
+// Le champ "detail" d'une erreur FastAPI est une chaîne pour une erreur métier (HTTPException),
+// mais une LISTE d'objets pour une erreur de validation Pydantic (422) — l'interpoler tel quel
+// dans un message produit "[object Object]", illisible pour l'utilisateur.
+function messageErreur(err: any, defaut: string): string {
+  if (typeof err?.detail === 'string') return err.detail
+  if (Array.isArray(err?.detail) && typeof err.detail[0]?.msg === 'string') return err.detail[0].msg
+  return defaut
+}
+
 export function obtenirVisiteurId() {
   let visiteurId = localStorage.getItem('iaeasy-visiteur-id')
   if (!visiteurId) {
@@ -36,7 +45,7 @@ export async function essayerModele(id: string, inputText?: string) {
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant l’exécution du modèle')
+    throw new Error(messageErreur(err, 'Erreur pendant l’exécution du modèle'))
   }
   return r.json()
 }
@@ -73,7 +82,7 @@ export async function testerModeleEntraine(jobId: string, entree: string) {
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant le test du modèle')
+    throw new Error(messageErreur(err, 'Erreur pendant le test du modèle'))
   }
   return r.json()
 }
@@ -130,7 +139,7 @@ export async function executerGraphe(nodes: unknown[], edges: unknown[]) {
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant l’exécution du graphe')
+    throw new Error(messageErreur(err, 'Erreur pendant l’exécution du graphe'))
   }
   return r.json()
 }
@@ -188,7 +197,7 @@ export async function demarrerChat(message: string, historique: { role: string; 
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || "Erreur pendant la discussion avec l'assistant")
+    throw new Error(messageErreur(err, "Erreur pendant la discussion avec l'assistant"))
   }
   return r.json()
 }
@@ -224,7 +233,7 @@ export async function envoyerAvis(note: number, commentaire?: string): Promise<S
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || "Erreur pendant l'envoi de l'avis")
+    throw new Error(messageErreur(err, "Erreur pendant l'envoi de l'avis"))
   }
   return r.json()
 }
@@ -252,7 +261,7 @@ export async function demarrerComparaisonModeles(prompt?: string, modelesIds?: s
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant le lancement de la comparaison')
+    throw new Error(messageErreur(err, 'Erreur pendant le lancement de la comparaison'))
   }
   return r.json()
 }
@@ -287,7 +296,7 @@ export async function comparerEmbeddings(phraseA?: string, phraseB?: string, mod
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant la comparaison des embeddings')
+    throw new Error(messageErreur(err, 'Erreur pendant la comparaison des embeddings'))
   }
   return r.json()
 }
@@ -305,7 +314,7 @@ export async function comparerClassification(message?: string, modelesIds?: stri
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant la comparaison des algorithmes')
+    throw new Error(messageErreur(err, 'Erreur pendant la comparaison des algorithmes'))
   }
   return r.json()
 }
@@ -323,7 +332,7 @@ export async function comparerVision(modelesIds?: string[]) {
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
-    throw new Error(err.detail || 'Erreur pendant la comparaison des modèles de vision')
+    throw new Error(messageErreur(err, 'Erreur pendant la comparaison des modèles de vision'))
   }
   return r.json()
 }
