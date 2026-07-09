@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from . import engine
 from .architecture import get_composants, get_templates
-from .bricks import get_briques
+from .bricks import get_briques, get_cas
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -32,6 +32,11 @@ class GrapheRequest(BaseModel):
 @router.get("/briques")
 def briques():
     return get_briques()
+
+
+@router.get("/cas")
+def cas():
+    return get_cas()
 
 
 @router.get("/composants")

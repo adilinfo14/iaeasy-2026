@@ -1,15 +1,29 @@
 import { Fragment, useEffect, useState } from 'react'
-import { debloquerBrique, executerGraphe, lireBadges, lireProgression, listerBriques, validerBadge } from '../api/client'
+import {
+  debloquerBrique,
+  executerGraphe,
+  lireBadges,
+  lireProgression,
+  listerBriques,
+  listerCas,
+  validerBadge,
+} from '../api/client'
 import Quiz from '../components/Quiz'
+
+function casDeBrique(brique: any, casId: string) {
+  return brique.cas?.find((c: any) => c.id === casId) || brique.cas?.[0]
+}
 
 export default function Parcours() {
   const [briques, setBriques] = useState<any[]>([])
+  const [casDisponibles, setCasDisponibles] = useState<any[]>([])
+  const [casChoisi, setCasChoisi] = useState('btp')
   const [debloquees, setDebloquees] = useState<string[]>([])
   const [badges, setBadges] = useState<string[]>([])
   const [resultats, setResultats] = useState<Record<string, any>>({})
   const [enCours, setEnCours] = useState<string | null>(null)
 
-  // Entrées libres par brique
+  // Entrées libres par brique — préremplies selon le cas sectoriel choisi (voir choisirCas)
   const [promptLlm, setPromptLlm] = useState("Explique en une phrase ce qu'est un LLM.")
   const [questionRag, setQuestionRag] = useState('Quelles sont les conditions de garantie ?')
   const [documentUtilisateur, setDocumentUtilisateur] = useState(
@@ -24,9 +38,30 @@ export default function Parcours() {
 
   useEffect(() => {
     listerBriques().then(setBriques)
+    listerCas().then(setCasDisponibles)
     lireProgression().then((p) => setDebloquees(p.debloquees))
     lireBadges().then((b) => setBadges(b.badges))
   }, [])
+
+  function choisirCas(id: string, listeBriques: any[]) {
+    setCasChoisi(id)
+    setResultats({})
+    for (const b of listeBriques) {
+      const c = casDeBrique(b, id)
+      const d = c?.entree_defaut || {}
+      if (b.id === 'llm_seul' && d.prompt) setPromptLlm(d.prompt)
+      if (b.id === 'rag') {
+        if (d.prompt) setQuestionRag(d.prompt)
+        if (d.document_utilisateur) setDocumentUtilisateur(d.document_utilisateur)
+      }
+      if (b.id === 'outil_mcp') {
+        setOutilChoisi('calculatrice')
+        if (d.expression) setExpressionOutil(d.expression)
+      }
+      if (b.id === 'agent_unique' && d.prompt) setTacheAgent(d.prompt)
+      if (b.id === 'multi_agent' && d.prompt) setTacheMultiAgent(d.prompt)
+    }
+  }
 
   async function reussirQuiz(briqueId: string) {
     const b = await validerBadge(briqueId)
@@ -167,16 +202,31 @@ export default function Parcours() {
     <div className="page">
       <h1>Parcours — construis ton assistant, brique par brique</h1>
       <p className="page-intro">
-        Tu es développeur chez un artisan du bâtiment. Chaque étape ajoute une capacité concrète à
-        l'assistant que tu construis, et débloque la brique suivante. Utilise tes propres questions
-        pour comprendre ce qui change réellement à chaque étape.
+        Chaque étape ajoute une capacité concrète à l'assistant que tu construis, et débloque la
+        brique suivante. Choisis le secteur qui te parle le plus ci-dessous — l'histoire change,
+        mais ce que chaque brique démontre techniquement reste exactement le même.
       </p>
+
+      {casDisponibles.length > 0 && (
+        <div className="exemples-categories">
+          {casDisponibles.map((c) => (
+            <button
+              key={c.id}
+              className={c.id === casChoisi ? 'chip actif' : 'chip'}
+              onClick={() => choisirCas(c.id, briques)}
+            >
+              {c.icone} {c.secteur}
+            </button>
+          ))}
+        </div>
+      )}
 
       <ol className="parcours-liste">
         {briques.map((b) => {
           const debloquee = debloquees.includes(b.id)
           const prerequisOk = (b.prerequis as string[]).every((p) => debloquees.includes(p))
           const resultat = resultats[b.id]
+          const cas = casDeBrique(b, casChoisi)
           return (
             <li
               key={b.id}
@@ -185,17 +235,17 @@ export default function Parcours() {
               <h3>
                 {b.icone} {b.ordre}. {b.titre} {badges.includes(b.id) && <span title="Badge obtenu">🏅</span>}
               </h3>
-              <p className="mise-en-situation">{b.mise_en_situation}</p>
+              <p className="mise-en-situation">{cas?.mise_en_situation}</p>
 
               <div className="avant-apres">
                 <div className="avant-apres-carte avant">
                   <span className="avant-apres-label">Avant</span>
-                  <p>{b.avant}</p>
+                  <p>{cas?.avant}</p>
                 </div>
                 <div className="avant-apres-fleche">→</div>
                 <div className="avant-apres-carte apres">
                   <span className="avant-apres-label">Après cette brique</span>
-                  <p>{b.apres}</p>
+                  <p>{cas?.apres}</p>
                 </div>
               </div>
 

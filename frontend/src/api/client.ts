@@ -101,6 +101,11 @@ export async function listerBriques() {
   return r.json()
 }
 
+export async function listerCas() {
+  const r = await fetch(`${BASE}/agents/cas`)
+  return r.json()
+}
+
 export async function executerGraphe(nodes: unknown[], edges: unknown[]) {
   const r = await fetch(`${BASE}/agents/run`, {
     method: 'POST',
