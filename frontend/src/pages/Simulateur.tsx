@@ -114,17 +114,30 @@ export default function Simulateur() {
   const [resultat, setResultat] = useState<any>(null)
   const [erreur, setErreur] = useState<string | null>(null)
   const [modeles, setModeles] = useState<any[]>([])
+  const [selectionnes, setSelectionnes] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    listerModelesSimulateur().then(setModeles)
+    listerModelesSimulateur().then((liste) => {
+      setModeles(liste)
+      setSelectionnes(new Set(liste.map((m: any) => m.id)))
+    })
   }, [])
+
+  function basculerModele(id: string) {
+    setSelectionnes((s) => {
+      const copie = new Set(s)
+      if (copie.has(id)) copie.delete(id)
+      else copie.add(id)
+      return copie
+    })
+  }
 
   async function lancer() {
     setEnCours(true)
     setErreur(null)
     setResultat(null)
     try {
-      const r = await comparerModeles(prompt)
+      const r = await comparerModeles(prompt, Array.from(selectionnes))
       setResultat(r)
     } catch (e: any) {
       setErreur(e.message)
@@ -147,19 +160,36 @@ export default function Simulateur() {
 
       {modeles.length > 0 && (
         <div className="simulateur-modeles-annonce">
-          <p className="texte-muted">{modeles.length} modèles seront comparés sur le même prompt :</p>
+          <p className="texte-muted">
+            Famille de modèle : <strong>LLM génératif</strong> — choisissez lesquels comparer sur le même
+            prompt ({selectionnes.size}/{modeles.length} sélectionnés) :
+          </p>
           <div className="exemples-chips">
+            <button className="chip" onClick={() => setSelectionnes(new Set(modeles.map((m) => m.id)))}>
+              Tout sélectionner
+            </button>
+            <button className="chip" onClick={() => setSelectionnes(new Set())}>
+              Tout désélectionner
+            </button>
+          </div>
+          <div className="simulateur-modeles-liste">
             {modeles.map((m) => (
-              <span key={m.id} className="chip modele-annonce">
+              <label key={m.id} className="simulateur-modele-case">
+                <input
+                  type="checkbox"
+                  checked={selectionnes.has(m.id)}
+                  onChange={() => basculerModele(m.id)}
+                />
                 {m.nom} <span className="texte-muted">({m.parametres_milliards} Md)</span>
-              </span>
+              </label>
             ))}
           </div>
         </div>
       )}
 
       <p className="texte-muted">
-        {TOUS_LES_EXEMPLES.length} exemples prêts à l'emploi, classés par type de tâche :
+        {TOUS_LES_EXEMPLES.length} exemples prêts à l'emploi, classés par type de tâche (ce ne sont pas
+        des familles de modèle différentes — tous les modèles ci-dessus appartiennent à la même famille) :
       </p>
       <div className="exemples-categories">
         {CATEGORIES.map((c) => (
@@ -188,10 +218,12 @@ export default function Simulateur() {
         maxLength={300}
       />
 
-      <button onClick={lancer} disabled={enCours || !prompt.trim()}>
+      <button onClick={lancer} disabled={enCours || !prompt.trim() || selectionnes.size === 0}>
         {enCours
-          ? `${modeles.length || 7} modèles à comparer, cela peut prendre quelques minutes…`
-          : 'Lancer la comparaison'}
+          ? `${selectionnes.size} modèle${selectionnes.size > 1 ? 's' : ''} à comparer, cela peut prendre quelques minutes…`
+          : selectionnes.size === 0
+            ? 'Sélectionnez au moins un modèle'
+            : 'Lancer la comparaison'}
       </button>
 
       {erreur && <p className="erreur">{erreur}</p>}

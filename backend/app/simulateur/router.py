@@ -22,10 +22,14 @@ _MODELES = [
 
 _PROMPT_DEFAUT = "Explique en 3 phrases ce qu'est la garantie décennale."
 _LONGUEUR_MAX_PROMPT = 300
+_IDS_AUTORISES = {m["id"] for m in _MODELES}
 
 
 class ComparerRequest(BaseModel):
     prompt: str | None = Field(default=None, max_length=_LONGUEUR_MAX_PROMPT)
+    # Liste blanche stricte : sans ça, un appel direct pourrait glisser l'id d'un modèle non
+    # prévu ici (ex: un modèle bien plus lourd présent sur l'Ollama partagé du homelab).
+    modeles_ids: list[str] | None = Field(default=None, max_length=len(_MODELES))
 
 
 @router.get("/modeles")
@@ -38,8 +42,11 @@ async def comparer(requete: ComparerRequest):
     prompt = (requete.prompt or "").strip() or _PROMPT_DEFAUT
     plus_gros = max(m["parametres_milliards"] for m in _MODELES)
 
+    ids_choisis = [i for i in (requete.modeles_ids or []) if i in _IDS_AUTORISES]
+    modeles_a_comparer = [m for m in _MODELES if m["id"] in ids_choisis] if ids_choisis else _MODELES
+
     resultats = []
-    for m in _MODELES:
+    for m in modeles_a_comparer:
         debut = time.monotonic()
         reponse = await ollama.generate(m["id"], prompt)
         duree = time.monotonic() - debut

@@ -218,11 +218,11 @@ export async function listerModelesSimulateur() {
   return r.json()
 }
 
-export async function comparerModeles(prompt?: string) {
+export async function comparerModeles(prompt?: string, modelesIds?: string[]) {
   const r = await fetch(`${BASE}/simulateur/comparer`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt || null }),
+    body: JSON.stringify({ prompt: prompt || null, modeles_ids: modelesIds || null }),
   })
   if (!r.ok) {
     const err = await r.json().catch(() => ({}))
