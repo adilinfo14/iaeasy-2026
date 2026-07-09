@@ -213,6 +213,11 @@ export async function listerAvis(): Promise<Avis[]> {
   return r.json()
 }
 
+export async function listerModelesSimulateur() {
+  const r = await fetch(`${BASE}/simulateur/modeles`)
+  return r.json()
+}
+
 export async function comparerModeles(prompt?: string) {
   const r = await fetch(`${BASE}/simulateur/comparer`, {
     method: 'POST',

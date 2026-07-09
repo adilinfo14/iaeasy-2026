@@ -10132,6 +10132,1276 @@ STRATEGIES = [
                       'constat': 'Bon test de la priorité entre préférence explicite négative et recherche de '
                                  "diversité : l'exclusion demandée doit toujours primer sur toute logique "
                                  "d'exploration automatique."}]}
+,
+ {'famille': 'vision_segmentation',
+ 'titre': "Segmentation d'image (vision)",
+ 'objectif': 'Il faut vérifier non seulement que le bon objet est détecté (comme en détection classique), '
+             "mais que le contour du masque colle précisément aux bords réels de l'objet — car toute "
+             'imprécision de quelques pixels sur le pourtour fausse directement un calcul de surface '
+             '(toiture, parcelle, zone à peindre).',
+ 'categories_test': [{'nom': 'Contour net sur fond simple',
+                      'description': 'Objet isolé avec fort contraste sur fond uni, pour vérifier la '
+                                     'fidélité de base du masque sans facteur de confusion.'},
+                     {'nom': 'Objets qui se chevauchent',
+                      'description': 'Plusieurs instances proches ou partiellement superposées, pour '
+                                     'vérifier que chaque masque reste limité à sa propre instance.'},
+                     {'nom': 'Contour complexe ou bord flou',
+                      'description': 'Silhouettes découpées, texturées ou en mouvement flou, pour vérifier '
+                                     'que le contour suit les détails fins plutôt que de les lisser.'},
+                     {'nom': 'Petit objet ou objet lointain',
+                      'description': 'Instance de faible taille en pixels, pour vérifier le seuil de '
+                                     'détection et la qualité du masque à basse résolution.'},
+                     {'nom': 'Absence de la classe cible / hors domaine COCO',
+                      'description': 'Scène BTP ou agricole sans classe COCO reconnaissable (toiture, '
+                                     "parcelle, échafaudage), pour vérifier l'absence de faux positifs et "
+                                     "documenter la limite d'usage métier."}],
+ 'metriques': ['IoU de masque (mask IoU)',
+               'Précision de contour (boundary F-score)',
+               'mAP de segmentation (mask mAP@0.5)',
+               "Rappel de masque par taille d'objet (petit / moyen / grand)",
+               "Erreur relative de surface estimée (% d'écart entre surface calculée et surface réelle)"],
+ 'piege_frequent': 'YOLOv8-seg calcule les masques via une combinaison linéaire de 32 masques-prototypes à '
+                   "basse résolution (160x160), ensuite ré-échantillonnés à la taille de l'image : le "
+                   'contour paraît correct visuellement, avec un IoU global élevé (souvent >0.85), mais il '
+                   'est en réalité lissé et arrondi, coupant les angles vifs et les découpes fines. Pour un '
+                   'usage de mesure de surface (toiture, parcelle agricole), cette imprécision géométrique '
+                   "se traduit par une erreur systématique sur le calcul d'aire — le plus souvent une "
+                   "sous-estimation aux endroits découpés — invisible si l'on ne contrôle que l'IoU moyen "
+                   "sans mesurer l'écart de contour local ni l'erreur de surface en m² ou en pixels.",
+ 'cahier_exemple': [{'cas': 'Cas nominal - personne isolée',
+                     'entree': "Photo studio d'une personne debout de face, fond blanc uni, bon éclairage",
+                     'attendu': 'Masque de segmentation collant précisément aux contours du corps et des '
+                                'vêtements',
+                     'constat': 'Contour net et bien calé, quelques pixels de bavure au niveau des cheveux '
+                                "fins mais négligeable pour l'usage"},
+                    {'cas': 'Chevauchement - deux piétons croisés',
+                     'entree': "Deux personnes marchant côte à côte, l'une partiellement devant l'autre, "
+                               'silhouettes se chevauchant sur environ 30%',
+                     'attendu': 'Deux masques distincts, chacun limité à sa propre silhouette sans fusion',
+                     'constat': 'Les deux masques sont bien séparés, mais la frontière dans la zone de '
+                                'chevauchement est légèrement arbitraire et mal répartie entre les deux '
+                                'instances'},
+                    {'cas': 'Contour complexe - toiture avec cheminées',
+                     'entree': "Vue aérienne (drone) d'une toiture en tuiles avec deux cheminées et une "
+                               'lucarne, prise à la verticale',
+                     'attendu': 'Segmentation précise du contour de la toiture, cheminées identifiées comme '
+                                'obstacles',
+                     'constat': "Échec attendu : 'toiture' n'est pas une classe COCO, YOLOv8n-seg vanilla ne "
+                                'détecte rien sur cette image ; nécessiterait un fine-tuning dédié'},
+                    {'cas': 'Bord flou - chien en mouvement',
+                     'entree': "Photo d'un chien en train de courir, léger flou de bougé sur les pattes",
+                     'attendu': 'Masque suivant le corps du chien, tolérant sur les pattes floues',
+                     'constat': 'Le corps est bien segmenté mais le contour des pattes en mouvement est '
+                                'arrondi et simplifié, perdant la forme réelle du flou'},
+                    {'cas': 'Petit objet lointain - piéton minuscule',
+                     'entree': "Photo de rue grand-angle avec un piéton d'environ 20x40 pixels à "
+                               "l'arrière-plan",
+                     'attendu': 'Détection et masque même de petite taille, approximatif mais présent',
+                     'constat': "Détection manquée dans la majorité des essais ; en dessous d'une certaine "
+                                "taille le modèle nano ignore l'instance"},
+                    {'cas': 'Absence de classe cible - champ de blé vide',
+                     'entree': "Photo aérienne d'un champ de blé sans aucun objet COCO reconnaissable (pas "
+                               'de personne, véhicule, animal)',
+                     'attendu': "Aucune détection, comportement correct ici (pas d'hallucination)",
+                     'constat': 'Aucune détection, correct — mais cela ne mesure pas la surface du champ, '
+                                "seulement l'absence de faux positifs"},
+                    {'cas': 'Scène urbaine - file de voitures garées',
+                     'entree': 'Rue avec cinq voitures garées les unes derrière les autres, vue de '
+                               'trois-quarts',
+                     'attendu': 'Cinq masques distincts, un par véhicule, contours suivant les carrosseries',
+                     'constat': 'Bonne séparation des cinq instances, contours globalement fidèles sauf aux '
+                                'zones de jonction entre pare-chocs proches'},
+                    {'cas': 'Scène chantier BTP - ouvrier équipé',
+                     'entree': 'Photo de chantier avec un ouvrier en gilet jaune et casque, entouré '
+                               "d'échafaudages et de sacs de ciment",
+                     'attendu': "Segmentation de la personne (classe 'person'), pas d'attente sur "
+                                "l'échafaudage ni les sacs",
+                     'constat': "Personne bien segmentée malgré l'équipement de chantier ; échafaudage et "
+                                'sacs de ciment ignorés, hors des 80 classes COCO'},
+                    {'cas': 'Scène agricole - tracteur dans un champ',
+                     'entree': "Tracteur agricole vu de côté au milieu d'un champ labouré, ciel dégagé",
+                     'attendu': 'Masque du tracteur avec contour suivant la carrosserie et les roues',
+                     'constat': "'Tractor' n'existe pas nativement dans COCO, le modèle le classe souvent en "
+                                "'truck' avec un masque globalement correct sur le châssis mais un label "
+                                'métier incorrect'},
+                    {'cas': 'Intérieur - salon avec canapé et personne',
+                     'entree': 'Photo de salon avec un canapé, une personne assise dessus, une télévision au '
+                               'mur',
+                     'attendu': "Trois masques distincts : personne, canapé (classe 'couch'), télévision "
+                                "(classe 'tv')",
+                     'constat': 'Les trois instances bien segmentées séparément, contour du canapé '
+                                'légèrement en retrait par rapport au dossier réel visible derrière le '
+                                'coussin'},
+                    {'cas': 'Chevauchement fort - foule dense',
+                     'entree': 'Photo de foule compacte avec une dizaine de personnes serrées les unes '
+                               'contre les autres',
+                     'attendu': 'Instances individuelles distinguées même en forte occlusion mutuelle',
+                     'constat': 'Limite atteinte : plusieurs personnes fusionnées en un seul masque ou '
+                                'masques tronqués sur les silhouettes centrales cachées'},
+                    {'cas': 'Contour complexe - haie taillée',
+                     'entree': 'Photo de jardin avec une haie taillée en forme géométrique, texture feuillue '
+                               'dense',
+                     'attendu': 'Pas de classe attendue (haie hors COCO), donc aucune détection',
+                     'constat': "Correct : aucune détection, cohérent avec l'absence de classe 'végétation' "
+                                "ou 'haie' dans COCO"},
+                    {'cas': "Bord flou - ombre portée d'un véhicule",
+                     'entree': 'Voiture garée au soleil avec une ombre portée nette et sombre au sol',
+                     'attendu': "Masque limité à la carrosserie du véhicule, excluant l'ombre au sol",
+                     'constat': "Le masque exclut correctement l'ombre dans la majorité des cas, mais "
+                                "déborde légèrement dessus quand l'ombre touche directement les pneus"},
+                    {'cas': 'Petit objet - oiseau sur fil électrique',
+                     'entree': 'Photo de ciel avec un fil électrique et un petit oiseau posé dessus, '
+                               "occupant une faible portion de l'image",
+                     'attendu': "Masque même approximatif autour de l'oiseau",
+                     'constat': "Détection réussie avec un masque assez fidèle au corps de l'oiseau malgré "
+                                'la petite taille, cas favorable grâce au fort contraste avec le ciel'},
+                    {'cas': 'Scène BTP - zone à peindre',
+                     'entree': 'Mur intérieur en rénovation, une partie repeinte en blanc et une partie '
+                               'brute, un ouvrier avec un rouleau à peinture au premier plan',
+                     'attendu': "Segmentation de l'ouvrier ; pas d'attente de segmentation de la 'zone à "
+                                "peindre'",
+                     'constat': "Ouvrier bien détecté ; comme prévu, aucune notion de 'zone à peindre' ou de "
+                                'mur segmenté — cet usage nécessiterait un modèle spécialisé, pas '
+                                'YOLOv8n-seg vanilla'},
+                    {'cas': 'Scène agricole - troupeau de moutons',
+                     'entree': "Champ avec un troupeau d'une vingtaine de moutons serrés, vue de loin en "
+                               'légère plongée',
+                     'attendu': "Détection et masques individuels pour chaque mouton (classe 'sheep')",
+                     'constat': 'Bonne détection globale mais plusieurs moutons adjacents fusionnés en une '
+                                'seule instance dans les zones les plus denses'},
+                    {'cas': 'Contour net - vélo isolé',
+                     'entree': 'Vélo garé seul contre un mur, vue de profil, bon contraste avec le trottoir '
+                               'clair',
+                     'attendu': 'Masque suivant précisément le cadre, les roues et le guidon du vélo',
+                     'constat': 'Contour globalement fidèle mais les rayons fins des roues sont simplifiés '
+                                'en zone pleine par le masque, perdant la structure ajourée'},
+                    {'cas': 'Absence + faux positif - tas de gravats',
+                     'entree': 'Tas de gravats et de débris de construction au sol, sans personne ni '
+                               'véhicule visible',
+                     'attendu': 'Aucune détection (gravats hors COCO)',
+                     'constat': 'Aucune détection dans la majorité des essais, correct ; mais un essai a '
+                                "produit un faux positif ponctuel 'suitcase' sur un bloc de béton isolé de "
+                                'forme rectangulaire'},
+                    {'cas': 'Chevauchement partiel - cycliste',
+                     'entree': 'Cycliste roulant, personne et vélo formant une silhouette imbriquée',
+                     'attendu': 'Deux masques distincts personne/vélo malgré leur superposition visuelle',
+                     'constat': 'Séparation réussie dans la majorité des angles, léger débordement du masque '
+                                'du vélo sur les jambes du cycliste en vue de profil serré'},
+                    {'cas': 'Contour complexe - clôture agricole avec vaches',
+                     'entree': 'Champ avec une clôture en fil de fer barbelé au premier plan et des vaches '
+                               'en arrière-plan',
+                     'attendu': "Masques des vaches (classe 'cow'), clôture ignorée (hors COCO)",
+                     'constat': "Vaches bien segmentées en arrière-plan ; la clôture n'est pas détectée "
+                                'comme attendu, mais son fil génère parfois un léger bruit sur le bord du '
+                                'masque des vaches les plus proches'},
+                    {'cas': 'Absence classe - parcelle agricole avec arbre isolé',
+                     'entree': 'Photo aérienne de parcelle agricole avec un unique arbre isolé au centre',
+                     'attendu': 'Pas de détection utile pour délimiter la parcelle elle-même',
+                     'constat': 'Aucune détection sur la parcelle, attendu et hors COCO ; confirme que ce '
+                                'modèle ne peut pas répondre au besoin de mesure de surface agricole sans '
+                                'fine-tuning'},
+                    {'cas': 'Scène urbaine dense - carrefour multi-classes',
+                     'entree': 'Carrefour urbain avec voitures, piétons, vélos et un feu de circulation, '
+                               'scène chargée',
+                     'attendu': 'Segmentation multi-classes correcte avec masques distincts par instance et '
+                                'par catégorie',
+                     'constat': 'Bonne performance globale, la majorité des instances bien séparées ; '
+                                'quelques piétons partiellement masqués par des véhicules ont un masque '
+                                'tronqué à la silhouette visible'},
+                    {'cas': 'Intérieur - rénovation avec outils au sol',
+                     'entree': 'Pièce en travaux avec une échelle, une perceuse au sol et un ouvrier en haut '
+                               "de l'échelle",
+                     'attendu': "Segmentation de l'ouvrier, et de l'échelle si assimilée à une classe proche",
+                     'constat': "Ouvrier détecté correctement ; l'échelle n'appartient à aucune classe COCO "
+                                "et n'est jamais segmentée, la perceuse est également ignorée"},
+                    {'cas': 'Contour net sur fond simple - chat sur canapé',
+                     'entree': 'Chat assis sur un canapé uni, vue de face, bon éclairage intérieur',
+                     'attendu': 'Masque fidèle au contour du chat y compris les oreilles et la queue',
+                     'constat': "Contour très précis, y compris les oreilles pointues, l'un des cas les plus "
+                                'favorables observés'},
+                    {'cas': 'Chevauchement + faible luminosité - troupeau au crépuscule',
+                     'entree': 'Champ avec plusieurs vaches regroupées, photo prise au crépuscule avec '
+                               'faible luminosité et léger flou',
+                     'attendu': 'Masques individuels malgré la faible luminosité et le regroupement',
+                     'constat': 'Dégradation nette : plusieurs vaches non détectées, celles détectées ont '
+                                'des masques bavés et des contours peu précis dus au faible contraste et à '
+                                'la lumière rasante'}]},
+ {'famille': 'vision_pose',
+ 'titre': 'Estimation de pose (vision)',
+ 'objectif': "Pour l'estimation de pose, il ne suffit pas de vérifier qu'une personne est détectée : il faut "
+             'vérifier la précision et la stabilité de la localisation de chaque point clé (épaules, coudes, '
+             'genoux...), et surtout la robustesse du modèle face aux occlusions et aux chevauchements entre '
+             "personnes. Le cas d'usage sécurité le plus important - la chute au sol - est souvent le moins "
+             "bien couvert par les données d'entraînement standard, il mérite donc une attention "
+             'particulière.',
+ 'categories_test': [{'nom': 'Personne seule bien visible',
+                      'description': 'Cas nominal : une personne debout ou en mouvement simple, cadrée '
+                                     'entièrement, bonne luminosité. Sert de référence pour juger la '
+                                     'dégradation sur les cas plus difficiles.'},
+                     {'nom': 'Plusieurs personnes qui se chevauchent',
+                      'description': 'Deux personnes ou plus proches les unes des autres, bras ou jambes qui '
+                                     'se croisent visuellement. Teste le risque de confusion entre '
+                                     'squelettes (keypoints attribués à la mauvaise personne).'},
+                     {'nom': 'Personne partiellement masquée ou hors cadre',
+                      'description': 'Personne cachée en partie par un objet (palette, machine, autre '
+                                     "travailleur) ou dont un membre sort du cadre de l'image. Teste si le "
+                                     "modèle reste prudent plutôt que d'halluciner des positions."},
+                     {'nom': 'Posture inhabituelle (accroupi, allongé, chute)',
+                      'description': "Postures rares dans les données d'entraînement classiques : accroupi "
+                                     'pour soulever une charge, allongé au sol, chute en cours. Catégorie '
+                                     'critique pour la sécurité au travail.'},
+                     {'nom': "Personne loin ou petite dans l'image",
+                      'description': 'Personne capturée par une caméra de surveillance en hauteur ou en plan '
+                                     "large de chantier, occupant une petite portion de l'image. Teste la "
+                                     'limite de résolution utile du modèle.'}],
+ 'metriques': ["OKS (Object Keypoint Similarity) - similarité par point clé, pondérée par l'incertitude "
+               'naturelle de chaque articulation',
+               'PCK (Percentage of Correct Keypoints) - pourcentage de keypoints localisés dans une '
+               'tolérance de distance donnée',
+               'mAP-pose (mAP50 et mAP50-95 sur les keypoints, norme COCO-pose)',
+               'Taux de détection par articulation (ex: % de réussite spécifique pour genoux, chevilles, '
+               'poignets, distincts du taux global)',
+               'Taux de faux positifs de squelette (skeleton généré à tort sur un mannequin, une affiche ou '
+               'un objet non humain)',
+               "Stabilité temporelle des keypoints (jitter) sur une séquence vidéo d'une personne immobile",
+               'Latence / FPS en conditions réelles (contrainte de temps réel pour une alerte de sécurité '
+               'déclenchée à temps)'],
+ 'piege_frequent': 'Le modèle est excellent sur les postures debout (largement sur-représentées dans les '
+                   "jeux d'entraînement type COCO) mais nettement moins fiable sur les postures allongées ou "
+                   'en cours de chute - précisément le cas qui compte le plus en sécurité au travail. Une '
+                   'chute peut passer avec un squelette partiel, une confiance basse, voire aucune '
+                   'détection, surtout si le moment de la chute est flou ou si la personne tombe derrière un '
+                   'obstacle. Leçon : ne jamais se fier à un taux de réussite global tiré vers le haut par '
+                   'les postures faciles - tester abondamment les postures au sol et coupler la détection '
+                   'avec une règle métier (immobilité prolongée, plusieurs frames consécutives) plutôt '
+                   "qu'une décision sur une seule image.",
+ 'cahier_exemple': [{'cas': 'Cas nominal debout, face caméra',
+                     'entree': 'Ouvrier debout de face, casque de chantier, atelier bien éclairé, corps '
+                               'entier visible',
+                     'attendu': '1 personne détectée, 17 keypoints COCO visibles avec confiance élevée',
+                     'constat': 'Succès net : tous les keypoints localisés précisément, y compris les points '
+                                'fins comme poignets et chevilles.'},
+                    {'cas': 'Personne de profil en marche',
+                     'entree': "Ouvrier vu de profil, en train de marcher dans un couloir d'usine",
+                     'attendu': '1 personne, keypoints du côté visible bien localisés, côté masqué estimé '
+                                'avec prudence',
+                     'constat': 'Bon résultat global, mais les keypoints du bras et de la jambe occultés par '
+                                'le corps sont parfois positionnés de façon approximative, le modèle '
+                                'extrapole via le contexte appris.'},
+                    {'cas': 'Personne accroupie pour soulever une caisse',
+                     'entree': 'Ouvrier accroupi devant une caisse au sol, genoux pliés, dos droit',
+                     'attendu': '1 personne, posture accroupie reconnue, genoux et hanches correctement '
+                                'positionnés',
+                     'constat': "Correct dans l'ensemble, mais les genoux sont parfois rapprochés à tort "
+                                'quand les jambes pliées se superposent visuellement.'},
+                    {'cas': 'Chute au sol en entrepôt',
+                     'entree': "Personne allongée sur le sol d'un entrepôt, bras en croix, vue de dessus "
+                               'partielle',
+                     'attendu': 'Détection maintenue avec keypoints reflétant une posture horizontale, utile '
+                                'pour déclencher une alerte',
+                     'constat': 'Limite honnête : taux de détection en baisse notable par rapport aux '
+                                'postures debout, confiance des keypoints plus faible, parfois squelette '
+                                'partiel (torse détecté, membres manqués). À corroborer avec une règle de '
+                                "durée d'immobilité plutôt qu'une décision sur une seule image."},
+                    {'cas': 'Chute partiellement cachée par une palette',
+                     'entree': 'Personne tombée derrière une palette de matériaux, seules les jambes '
+                               'dépassent',
+                     'attendu': 'Détection réduite mais acceptée, au moins les keypoints des jambes visibles',
+                     'constat': 'Échec fréquent : faute de suffisamment de points visibles (torse et tête '
+                                'masqués), le modèle ne déclenche souvent aucune détection humaine. Angle '
+                                "mort à documenter clairement pour l'usage sécurité."},
+                    {'cas': 'Deux ouvriers se serrant la main',
+                     'entree': "Deux ouvriers côte à côte, bras tendus qui se croisent lors d'une poignée de "
+                               'main',
+                     'attendu': '2 squelettes distincts et cohérents, sans mélange des membres',
+                     'constat': 'Succès partiel : parfois confusion au point de contact, créant un squelette '
+                                "chimère mélangeant le bras d'une personne avec l'épaule de l'autre."},
+                    {'cas': 'Groupe dense de cinq personnes en réunion chantier',
+                     'entree': "Cinq ouvriers rapprochés autour d'un plan, vus de trois quarts",
+                     'attendu': 'Chaque personne comptée séparément avec un squelette propre',
+                     'constat': 'Dégradation nette au-delà de trois personnes rapprochées, les individus au '
+                                'second plan perdent plusieurs keypoints par occlusion mutuelle.'},
+                    {'cas': 'Opérateur cadré à mi-corps par une caméra fixe',
+                     'entree': 'Poste de travail avec caméra fixe ne montrant que le buste et les bras de '
+                               "l'opérateur",
+                     'attendu': 'Keypoints du haut du corps détectés, jambes absentes non inventées',
+                     'constat': 'Bon comportement : le modèle ne hallucine pas les keypoints manquants, il '
+                                'les marque avec une confiance basse ou absente.'},
+                    {'cas': 'Bras sorti du cadre pendant un geste',
+                     'entree': "Ouvrier dont le bras droit sort du cadre de l'image pendant un mouvement de "
+                               'manutention',
+                     'attendu': 'Keypoints du bras droit non affichés ou de confiance très faible',
+                     'constat': 'Correct : comportement prudent, aucun keypoint aberrant affiché à un '
+                                'endroit incohérent hors du cadre réel.'},
+                    {'cas': 'Vue caméra de surveillance en plongée',
+                     'entree': "Caméra fixée au plafond d'un entrepôt, personne vue de dessus, petite dans "
+                               "l'image",
+                     'attendu': 'Détection maintenue, keypoints même approximatifs',
+                     'constat': "Limite : le taux de détection chute nettement avec l'angle de plongée, les "
+                                "keypoints de tête et d'épaules sont parfois inversés gauche/droite."},
+                    {'cas': 'Personne lointaine sur chantier extérieur',
+                     'entree': "Plan large d'un chantier extérieur avec un ouvrier à une trentaine de mètres",
+                     'attendu': 'Détection possible mais imprécision attendue sur les keypoints fins',
+                     'constat': "En dessous d'environ 40 pixels de hauteur de personne, les keypoints "
+                                'deviennent peu fiables. Mieux vaut alors se limiter à la présence humaine '
+                                "plutôt qu'à l'analyse fine de la posture."},
+                    {'cas': 'Faible luminosité en fin de poste',
+                     'entree': 'Entrepôt faiblement éclairé en fin de journée, ouvrier en mouvement',
+                     'attendu': 'Détection dégradée mais fonctionnelle',
+                     'constat': 'Confiance globale plus basse, quelques keypoints manqués (chevilles, '
+                                'poignets), le tronc reste généralement robuste.'},
+                    {'cas': 'Contre-jour devant une fenêtre',
+                     'entree': 'Personne se tenant devant une grande fenêtre lumineuse, fortement en '
+                               'contre-jour',
+                     'attendu': 'Détection difficile en raison de la silhouette assombrie',
+                     'constat': 'Échec partiel : la personne devient une silhouette sombre, les keypoints du '
+                                'visage sont peu fiables, le contour global du corps reste toutefois '
+                                'repérable.'},
+                    {'cas': 'Dos courbé en manutention',
+                     'entree': 'Ouvrier soulevant une charge lourde, dos plié en avant, jambes tendues',
+                     'attendu': "Localisation précise permettant de calculer l'angle dos/hanches, posture à "
+                                'risque',
+                     'constat': 'Succès net sur la localisation des points, mais le modèle ne juge pas '
+                                "lui-même l'ergonomie : c'est une couche métier à ajouter par-dessus les "
+                                "coordonnées brutes via un calcul d'angle."},
+                    {'cas': 'Scène sportive, saut dynamique',
+                     'entree': 'Athlète en plein saut vertical (squat jump), léger flou de mouvement',
+                     'attendu': 'Squelette cohérent malgré le mouvement rapide',
+                     'constat': 'Bon comportement : le modèle reste robuste à un flou de mouvement modéré, '
+                                'avec une légère dégradation sur les extrémités (mains, pieds) qui bougent '
+                                'le plus vite.'},
+                    {'cas': 'EPI complets et vêtements amples',
+                     'entree': 'Ouvrier en combinaison intégrale, gants et casque, articulations peu '
+                               'visibles',
+                     'attendu': 'Keypoints toujours localisés malgré la silhouette masquée',
+                     'constat': 'Légère dégradation sur coudes et genoux quand la combinaison masque la '
+                                "forme de l'articulation, mais résultat globalement robuste."},
+                    {'cas': 'Travail collaboratif rapproché',
+                     'entree': "Deux ouvriers manipulant ensemble une pièce lourde, mains proches l'une de "
+                               "l'autre",
+                     'attendu': '2 squelettes distincts, sans fusion des mains qui se touchent',
+                     'constat': 'Risque de confusion au point de contact : le modèle attribue parfois le '
+                                'mauvais poignet à la mauvaise personne.'},
+                    {'cas': 'Mannequin habillé sur cintre',
+                     'entree': 'Mannequin de vitrine ou vêtement de travail suspendu sur un cintre, '
+                               'silhouette humanoïde',
+                     'attendu': "Idéalement aucune détection, ce n'est pas une personne réelle",
+                     'constat': 'Limite : faux positif possible, un squelette est parfois généré à tort sur '
+                                'le mannequin. À filtrer par des règles de cohérence temporelle en usage '
+                                'réel (une vraie personne bouge).'},
+                    {'cas': 'Pause allongée volontaire',
+                     'entree': "Ouvrier allongé au sol pendant une pause, position détendue, pas d'urgence",
+                     'attendu': 'Détection de la posture allongée',
+                     'constat': 'Le modèle détecte bien la posture au sol mais ne peut pas distinguer une '
+                                "pause volontaire d'une chute accidentelle : cette distinction est hors de "
+                                'portée du modèle seul et nécessite une logique métier (durée, contexte, '
+                                'geste précédent).'},
+                    {'cas': 'Stabilité sur séquence vidéo',
+                     'entree': "Suite d'images consécutives d'une personne immobile debout",
+                     'attendu': "Keypoints stables d'une image à l'autre pour une personne statique",
+                     'constat': "Léger jitter (tremblement) des keypoints d'une frame à l'autre malgré "
+                                "l'immobilité de la personne, un lissage temporel côté application est "
+                                'recommandé.'},
+                    {'cas': "Personne en haut d'un échafaudage",
+                     'entree': 'Ouvrier en hauteur sur un échafaudage, cadrage vertical, jambes '
+                               'partiellement masquées par les barreaux',
+                     'attendu': 'Détection du haut du corps au minimum',
+                     'constat': 'Correct sur le buste, les jambes sont souvent hors cadre ou masquées par la '
+                                "structure, cohérent avec le niveau d'occlusion réel de la scène."},
+                    {'cas': 'Deux personnes alignées en profondeur',
+                     'entree': "Deux ouvriers l'un devant l'autre dans l'axe de la caméra, la seconde "
+                               'presque totalement cachée par la première',
+                     'attendu': 'Idéalement 2 détections séparées',
+                     'constat': "Échec fréquent : la personne à l'arrière est parfois totalement absente de "
+                                'la détection car quasi entièrement occultée par celle de devant.'},
+                    {'cas': 'Visage masqué par un masque de protection',
+                     'entree': 'Ouvrier avec casque et masque facial complet, seul le corps est bien visible',
+                     'attendu': 'Keypoints du corps fiables, keypoints du visage moins pertinents',
+                     'constat': 'Bon résultat sur le corps (épaules, bras, jambes), les keypoints faciaux du '
+                                'modèle COCO-pose sont peu fiables avec un EPI complet, mais sans impact '
+                                'réel pour un usage sécurité centré sur la posture du corps.'},
+                    {'cas': 'Chute capturée en plein mouvement',
+                     'entree': "Image prise au moment exact d'une chute, corps en train de basculer, flou de "
+                               'mouvement marqué',
+                     'attendu': 'Détection souhaitée pour permettre une alerte précoce',
+                     'constat': 'Limite importante : le flou de mouvement pendant la chute elle-même dégrade '
+                                'fortement la détection. Le modèle est plus fiable une fois la personne '
+                                "immobile au sol qu'au moment exact de la chute, ce qui impose une analyse "
+                                "multi-frame pour fiabiliser l'alerte."},
+                    {'cas': 'Chantier extérieur avec travailleurs à distances variées',
+                     'entree': "Scène large de chantier BTP avec des ouvriers proches et d'autres très "
+                               'éloignés de la caméra',
+                     'attendu': 'Détection différenciée selon la distance : fiable pour les proches, '
+                                'dégradée pour les lointains',
+                     'constat': 'Comportement cohérent et prévisible, ce qui confirme la nécessité de '
+                                'calibrer une distance ou une taille minimale de fiabilité lors du '
+                                'déploiement des caméras sur site.'}]},
+ {'famille': 'clustering',
+ 'titre': 'Clustering non supervisé',
+ 'objectif': "Contrairement à la classification, il n'existe aucune étiquette de référence à comparer : on "
+             'ne peut pas mesurer un taux de bonnes réponses. Il faut donc vérifier la cohérence géométrique '
+             "des groupes formés (compacité, séparation), leur stabilité quand on relance l'algorithme, et "
+             "leur sensibilité au choix du nombre K et à l'échelle des variables.",
+ 'categories_test': [{'nom': 'Groupes bien séparés (cas facile)',
+                      'description': 'Données jouets où les groupes de clients sont visuellement et '
+                                     'statistiquement distincts, pour vérifier que le modèle retrouve la '
+                                     'structure évidente.'},
+                     {'nom': 'Groupes qui se chevauchent',
+                      'description': 'Clients aux comportements intermédiaires entre deux profils, pour '
+                                     'observer comment le modèle tranche une frontière floue et si '
+                                     "l'affectation reste stable."},
+                     {'nom': 'Mauvais choix du nombre K de groupes',
+                      'description': 'Tester le même jeu de données avec un K trop petit (fusion de profils '
+                                     "distincts) et un K trop grand (découpage artificiel d'un profil "
+                                     'homogène).'},
+                     {'nom': 'Données mal normalisées / échelles différentes',
+                      'description': "Vérifier l'effet d'une variable à grande échelle (montant en euros) "
+                                     'qui écrase une variable à petite échelle (fréquence en unités) si les '
+                                     "données ne sont pas standardisées avant l'entraînement."},
+                     {'nom': 'Valeur aberrante isolée (outlier)',
+                      'description': 'Un client au comportement extrême (achat exceptionnel unique, ou '
+                                     'fréquence anormalement élevée) qui peut déformer les centres de '
+                                     'groupes ou former son propre cluster artificiel.'}],
+ 'metriques': ['Inertie intra-cluster (somme des distances au carré entre chaque point et le centre de son '
+               'groupe)',
+               "Score de silhouette (mesure la cohésion interne d'un groupe vs sa séparation avec les "
+               'groupes voisins)',
+               'Stabilité des groupes sur plusieurs exécutions avec des graines aléatoires (seeds) '
+               'différentes',
+               "Méthode du coude (évolution de l'inertie en fonction de K, pour juger du nombre de groupes "
+               'raisonnable)',
+               'Taille et équilibre des groupes obtenus (détecter un cluster quasi vide ou un cluster '
+               'fourre-tout)'],
+ 'piege_frequent': "Le piège le plus fréquent en clustering est d'oublier de normaliser les variables avant "
+                   "l'entraînement : si le montant moyen d'achat va de 20 à 2000 euros et que la fréquence "
+                   'va de 1 à 15 achats par an, la distance euclidienne utilisée par KMeans est dominée '
+                   "presque entièrement par le montant, et la fréquence n'a quasiment plus aucun poids dans "
+                   'la formation des groupes. Le résultat semble cohérent visuellement sur le montant, mais '
+                   "ignore silencieusement le comportement d'achat qu'on voulait pourtant croiser. La leçon "
+                   ': toujours standardiser (centrer-réduire) les variables avant tout clustering basé sur '
+                   'une distance, et le vérifier explicitement plutôt que de le supposer.',
+ 'cahier_exemple': [{'cas': 'Deux profils très distincts',
+                     'entree': '10 clients occasionnels (montant moyen ~30€, 1-2 achats/an) et 10 clients '
+                               'fidèles (montant moyen ~300€, 10-12 achats/an), K=2',
+                     'attendu': 'Deux groupes nets correspondant exactement aux deux profils simulés',
+                     'constat': 'Le modèle retrouve parfaitement la séparation, score de silhouette élevé '
+                                '(~0.8), aucune ambiguïté.'},
+                    {'cas': 'Trois profils bien séparés',
+                     'entree': 'Clients occasionnels, réguliers et gros comptes, chacun avec des plages de '
+                               'montant et fréquence disjointes, K=3',
+                     'attendu': 'Trois clusters correspondant aux trois profils',
+                     'constat': 'Segmentation conforme aux profils attendus, centres de clusters cohérents '
+                                'avec les moyennes réelles de chaque groupe.'},
+                    {'cas': 'Chevauchement entre occasionnels et réguliers',
+                     'entree': 'Clients avec montant moyen 80-150€ et fréquence 3-5 achats/an, zone '
+                               'intermédiaire entre deux profils typiques',
+                     'attendu': 'Affectation raisonnable mais frontière incertaine assumée',
+                     'constat': "Les clients de la zone grise basculent d'un groupe à l'autre selon "
+                                "l'initialisation ; l'affectation individuelle n'est pas fiable même si les "
+                                'deux groupes globaux restent visibles.'},
+                    {'cas': 'Chevauchement fort, quasi continuum',
+                     'entree': "40 clients dont le comportement varie de façon continue entre 'petit "
+                               "acheteur occasionnel' et 'gros acheteur fidèle', sans rupture nette",
+                     'attendu': 'Le modèle impose quand même une frontière artificielle',
+                     'constat': 'KMeans découpe le continuum en deux moitiés arbitraires ; le score de '
+                                'silhouette moyen (~0.35) signale que la séparation est faible, ce qui doit '
+                                "alerter l'utilisateur plutôt que d'être ignoré."},
+                    {'cas': 'K=2 sur des données à 3 profils réels',
+                     'entree': 'Trois profils distincts (occasionnels, réguliers, gros comptes) mais on '
+                               'force K=2',
+                     'attendu': 'Deux des trois profils sont fusionnés à tort',
+                     'constat': 'Réguliers et gros comptes se retrouvent dans le même cluster car ils sont '
+                                "plus proches l'un de l'autre que des occasionnels ; la fusion masque une "
+                                'distinction commerciale pourtant utile.'},
+                    {'cas': 'K=6 sur des données à 2 profils réels',
+                     'entree': 'Deux profils clairs (occasionnels, fidèles) mais on force K=6',
+                     'attendu': 'Le modèle découpe chaque profil réel en plusieurs sous-groupes artificiels',
+                     'constat': "Les 6 clusters produits n'ont pas de sens métier clair, certains centres "
+                                "sont très proches les uns des autres, signe de sur-segmentation ; l'inertie "
+                                'baisse mais le score de silhouette chute aussi.'},
+                    {'cas': 'Recherche du bon K par méthode du coude',
+                     'entree': 'Jeu de données à 3 profils réels, test de K=1 à K=8',
+                     'attendu': "La courbe d'inertie doit marquer un coude visible autour de K=3",
+                     'constat': 'Le coude est repérable mais pas parfaitement net ; K=3 et K=4 donnent une '
+                                'inertie proche, illustrant que le choix de K reste en partie une décision '
+                                'humaine, pas un résultat purement automatique.'},
+                    {'cas': 'Montant en euros vs fréquence non normalisés',
+                     'entree': 'Montant moyen (20€ à 2000€) et fréquence (1 à 15 achats/an) injectés bruts, '
+                               'sans standardisation, K=3',
+                     'attendu': 'Détecter que le clustering ignore quasiment la fréquence',
+                     'constat': 'Les groupes formés reflètent presque uniquement le montant ; deux clients '
+                                'avec des fréquences très différentes mais un montant similaire finissent '
+                                "dans le même cluster, ce qui trahit le problème d'échelle."},
+                    {'cas': 'Mêmes données, standardisées correctement',
+                     'entree': 'Mêmes clients que le cas précédent, mais montant et fréquence '
+                               'centrés-réduits avant clustering, K=3',
+                     'attendu': 'Les deux variables pèsent équitablement dans la formation des groupes',
+                     'constat': 'Les clusters obtenus séparent désormais correctement selon le croisement '
+                                'montant/fréquence, avec des profils métier plus nuancés (ex : petit montant '
+                                'mais forte fréquence isolé comme groupe à part).'},
+                    {'cas': 'Variable fréquence à échelle extrême',
+                     'entree': "Fréquence exprimée en nombre d'achats sur 5 ans (5 à 75) au lieu d'achats "
+                               'par an, montant inchangé, non normalisé',
+                     'attendu': 'Détecter une inversion du problème : la fréquence écrase désormais le '
+                                'montant',
+                     'constat': 'Le clustering se base cette fois presque uniquement sur la fréquence ; '
+                                "confirme que le problème vient bien de l'échelle relative des variables, "
+                                "pas d'une variable en particulier."},
+                    {'cas': 'Client isolé avec achat exceptionnel',
+                     'entree': '19 clients aux profils habituels + 1 client ayant fait un unique achat de '
+                               '5000€ (chantier exceptionnel)',
+                     'attendu': 'Signaler cet outlier plutôt que de le fondre dans un groupe existant',
+                     'constat': 'Le client extrême tire le centre du cluster le plus proche vers lui, '
+                                'déformant légèrement le profil moyen de ce groupe ; avec K=3 il peut même '
+                                "former un cluster à lui seul, ce qui n'est pas forcément faux mais doit "
+                                "être interprété comme 'cas particulier', pas comme un segment commercial "
+                                'généralisable.'},
+                    {'cas': 'Client isolé avec fréquence extrême',
+                     'entree': '19 clients habituels + 1 client professionnel avec 40 achats/an à faible '
+                               'montant unitaire',
+                     'attendu': 'Le modèle doit isoler ce comportement atypique sans casser les autres '
+                                'groupes',
+                     'constat': 'Le client atypique est bien isolé dans son propre voisinage, mais avec un K '
+                                "trop petit il est absorbé dans le groupe 'fidèles', diluant l'information ; "
+                                "illustre l'interaction entre choix de K et présence d'outliers."},
+                    {'cas': 'Deux outliers opposés',
+                     'entree': '18 clients standards + 1 client à très gros montant ponctuel + 1 client à '
+                               'très forte fréquence et faible montant',
+                     'attendu': "Les deux cas extrêmes doivent être distingués l'un de l'autre, pas "
+                                'regroupés ensemble',
+                     'constat': "Les deux outliers, bien qu'atypiques tous les deux, sont correctement "
+                                'séparés car leurs profils sont opposés ; bon test de la capacité du modèle '
+                                "à ne pas simplement créer un fourre-tout 'clients bizarres'."},
+                    {'cas': 'Données quasi identiques (peu de variance)',
+                     'entree': '20 clients très homogènes, tous avec montant moyen 90-110€ et fréquence 4-6 '
+                               'achats/an, K=3',
+                     'attendu': "Reconnaître qu'il n'y a pas de vraie structure à segmenter",
+                     'constat': 'Le modèle produit tout de même 3 clusters (KMeans force toujours K '
+                                'groupes), mais les centres sont très proches et le score de silhouette est '
+                                "faible (~0.15), signe clair qu'il ne faut pas interpréter ces groupes comme "
+                                'des segments métier réels.'},
+                    {'cas': 'Données identiques, K=1 imposé',
+                     'entree': 'Mêmes 20 clients homogènes que le cas précédent, mais K=1',
+                     'attendu': "Un seul groupe couvrant tous les clients, cohérent avec l'absence de "
+                                'structure',
+                     'constat': 'Résultat cohérent et honnête ; confirme que face à des données sans '
+                                'structure, réduire K est plus pertinent que de forcer un découpage '
+                                'artificiel.'},
+                    {'cas': 'Petit jeu de données (5 clients)',
+                     'entree': 'Seulement 5 clients aux profils variés, K=3',
+                     'attendu': 'Vérifier la stabilité du clustering malgré le faible volume',
+                     'constat': 'Les clusters obtenus changent notablement selon la graine aléatoire (seed) '
+                                'utilisée ; avec si peu de points, chaque client pèse lourd sur la position '
+                                'des centres, donc les conclusions doivent être présentées avec prudence.'},
+                    {'cas': 'Stabilité sur données bien structurées',
+                     'entree': 'Jeu de données à 3 profils nets (60 clients), clustering relancé 10 fois '
+                               'avec des seeds différentes',
+                     'attendu': 'Les mêmes 3 groupes doivent réapparaître à chaque run, à permutation '
+                                "d'étiquette près",
+                     'constat': 'Bonne stabilité observée : la composition des clusters varie de moins de 5% '
+                                "d'un run à l'autre, ce qui renforce la confiance dans la structure "
+                                'trouvée.'},
+                    {'cas': 'Instabilité sur données ambiguës',
+                     'entree': 'Jeu de données avec chevauchement fort entre profils (40 clients), '
+                               'clustering relancé 10 fois',
+                     'attendu': "Détecter une instabilité et la signaler à l'utilisateur",
+                     'constat': "La composition des clusters change sensiblement d'un run à l'autre (jusqu'à "
+                                '20% des clients changent de groupe), ce qui doit inciter à présenter le '
+                                "résultat comme une tendance plutôt qu'une vérité figée."},
+                    {'cas': 'Clients avec une seule variable renseignée',
+                     'entree': 'Données où la fréquence est manquante ou nulle pour tous les clients, seul '
+                               'le montant varie',
+                     'attendu': 'Le clustering se réduit de fait à un découpage sur une seule dimension',
+                     'constat': 'Les groupes obtenus correspondent simplement à des tranches de montant ; '
+                                'comportement attendu mais qui doit être signalé comme une limite (le '
+                                "clustering n'apporte alors rien de plus qu'un simple seuillage)."},
+                    {'cas': 'Deux clients strictement identiques',
+                     'entree': '20 clients variés + 2 clients ayant exactement le même montant moyen et la '
+                               'même fréquence',
+                     'attendu': 'Les deux clients identiques doivent systématiquement finir dans le même '
+                                'cluster',
+                     'constat': 'Comportement vérifié et correct dans tous les runs testés ; cas de base '
+                                'rassurant mais peu informatif en soi.'},
+                    {'cas': "Sensibilité à l'initialisation avec K élevé",
+                     'entree': 'Jeu de données à structure modérée (2 profils flous), K=5',
+                     'attendu': 'Observer si certains clusters restent vides ou quasi vides selon '
+                                "l'initialisation",
+                     'constat': "Sur certaines graines, un cluster ne contient qu'un seul client voire aucun "
+                                "point clairement dominant, illustrant qu'un K trop élevé par rapport à la "
+                                'structure réelle produit des groupes non robustes.'},
+                    {'cas': 'Ajout progressif de clients au même profil',
+                     'entree': 'Groupe de 10 clients fidèles auquel on ajoute progressivement 1, puis 5, '
+                               'puis 20 clients supplémentaires du même profil',
+                     'attendu': 'Le centre du cluster fidèle doit rester stable, sans dérive',
+                     'constat': 'Le centre du cluster bouge très peu (moins de 3% de variation) à mesure que '
+                                'des clients similaires sont ajoutés, ce qui est un bon signe de robustesse '
+                                'du modèle sur ce profil.'},
+                    {'cas': 'Renommage arbitraire des groupes (mise en garde métier)',
+                     'entree': 'Clustering K=3 exécuté deux fois de suite sur les mêmes données avec des '
+                               'seeds différentes',
+                     'attendu': "Vérifier que les numéros de cluster (0, 1, 2) n'ont pas de sens fixe d'un "
+                                "run à l'autre",
+                     'constat': 'Le contenu des groupes est identique mais leurs numéros sont permutés entre '
+                                'les deux runs ; rappel important que le clustering ne nomme jamais les '
+                                "groupes ('gros clients', 'occasionnels') — c'est à l'humain d'interpréter "
+                                'chaque cluster après coup.'},
+                    {'cas': 'Deux variables corrélées redondantes',
+                     'entree': "Montant moyen d'achat et montant total annuel (fortement corrélés car total "
+                               '= moyenne x fréquence approximativement), plus fréquence, K=3',
+                     'attendu': 'Vérifier que la redondance entre variables ne double pas artificiellement '
+                                'le poids du montant',
+                     'constat': 'Les clusters obtenus sont très proches de ceux obtenus avec le montant '
+                                'seul, la fréquence perdant une grande partie de son influence ; illustre '
+                                "l'importance de choisir des variables peu redondantes avant clustering."},
+                    {'cas': 'Comparaison K=3 vs K=4 sur données réelles ambiguës',
+                     'entree': '60 clients artisanat avec une structure modérément marquée, testés avec K=3 '
+                               'puis K=4',
+                     'attendu': "Constater si un des deux choix segmente mieux le sous-groupe des 'moyens "
+                                "réguliers'",
+                     'constat': 'K=4 isole un sous-groupe supplémentaire de clients à fréquence moyenne mais '
+                                'montant élevé, potentiellement utile commercialement, mais avec un score de '
+                                "silhouette légèrement inférieur à K=3 ; montre qu'un compromis entre "
+                                'finesse métier et qualité statistique est parfois nécessaire, sans réponse '
+                                "unique 'meilleure'."},
+                    {'cas': 'Client avec valeurs à zéro',
+                     'entree': '19 clients actifs + 1 client inscrit mais sans aucun achat (montant=0, '
+                               'fréquence=0)',
+                     'attendu': 'Ce client doit être clairement isolé ou signalé comme cas limite',
+                     'constat': 'Le client à zéro achat se retrouve systématiquement en périphérie du '
+                                'cluster le plus proche, tirant légèrement son centre vers le bas ; cas '
+                                "qu'il vaudrait mieux exclure ou traiter à part avant le clustering plutôt "
+                                'que de le laisser influencer les groupes de clients réellement actifs.'}]},
+ {'famille': 'recherche_image',
+ 'titre': "Recherche d'image par similarité",
+ 'objectif': 'Vérifier que le score de similarité reflète une vraie ressemblance de contenu ou de style '
+             '(même objet, même type de bien, même ambiance) et non un artefact superficiel comme une '
+             'couleur dominante ou un fond similaire par hasard.',
+ 'categories_test': [{'nom': 'Même objet, angles différents',
+                      'description': 'Comparer deux photos du même objet ou du même bien pris sous des '
+                                     'angles ou distances différents : le score doit rester élevé malgré le '
+                                     'changement de point de vue.'},
+                     {'nom': 'Objets visuellement proches mais catégorie différente',
+                      'description': 'Comparer des objets de forme ou texture similaire mais de nature '
+                                     'différente (ex: une chaise et un tabouret, un studio et un T2) pour '
+                                     'vérifier que le modèle ne confond pas ressemblance de surface et '
+                                     'identité réelle.'},
+                     {'nom': 'Objets identiques, fond différent',
+                      'description': 'Comparer le même produit ou bien photographié sur des fonds très '
+                                     "différents (fond blanc studio vs en situation réelle) pour s'assurer "
+                                     "que le score reste élevé et n'est pas plombé par le décor."},
+                     {'nom': 'Images sans rapport (score bas attendu)',
+                      'description': 'Comparer deux images totalement différentes en contenu et en couleur '
+                                     'pour vérifier que le modèle sait aussi produire un score bas quand il '
+                                     "n'y a aucune ressemblance, et ne sur-score pas par défaut."},
+                     {'nom': 'Variation de couleur, luminosité ou netteté',
+                      'description': 'Comparer le même objet dans des variantes de couleur (ex: canapé gris '
+                                     'vs bleu), de luminosité (jour vs soir) ou de netteté (photo nette vs '
+                                     "floue) pour distinguer une vraie différence de produit d'un simple "
+                                     'artefact de prise de vue.'}],
+ 'metriques': ["Similarité cosinus entre les vecteurs d'embedding des deux images",
+               "Rappel@K (recall@5, recall@10) sur une recherche parmi une base d'images de référence",
+               'Précision@K sur les K résultats les mieux classés',
+               'Stabilité du score face à des transformations mineures (rotation légère, recadrage, '
+               'compression JPEG)',
+               'Écart de score entre paires positives (vrais similaires) et paires négatives (vrais '
+               'différents), pour vérifier la séparation'],
+ 'piege_frequent': 'ResNet-18 pré-entraîné sur ImageNet encode fortement la texture, la couleur dominante et '
+                   "la composition globale de l'image, bien plus que la sémantique fine de l'objet. Résultat "
+                   ': un canapé rouge et un tapis rouge photographiés dans une pièce similaire peuvent '
+                   "obtenir un score de similarité élevé alors qu'ils n'ont rien à voir, tandis que deux "
+                   'exemplaires du même canapé mais recadrés très différemment (gros plan texture vs vue '
+                   "d'ensemble) peuvent avoir un score plus bas que prévu. La leçon : ne jamais valider un "
+                   'moteur de recherche visuelle sur la seule similarité cosinus brute ; toujours croiser '
+                   'avec un jeu de paires positives/négatives annotées à la main et vérifier le recall@K '
+                   'réel, pas juste des scores isolés qui "ont l\'air bons".',
+ 'cahier_exemple': [{'cas': 'Même canapé, deux angles',
+                     'entree': 'Photo 1 : canapé 3 places gris vu de face dans un salon. Photo 2 : même '
+                               "canapé vu de trois-quarts depuis l'autre côté de la pièce.",
+                     'attendu': "Score haut : même objet, même couleur, même contexte, seul l'angle change.",
+                     'constat': 'Score élevé confirmé (~0.85). Le modèle capte bien la forme générale et la '
+                                'texture du tissu malgré le changement de perspective.'},
+                    {'cas': 'Appartement, salon vs chambre',
+                     'entree': "Photo 1 : salon lumineux avec parquet clair d'un T3. Photo 2 : chambre du "
+                               'même T3, murs beiges, moquette.',
+                     'attendu': 'Score bas à moyen attendu : même bien mais pièces très différentes en '
+                                'fonction, matériaux et ambiance.',
+                     'constat': "Score moyen (~0.45), cohérent : le modèle ne sait pas qu'il s'agit du même "
+                                "bien, il compare uniquement l'apparence visuelle des pièces, ce qui est la "
+                                "limite attendue pour ce cas d'usage."},
+                    {'cas': 'Chaise vs tabouret similaire',
+                     'entree': 'Photo 1 : chaise en bois clair avec dossier fin. Photo 2 : tabouret en bois '
+                               'clair de forme et teinte proches, sans dossier.',
+                     'attendu': 'Score moyen-haut trompeur possible : matière et couleur identiques mais '
+                                'catégorie de produit différente.',
+                     'constat': 'Score élevé (~0.78) alors que ce sont deux produits distincts pour un '
+                                'catalogue e-commerce. Illustration typique du piège texture/couleur '
+                                'dominant sur la sémantique fine.'},
+                    {'cas': 'Produit sur fond blanc vs en situation',
+                     'entree': 'Photo 1 : lampe de bureau noire sur fond blanc studio. Photo 2 : même lampe '
+                               'posée sur un bureau encombré, éclairage tamisé.',
+                     'attendu': "Score haut attendu si le modèle est robuste au fond, car il s'agit du même "
+                                'produit.',
+                     'constat': "Score modéré (~0.55), plus bas qu'espéré : le fond et l'éclairage pèsent "
+                                'sensiblement dans l\'embedding, ce qui peut pénaliser à tort les photos "en '
+                                'situation" dans une recherche produit.'},
+                    {'cas': 'Deux images totalement sans rapport',
+                     'entree': 'Photo 1 : cuisine moderne blanche et bois. Photo 2 : voiture rouge garée '
+                               'dans une rue.',
+                     'attendu': 'Score bas attendu : aucun lien de contenu ni de style.',
+                     'constat': 'Score bas confirmé (~0.12), le modèle sépare correctement ces deux contenus '
+                                'radicalement différents.'},
+                    {'cas': 'Canapé gris vs canapé bleu, même modèle',
+                     'entree': 'Photo 1 : canapé modèle Oslo coloris gris anthracite. Photo 2 : même canapé '
+                               'Oslo coloris bleu marine, même prise de vue.',
+                     'attendu': 'Score moyen attendu : même forme et design mais couleur différente, utile '
+                                'de savoir si le modèle les traite comme "presque identiques" ou '
+                                '"différents".',
+                     'constat': 'Score moyen (~0.60) : la forme est reconnue mais la différence de couleur '
+                                "tire le score vers le bas, ce qui peut être un problème si l'objectif "
+                                "métier est de retrouver toutes les déclinaisons couleur d'un même produit."},
+                    {'cas': 'Photo floue vs photo nette du même objet',
+                     'entree': 'Photo 1 : montre bracelet cuir, photo nette prise en studio. Photo 2 : même '
+                               'montre, photo floue prise avec un smartphone en mouvement.',
+                     'attendu': "Score haut attendu si le modèle est robuste au flou léger, car c'est le "
+                                'même objet.',
+                     'constat': 'Score correct (~0.70) mais en baisse notable par rapport à deux photos '
+                                "nettes du même objet (~0.85), le flou dégrade la qualité de l'embedding de "
+                                'façon mesurable.'},
+                    {'cas': 'Même studio, deux séances photo différentes',
+                     'entree': 'Photo 1 : studio 20m2 vide, photos prises le matin, lumière naturelle. Photo '
+                               '2 : même studio, photos prises le soir avec éclairage artificiel, meublé '
+                               'différemment pour le home staging.',
+                     'attendu': 'Score bas à moyen attendu : même bien physique mais présentation visuelle '
+                                'très différente (meublé vs vide, lumière différente).',
+                     'constat': 'Score bas (~0.30), confirme la limite structurelle : la recherche visuelle '
+                                'ne reconnaît pas un bien immobilier au-delà de son apparence de surface, un '
+                                'test à documenter clairement pour les équipes immobilier.'},
+                    {'cas': 'Deux exemplaires du même modèle de baskets, tailles différentes',
+                     'entree': 'Photo 1 : basket blanche modèle X taille 42, vue de profil. Photo 2 : même '
+                               'modèle taille 38, même vue de profil, packshot studio.',
+                     'attendu': 'Score haut attendu : la taille ne change presque rien visuellement à cette '
+                                'échelle de photo.',
+                     'constat': "Score très élevé (~0.91), conforme à l'attendu, cas simple bien géré."},
+                    {'cas': 'Tapis rouge vs canapé rouge, pièges couleur',
+                     'entree': 'Photo 1 : gros plan sur un tapis en laine rouge à motifs. Photo 2 : canapé '
+                               'en velours rouge, même teinte dominante.',
+                     'attendu': 'Score bas attendu : objets totalement différents, seule la couleur les '
+                                'rapproche.',
+                     'constat': 'Score anormalement élevé (~0.68) : confirme le piège documenté, la couleur '
+                                "dominante rouge influence fortement l'embedding au détriment de la "
+                                "sémantique de l'objet. Cas à surveiller en priorité en e-commerce."},
+                    {'cas': 'Cuisine équipée, deux biens différents mais même style',
+                     'entree': "Photo 1 : cuisine blanche et bois d'un appartement A, plan en L. Photo 2 : "
+                               "cuisine blanche et bois d'un appartement B, style scandinave similaire mais "
+                               'plan différent.',
+                     'attendu': 'Score moyen-haut attendu : même style décoratif, biens différents, utile '
+                                'pour évaluer si le moteur sert bien la recherche "biens au style '
+                                'similaire".',
+                     'constat': "Score élevé (~0.74), pertinent dans ce cas car l'usage recherché est "
+                                'justement "trouve-moi des biens avec ce style de cuisine", donc le '
+                                "comportement est jugé adapté à l'objectif métier."},
+                    {'cas': 'Table basse en bois, recadrage extrême',
+                     'entree': "Photo 1 : table basse en bois vue d'ensemble, quatre pieds visibles. Photo 2 "
+                               ': gros plan uniquement sur le plateau en bois de la même table.',
+                     'attendu': 'Score incertain : même objet mais cadrage radicalement différent, testé '
+                                'pour connaître la limite de robustesse au recadrage.',
+                     'constat': 'Score plus bas que prévu (~0.42), montre que ResNet-18 est sensible à la '
+                                "composition globale de l'image, pas seulement au contenu ; un recadrage "
+                                'trop serré peut faire rater une correspondance produit valide.'},
+                    {'cas': "Deux photos de la même façade d'immeuble, saisons différentes",
+                     'entree': "Photo 1 : façade d'immeuble en été, arbres feuillus devant. Photo 2 : même "
+                               'façade en hiver, arbres nus, neige au sol.',
+                     'attendu': 'Score moyen attendu : même bâtiment mais environnement visuel très changé '
+                                'par la saison.',
+                     'constat': 'Score moyen (~0.50), cohérent avec la limite du modèle face aux variations '
+                                'saisonnières fortes, à anticiper pour un usage immobilier avec photos '
+                                'prises à des dates différentes.'},
+                    {'cas': 'Sac à main, marque différente mais design copié',
+                     'entree': 'Photo 1 : sac à main de marque A, forme et surpiqûres spécifiques. Photo 2 : '
+                               "sac 'inspiré' de marque B, design quasi identique, matière légèrement "
+                               'différente.',
+                     'attendu': 'Score haut attendu : le modèle doit détecter la forte ressemblance '
+                                'visuelle, utile pour la détection de contrefaçon ou de produits similaires.',
+                     'constat': 'Score très élevé (~0.88), le modèle capture bien la ressemblance de forme, '
+                                "cas d'usage pertinent pour la détection de dupes en e-commerce, avec la "
+                                'réserve que cela ne prouve aucune contrefaçon légale.'},
+                    {'cas': 'Deux photos du même vélo, une avec reflet/vitre',
+                     'entree': 'Photo 1 : vélo de ville photographié directement. Photo 2 : même vélo '
+                               "photographié à travers la vitrine d'un magasin, léger reflet visible.",
+                     'attendu': "Score haut à moyen attendu selon la force du reflet, car c'est le même "
+                                'objet perturbé par un artefact optique.',
+                     'constat': 'Score moyen (~0.58), le reflet et les distorsions de la vitre dégradent '
+                                'sensiblement le score, un point à tester systématiquement pour des flux de '
+                                'photos capturées en boutique.'},
+                    {'cas': 'Appartement vide vs même appartement meublé',
+                     'entree': 'Photo 1 : salon vide, murs blancs, sol carrelé. Photo 2 : même salon après '
+                               'home staging, meublé et décoré.',
+                     'attendu': 'Score bas à moyen attendu : structure du bien identique mais apparence '
+                                "visuelle transformée par l'ameublement.",
+                     'constat': 'Score bas (~0.33), confirme que la recherche par similarité visuelle pure '
+                                'ne peut pas identifier un bien immobilier à travers un home staging complet '
+                                '; nécessite une autre méthode (métadonnées, adresse) pour ce besoin '
+                                'précis.'},
+                    {'cas': 'Deux mugs blancs unis, marques différentes',
+                     'entree': 'Photo 1 : mug blanc uni, anse fine, photo studio fond blanc. Photo 2 : mug '
+                               "blanc uni d'une autre marque, anse légèrement différente, même type de "
+                               'photo.',
+                     'attendu': 'Score très haut attendu : objets quasi indiscernables visuellement, cas '
+                                'volontairement simple.',
+                     'constat': 'Score très élevé (~0.93), conforme, mais illustre aussi que le modèle ne '
+                                'peut pas différencier deux produits quasi identiques visuellement mais de '
+                                'marques différentes, point important pour la conformité produit en '
+                                'e-commerce.'},
+                    {'cas': 'Fauteuil en cuir marron vs porte en bois marron',
+                     'entree': "Photo 1 : fauteuil club en cuir marron, gros plan. Photo 2 : porte d'entrée "
+                               'en bois marron, texture proche du cuir vieilli.',
+                     'attendu': 'Score bas attendu : objets sans rapport fonctionnel, seule la teinte marron '
+                                'et une texture granuleuse peuvent rapprocher les deux.',
+                     'constat': 'Score modéré, plus haut que souhaité (~0.52) : nouvelle illustration du '
+                                'piège texture/couleur, à surveiller particulièrement sur le mobilier en '
+                                "matières 'brutes' (cuir, bois, rotin)."},
+                    {'cas': 'Immeuble haussmannien, deux photos de nuit et de jour',
+                     'entree': 'Photo 1 : façade haussmannienne photographiée en plein jour. Photo 2 : même '
+                               'façade photographiée de nuit, éclairage urbain, ciel sombre.',
+                     'attendu': 'Score moyen attendu : même structure mais conditions lumineuses opposées.',
+                     'constat': 'Score moyen-bas (~0.40), la forte variation de luminosité impacte davantage '
+                                'le score que prévu, à documenter comme une limite connue pour un usage de '
+                                'recherche photo immobilier jour/nuit.'},
+                    {'cas': 'T-shirt même motif, couleurs de fond de packshot différentes',
+                     'entree': 'Photo 1 : t-shirt à motif floral sur mannequin, fond studio gris. Photo 2 : '
+                               'même t-shirt à plat, fond studio blanc.',
+                     'attendu': 'Score haut attendu : même motif et produit, seul le mode de présentation '
+                                'change.',
+                     'constat': 'Score élevé (~0.80), bon comportement, le motif distinctif du t-shirt '
+                                "domine bien l'embedding malgré la différence de présentation."},
+                    {'cas': 'Deux photos de plats de cuisine différents mais même dressage',
+                     'entree': 'Photo 1 : plat de pâtes carbonara dressé avec de la ciboulette. Photo 2 : '
+                               'plat de risotto dressé de façon similaire avec la même herbe.',
+                     'attendu': 'Score bas à moyen attendu : plats différents mais présentation visuelle '
+                                'proche.',
+                     'constat': 'Score moyen (~0.55), le style de dressage (couleurs, disposition) tire le '
+                                'score vers le haut alors que les plats sont culinairement très différents, '
+                                'à garder en tête pour un usage e-commerce alimentaire.'},
+                    {'cas': 'Chaussure de sport, image compressée fortement (JPEG artefacts)',
+                     'entree': 'Photo 1 : basket de running, photo haute qualité. Photo 2 : même basket, '
+                               'même prise de vue, mais fichier fortement compressé avec artefacts JPEG '
+                               'visibles.',
+                     'attendu': 'Score haut attendu : le contenu reste identique, seule la qualité de '
+                                'compression change.',
+                     'constat': 'Score élevé mais légèrement réduit (~0.82 vs ~0.90 attendu sans '
+                                'compression), la robustesse à la compression est globalement bonne mais pas '
+                                'parfaite, à tester avant un déploiement mobile où les images sont souvent '
+                                'compressées côté client.'},
+                    {'cas': 'Deux logements de standing très différent, même type de pièce',
+                     'entree': 'Photo 1 : salle de bain haut de gamme avec marbre et robinetterie dorée. '
+                               'Photo 2 : salle de bain simple, carrelage blanc basique, même agencement '
+                               'général (baignoire à gauche, vasque à droite).',
+                     'attendu': 'Score moyen attendu : même agencement fonctionnel mais standing et '
+                                'matériaux très différents.',
+                     'constat': "Score moyen (~0.48), le modèle capte l'agencement général mais distingue "
+                                'correctement le niveau de finition, comportement jugé satisfaisant pour '
+                                'trier des biens par gamme de standing.'},
+                    {'cas': 'Chien sur canapé vs canapé seul',
+                     'entree': 'Photo 1 : canapé gris avec un chien couché dessus, occupant une bonne partie '
+                               'du cadre. Photo 2 : même canapé gris, vide, même angle de vue.',
+                     'attendu': "Score moyen-haut attendu : même canapé mais présence d'un élément parasite "
+                                'important (le chien) dans une des deux photos.',
+                     'constat': 'Score correct (~0.65) mais en retrait par rapport à deux photos sans '
+                                "parasite (~0.85), la présence d'un sujet occupant une large portion du "
+                                'cadre dilue la représentation du produit, point utile pour filtrer les '
+                                "photos utilisateurs en amont d'une recherche visuelle."},
+                    {'cas': 'Deux vues aériennes de jardins différents, même pelouse verte',
+                     'entree': "Photo 1 : vue aérienne d'un jardin avec pelouse verte et piscine "
+                               "rectangulaire. Photo 2 : vue aérienne d'un autre jardin avec pelouse verte "
+                               'et terrasse en bois, sans piscine.',
+                     'attendu': 'Score bas à moyen attendu : biens différents, seule la couleur verte '
+                                "dominante et l'angle de vue aérien se ressemblent.",
+                     'constat': "Score moyen (~0.57), plus élevé que l'attendu strictement sémantique, "
+                                'confirme une nouvelle fois que la dominante de couleur (vert pelouse) et la '
+                                "composition (vue du dessus) pèsent lourd dans l'embedding, indépendamment "
+                                'des éléments distinctifs (piscine, terrasse).'}]},
+ {'famille': 'ocr',
+ 'titre': 'Reconnaissance de texte (OCR)',
+ 'objectif': "Vérifier l'exactitude caractère par caractère du texte extrait, pas seulement une impression "
+             'générale de lisibilité : un OCR utilisé en comptabilité doit être jugé sur sa capacité à '
+             'restituer exactement les montants, dates et références, où une seule confusion de caractère '
+             'change le sens du document.',
+ 'categories_test': [{'nom': 'Document net bien scanné',
+                      'description': 'Facture ou document administratif numérisé au scanner à plat, '
+                                     'résolution correcte, fond blanc uniforme : le cas le plus favorable, '
+                                     'sert de référence haute pour mesurer la dégradation dans les autres '
+                                     'catégories.'},
+                     {'nom': 'Photo smartphone avec angle et ombre',
+                      'description': 'Document photographié à la main, légèrement de travers, avec une ombre '
+                                     'portée ou un reflet de lumière : condition réaliste pour un usage '
+                                     'terrain (chantier, réception de facture par un artisan).'},
+                     {'nom': 'Texte manuscrit',
+                      'description': 'Note manuscrite ou champ rempli à la main sur un formulaire : hors du '
+                                     "domaine de conception de Tesseract (optimisé pour l'imprimé), testé "
+                                     'volontairement pour documenter la dégradation et fixer une limite '
+                                     "claire d'usage."},
+                     {'nom': 'Tableau et mise en page complexe',
+                      'description': 'Document avec colonnes de chiffres, lignes de tableau, en-têtes '
+                                     'multiples (ex. tableau de lignes de facture avec quantité/prix '
+                                     "unitaire/total) : teste la capacité à préserver l'ordre de lecture et "
+                                     "l'alignement colonne par colonne."},
+                     {'nom': 'Mauvaise qualité (flou, faible contraste, papier froissé)',
+                      'description': 'Image floue, papier froissé, encre délavée ou photocopie de photocopie '
+                                     ': simule les documents reçus en mauvais état, fréquents en '
+                                     'comptabilité (tickets de caisse thermiques anciens, fax).'}],
+ 'metriques': ["Taux d'erreur caractère (CER - Character Error Rate)",
+               "Taux d'erreur mot (WER - Word Error Rate)",
+               'Taux de reconnaissance exacte des montants et chiffres',
+               'Taux de préservation de la structure (ordre des lignes, colonnes, tableaux)',
+               'Taux de faux positifs sur zones vides ou bruit (texte halluciné)',
+               'Temps de traitement par page'],
+ 'piege_frequent': 'Tesseract confond facilement des caractères visuellement proches (0/O, 1/l/I, 5/S, 8/B), '
+                   'ce qui semble anodin sur du texte courant mais devient critique sur des montants ou des '
+                   'références de facture : un montant de 1 050,00 € lu comme 1 O5O,OO € ou une référence '
+                   'FA-1023 lue FA-lO23 passe souvent inaperçu à une relecture rapide et peut fausser une '
+                   'saisie comptable sans que personne ne le remarque avant le rapprochement bancaire.',
+ 'cahier_exemple': [{'cas': 'Facture nette imprimée A4',
+                     'entree': 'Facture fournisseur standard, police imprimée classique, scannée à plat en '
+                               '300 dpi, fond blanc, aucune inclinaison',
+                     'attendu': 'Restitution exacte à 99-100% du texte, y compris montant TTC et numéro de '
+                                'facture',
+                     'constat': 'Résultat quasi parfait, seule une espace insécable avant le symbole € est '
+                                'parfois mal restituée, sans impact sur la lecture du montant.'},
+                    {'cas': 'Ticket de caisse thermique délavé',
+                     'entree': 'Ticket de caisse en papier thermique de plusieurs mois, encre pâlie, plis '
+                               'visibles sur la partie basse du ticket',
+                     'attendu': "Restitution correcte de l'en-tête et du montant total, tolérance sur le "
+                                'détail des lignes en bas de ticket',
+                     'constat': 'Le montant total en haut reste lisible mais le détail des articles en bas, '
+                                'zone la plus délavée, comporte plusieurs caractères manquants ou substitués '
+                                '; à signaler comme zone à risque.'},
+                    {'cas': 'Photo smartphone avec ombre portée',
+                     'entree': 'Facture photographiée à main levée sur un bureau, ombre de la main du '
+                               'photographe sur le tiers droit du document',
+                     'attendu': "Texte hors zone d'ombre restitué correctement, dégradation localisée dans "
+                                "la zone d'ombre",
+                     'constat': "Comme attendu, le texte dans la zone d'ombre perd environ un caractère sur "
+                                'cinq, notamment les derniers chiffres du numéro de TVA situé dans cette '
+                                'zone.'},
+                    {'cas': 'Document scanné de travers',
+                     'entree': "Facture scannée avec une inclinaison d'environ 8 degrés, bords du document "
+                               'visibles sur le scan',
+                     'attendu': "Texte restitué correctement après compensation de l'inclinaison, sans "
+                                'mélange entre lignes',
+                     'constat': "Tesseract corrige bien les petites inclinaisons jusqu'à environ 10 degrés, "
+                                'mais au-delà certaines lignes proches commencent à se chevaucher dans la '
+                                'sortie.'},
+                    {'cas': 'Tableau de lignes de facture',
+                     'entree': 'Tableau à 4 colonnes (désignation, quantité, prix unitaire, total) avec 12 '
+                               'lignes de produits',
+                     'attendu': 'Chaque ligne restituée dans le bon ordre avec les 4 valeurs correctement '
+                                'associées',
+                     'constat': "L'ordre des lignes est respecté mais l'association colonne par colonne se "
+                                'dégrade quand deux colonnes sont proches sans séparateur visuel net, '
+                                'obligeant une vérification manuelle du tableau.'},
+                    {'cas': 'Texte manuscrit sur bon de commande',
+                     'entree': 'Bon de commande avec la quantité et la signature remplies à la main au stylo '
+                               'bleu',
+                     'attendu': 'Le texte imprimé du formulaire reste correct ; aucune exigence sur le texte '
+                                'manuscrit',
+                     'constat': 'Confirmé hors scope : le texte imprimé reste fiable mais la quantité '
+                                'manuscrite est quasi systématiquement mal lue ou ignorée, il faut prévoir '
+                                'une saisie manuelle pour ces champs.'},
+                    {'cas': 'Montant avec virgule et espaces de milliers',
+                     'entree': "Ligne de facture affichant '1 250,75 €' avec espace insécable comme "
+                               'séparateur de milliers',
+                     'attendu': "Restitution exacte '1 250,75 €' sans perte de la virgule décimale",
+                     'constat': "La virgule décimale est bien reconnue mais l'espace insécable est parfois "
+                                'remplacé par un espace normal voire supprimé, ce qui peut fausser un '
+                                "parsing automatique en aval si le format n'est pas normalisé."},
+                    {'cas': 'Référence alphanumérique de facture',
+                     'entree': "Numéro de facture au format 'FA-2026-0847' imprimé en petite taille en haut "
+                               'à droite du document',
+                     'attendu': 'Restitution exacte du numéro de référence, sensible car sert de clé '
+                                "d'identification",
+                     'constat': 'Le zéro et le O sont bien distingués grâce à la police du document, mais '
+                                'sur une police plus fine testée en comparaison le zéro a été confondu avec '
+                                'la lettre O une fois sur cinq.'},
+                    {'cas': 'Papier froissé avec plis multiples',
+                     'entree': 'Document administratif photographié après avoir été plié en quatre puis '
+                               'déplié, plis visibles traversant plusieurs lignes de texte',
+                     'attendu': 'Dégradation localisée aux lignes traversées par les plis, reste du texte '
+                                'correct',
+                     'constat': 'Les lignes traversées par un pli perdent souvent un mot entier ou affichent '
+                                'des caractères aberrants, alors que les lignes voisines non pliées restent '
+                                'parfaitement lisibles.'},
+                    {'cas': 'Enseigne avec police stylisée',
+                     'entree': "Photo d'une enseigne de magasin avec une police manuscrite décorative "
+                               "stylisée pour le nom de l'établissement",
+                     'attendu': 'Aucune exigence stricte, cas limite pour observer le comportement',
+                     'constat': 'Comme prévu pour une police décorative non standard, le résultat est en '
+                                'grande partie incohérent ; ce cas confirme que Tesseract doit être réservé '
+                                'aux documents à police standard, pas aux enseignes créatives.'},
+                    {'cas': 'Facture avec logo en fond de page',
+                     'entree': 'Facture avec un filigrane ou logo semi-transparent en arrière-plan derrière '
+                               'le texte principal',
+                     'attendu': 'Texte principal restitué correctement, logo ignoré comme bruit visuel',
+                     'constat': 'Le texte reste globalement lisible mais quelques caractères se superposant '
+                                "visuellement au logo sont mal reconnus, notamment dans l'en-tête."},
+                    {'cas': 'Document en faible contraste (photocopie de photocopie)',
+                     'entree': 'Facture ayant subi deux générations de photocopie, gris clair sur fond gris, '
+                               'contraste très réduit',
+                     'attendu': "Dégradation significative attendue, taux d'erreur caractère élevé",
+                     'constat': "Le taux d'erreur caractère dépasse 20% sur ce document, avec des mots "
+                                'entiers manquants ; ce type de document nécessite un rehaussement de '
+                                'contraste en amont avant tout traitement OCR fiable.'},
+                    {'cas': 'Ticket de caisse plié en portefeuille',
+                     'entree': 'Petit ticket de caisse ayant été plié plusieurs fois et conservé dans un '
+                               'portefeuille, marques de pliure profondes',
+                     'attendu': 'Le total en bas de ticket doit rester lisible, tolérance sur le détail',
+                     'constat': 'Le total est récupéré correctement dans la majorité des cas testés, mais '
+                                'une marque de pliure exactement sur la ligne du total a une fois provoqué '
+                                'une erreur de lecture du dernier chiffre.'},
+                    {'cas': 'Document multi-langue (français et anglais mélangés)',
+                     'entree': 'Facture internationale avec des libellés en français et des termes '
+                               'techniques en anglais sur la même page',
+                     'attendu': 'Restitution correcte des deux langues sans confusion excessive',
+                     'constat': "Correct dans l'ensemble avec le modèle de langue français+anglais chargé, "
+                                'mais certains mots anglais courts sont occasionnellement interprétés comme '
+                                'des mots français proches visuellement.'},
+                    {'cas': 'Date au format court avec séparateurs points',
+                     'entree': "Date de facture au format '07.07.2026' imprimée en petit corps de texte",
+                     'attendu': 'Restitution exacte de la date avec les points comme séparateurs',
+                     'constat': 'Résultat fiable, les points sont bien distingués des virgules dans ce '
+                                "contexte, aucune confusion observée sur l'échantillon testé."},
+                    {'cas': 'Facture avec tampon encreur superposé',
+                     'entree': "Facture papier avec un tampon 'PAYÉ' encré en rouge se superposant "
+                               'partiellement à une ligne de texte',
+                     'attendu': 'Texte hors zone de tampon correct, zone sous le tampon potentiellement '
+                                'illisible',
+                     'constat': 'Le texte non recouvert reste lisible, mais les quelques caractères '
+                                "directement sous l'encre du tampon sont perdus ou remplacés par des "
+                                "symboles aberrants, sans indication d'incertitude fournie par l'outil."},
+                    {'cas': 'Colonne de chiffres alignés à droite',
+                     'entree': 'Liste de 8 montants alignés verticalement en fin de tableau, chiffres seuls '
+                               'sans texte associé sur chaque ligne',
+                     'attendu': 'Chaque montant restitué avec le bon nombre de décimales et sans permutation '
+                                'entre lignes',
+                     'constat': "Les montants sont globalement bien lus, mais l'alignement vertical strict "
+                                "n'empêche pas une confusion ponctuelle entre le chiffre 1 et la lettre l "
+                                'dans un montant à trois chiffres.'},
+                    {'cas': 'Document scanné en négatif (fond sombre, texte clair)',
+                     'entree': "Page de document avec fond noir et texte blanc, résultat d'un mauvais "
+                               'réglage de scanner',
+                     'attendu': "Comportement dégradé attendu sans inversion préalable de l'image",
+                     'constat': 'Sans prétraitement, le taux de reconnaissance chute très fortement ; une '
+                                'simple inversion des couleurs avant OCR rétablit un résultat proche du '
+                                "document normal, ce qui montre l'importance du prétraitement d'image."},
+                    {'cas': 'Photo prise en contre-jour',
+                     'entree': 'Document photographié devant une fenêtre lumineuse, contre-jour créant un '
+                               'halo sur les bords du texte',
+                     'attendu': "Dégradation attendue sur les bords de l'image, centre du document plus "
+                                'fiable',
+                     'constat': 'Confirmé : le centre du document reste exploitable mais les bords proches '
+                                'du halo lumineux perdent en netteté et génèrent plusieurs erreurs de '
+                                'caractères regroupées.'},
+                    {'cas': 'Facture avec police en gras pour le total',
+                     'entree': "Ligne 'TOTAL TTC' mise en évidence en gras et police plus grande par rapport "
+                               'au reste du document',
+                     'attendu': 'Le montant en gras doit être restitué avec la même fiabilité que le texte '
+                                'normal',
+                     'constat': 'Aucune dégradation observée liée au gras ; ce style typographique est bien '
+                                "géré et n'introduit pas d'erreur supplémentaire dans l'échantillon testé."},
+                    {'cas': "Document avec texte en diagonale (filigrane 'COPIE')",
+                     'entree': "Facture avec un filigrane 'COPIE' imprimé en diagonale et en transparence "
+                               'sur toute la page',
+                     'attendu': 'Texte principal peu affecté, filigrane potentiellement interprété comme '
+                                'bruit ou faux texte',
+                     'constat': 'Le texte principal reste globalement lisible, mais le moteur a par moments '
+                                "inséré des fragments du mot 'COPIE' dans la sortie, un exemple de faux "
+                                'positif à filtrer côté application.'},
+                    {'cas': 'Bon de livraison avec cases à cocher',
+                     'entree': 'Document avec des cases à cocher carrées suivies de libellés courts, une '
+                               "case cochée d'une croix manuscrite",
+                     'attendu': "Les libellés imprimés doivent être lus correctement, l'état de la case "
+                                "(cochée ou non) n'est pas une donnée fiable via OCR seul",
+                     'constat': "Les libellés sont bien restitués, mais confirmé que l'OCR seul ne permet "
+                                'pas de déterminer fiablement si une case est cochée ; une détection '
+                                'visuelle dédiée serait nécessaire pour cette information.'},
+                    {'cas': 'Facture multipage avec numérotation de page',
+                     'entree': "Document de 3 pages avec mention 'Page 2/3' en pied de page, texte identique "
+                               'en qualité sur les trois pages',
+                     'attendu': 'Chaque page traitée indépendamment avec la même qualité de restitution',
+                     'constat': 'Qualité homogène sur les trois pages comme attendu, la numérotation de pied '
+                                'de page est correctement extraite et permet de vérifier automatiquement '
+                                "qu'aucune page n'est manquante."},
+                    {'cas': 'Document avec accents et caractères français spéciaux',
+                     'entree': 'Facture standard contenant des mots avec accents variés (é, è, ê, ç, œ) dans '
+                               'les libellés de prestations',
+                     'attendu': 'Restitution exacte des caractères accentués sans les confondre avec la '
+                                'lettre nue',
+                     'constat': 'Les accents courants (é, è) sont bien reconnus avec le modèle de langue '
+                                "français, mais le caractère 'œ' est occasionnellement scindé en deux "
+                                "lettres 'o' et 'e' séparées."},
+                    {'cas': 'Ticket de caisse très allongé (rouleau complet)',
+                     'entree': "Ticket de caisse thermique d'environ 40 cm de long scanné en une seule image "
+                               "verticale avec de nombreuses lignes d'articles",
+                     'attendu': "Toutes les lignes restituées dans l'ordre, y compris le total en toute fin "
+                                'de ticket',
+                     'constat': 'Le traitement reste fiable sur toute la longueur, mais le temps de '
+                                'traitement augmente sensiblement par rapport à un document A4 standard, un '
+                                'point à surveiller si le volume de tickets est important.'}]},
+ {'famille': 'synthese_vocale',
+ 'titre': 'Synthèse vocale (texte vers audio)',
+ 'objectif': 'Pour un moteur à règles phonétiques comme eSpeak NG, il faut vérifier que le texte est '
+             'correctement transformé en sons prononçables et compréhensibles (nombres, sigles, noms '
+             'propres, ponctuation), pas juger la qualité audio ou le naturel de la voix comme on le ferait '
+             'pour un moteur neuronal.',
+ 'categories_test': [{'nom': 'Texte simple et courant',
+                      'description': 'Phrases du quotidien, salutations, consignes basiques : vérifier '
+                                     "l'intelligibilité de base sans piège de prononciation."},
+                     {'nom': 'Nombres et montants',
+                      'description': 'Nombres composés, montants en euros avec centimes, numéros de '
+                                     "téléphone, codes postaux : cas classiques d'erreurs de "
+                                     'désambiguïsation pour un moteur à règles.'},
+                     {'nom': 'Sigles et acronymes',
+                      'description': 'Sigles à épeler lettre par lettre (SARL, RDV, TVA) versus acronymes '
+                                     'prononcés comme un mot (ONU) : vérifier que le moteur applique la '
+                                     'bonne règle selon le cas.'},
+                     {'nom': 'Mots étrangers et noms propres',
+                      'description': "Emprunts à l'anglais, noms de marques, noms de personnes avec accents "
+                                     ": les règles phonétiques figées peinent souvent sur ce qui n'est pas "
+                                     'du français standard.'},
+                     {'nom': 'Ponctuation complexe et phrases longues',
+                      'description': "Virgules, points d'exclamation, phrases interrogatives, énumérations "
+                                     'et paragraphes longs : vérifier le respect des pauses et la stabilité '
+                                     'sur la durée.'}],
+ 'metriques': ["Intelligibilité perçue (le message est compris sans effort d'écoute répété)",
+               'Exactitude de prononciation sur une liste de mots-tests ciblés (nombres, sigles, noms '
+               'propres)',
+               "Temps de génération de l'audio (latence, cohérent avec un moteur léger et rapide)",
+               "Taux d'erreur de désambiguïsation sur les cas ambigus (sigle épelé vs mot, nombre vs code)"],
+ 'piege_frequent': "eSpeak NG applique des règles phonétiques fixes qui n'ont jamais appris d'exceptions à "
+                   'partir de vrais enregistrements : il peut donc bien prononcer un sigle familier (ONU, '
+                   'RDV) et se tromper sur un autre pourtant similaire (SARL lu comme un mot, Dr épelé '
+                   "lettre par lettre au lieu de dire 'docteur'), ou mal gérer un nom de marque étranger. La "
+                   'leçon : tester une liste ciblée de mots-pièges (sigles, chiffres romains, emprunts '
+                   "anglais, codes numériques) plutôt que de se fier à une impression générale d'écoute, car "
+                   'les erreurs sont ponctuelles et imprévisibles, pas uniformément réparties.',
+ 'cahier_exemple': [{'cas': "Phrase d'accueil simple",
+                     'entree': 'Bonjour, bienvenue sur notre site.',
+                     'attendu': 'Phrase claire et immédiatement compréhensible.',
+                     'constat': 'Bon : prononciation nette, rythme un peu mécanique mais aucun contresens.'},
+                    {'cas': 'Montant en euros avec centimes',
+                     'entree': 'Le montant total est de 45,90 euros.',
+                     'attendu': 'Quarante-cinq euros quatre-vingt-dix.',
+                     'constat': 'Correct, mais la coupure entre euros et centimes sonne artificielle, sans '
+                                'intonation naturelle.'},
+                    {'cas': 'Numéro de téléphone',
+                     'entree': 'Appelez le 06 12 34 56 78.',
+                     'attendu': 'Chiffres lus par paires ou un par un, de façon compréhensible.',
+                     'constat': "Lu chiffre par chiffre de manière régulière : peu naturel à l'oreille mais "
+                                'parfaitement suivable pour noter le numéro.'},
+                    {'cas': 'Sigle SARL',
+                     'entree': 'La société est une SARL.',
+                     'attendu': 'Épelé lettre par lettre : S, A, R, L.',
+                     'constat': "Limite : souvent lu comme un mot ('sarl') au lieu d'être épelé, ce qui rend "
+                                "le sigle méconnaissable à l'oral."},
+                    {'cas': 'Sigle RDV',
+                     'entree': 'Merci de confirmer le RDV.',
+                     'attendu': 'Épelé lettre par lettre : R, D, V.',
+                     'constat': 'Bon : sigle correctement épelé et reconnaissable.'},
+                    {'cas': 'Sigle TVA',
+                     'entree': 'Le prix inclut la TVA.',
+                     'attendu': 'Épelé lettre par lettre : T, V, A.',
+                     'constat': 'Bon : sigle correctement épelé, sans ambiguïté.'},
+                    {'cas': 'Nom propre étranger',
+                     'entree': 'Le rendez-vous est avec Mr Smith.',
+                     'attendu': 'Prononciation anglaise approximative mais reconnaissable.',
+                     'constat': "Limite : accent très mécanique, le nom 'Smith' est difficilement "
+                                "identifiable comme un mot anglais à l'oreille."},
+                    {'cas': 'Date complète',
+                     'entree': 'Nous sommes le 14 juillet 2026.',
+                     'attendu': 'Quatorze juillet deux mille vingt-six.',
+                     'constat': 'Bon : date lue de façon fluide et correcte.'},
+                    {'cas': 'Heure',
+                     'entree': 'Le train part à 18h45.',
+                     'attendu': 'Dix-huit heures quarante-cinq.',
+                     'constat': "Correct dans la plupart des cas, mais parfois la notation '18h45' est lue "
+                                'de façon saccadée plutôt que comme une expression naturelle.'},
+                    {'cas': 'Phrase avec ponctuation multiple',
+                     'entree': "Attention, danger ! Ne touchez pas, s'il vous plaît.",
+                     'attendu': "Pause marquée sur la virgule, emphase sur le point d'exclamation.",
+                     'constat': "Les pauses aux virgules sont respectées, mais l'intonation reste plate : le "
+                                "point d'exclamation n'apporte pas d'emphase perceptible."},
+                    {'cas': 'Mot composé',
+                     'entree': "N'oubliez pas votre porte-clés.",
+                     'attendu': 'Liaison correcte entre les deux parties du mot composé.',
+                     'constat': 'Bon : le mot composé est prononcé de façon fluide et correcte.'},
+                    {'cas': 'Consigne de sécurité courte',
+                     'entree': 'Coupez le courant avant toute intervention.',
+                     'attendu': 'Phrase claire, intelligible dès la première écoute.',
+                     'constat': "Très bon : net et rapide, bien adapté à un message d'alerte où la vitesse "
+                                'compte plus que le naturel.'},
+                    {'cas': 'Texte long',
+                     'entree': 'Ce document explique les étapes à suivre pour installer le logiciel, '
+                               'configurer votre compte, puis vérifier que la synchronisation fonctionne '
+                               'correctement avant de commencer à travailler.',
+                     'attendu': 'Rester intelligible et stable sur toute la durée, sans dérive de '
+                                'prononciation.',
+                     'constat': "Stable techniquement, mais le débit monotone et l'absence de variation de "
+                                "ton deviennent fatigants à l'écoute sur un texte aussi long."},
+                    {'cas': 'Nombre composé complexe',
+                     'entree': 'Le colis pèse quatre-vingt-dix-neuf kilos.',
+                     'attendu': 'Quatre-vingt-dix-neuf correctement décomposé.',
+                     'constat': 'Bon : nombre composé lu sans erreur.'},
+                    {'cas': 'Code postal avec zéro initial',
+                     'entree': 'Le code postal est 07100.',
+                     'attendu': 'Zéro sept cent, ou chiffres lus un par un.',
+                     'constat': "Piège : le zéro initial est parfois ignoré et le nombre est lu comme 'sept "
+                                "mille cent', ce qui fausse complètement le code postal à l'oral."},
+                    {'cas': 'Emprunt anglais courant',
+                     'entree': "Connectez-vous au wifi de l'accueil.",
+                     'attendu': "Prononciation française courante de 'wifi'.",
+                     'constat': 'Limite : prononciation très anglicisée et mécanique, moins naturelle que '
+                                "l'usage courant en français."},
+                    {'cas': 'Nom de marque française',
+                     'entree': 'Achetez votre véhicule chez Renault.',
+                     'attendu': "Prononciation française sans faire sonner le 't' final.",
+                     'constat': "Piège fréquent : le 't' final de 'Renault' est parfois prononcé, ce qu'un "
+                                'francophone ne fait jamais.'},
+                    {'cas': 'Acronyme prononcé comme un mot',
+                     'entree': "L'ONU a publié un nouveau rapport.",
+                     'attendu': "Prononcé comme un mot ('onu'), pas épelé.",
+                     'constat': "Bon : l'acronyme est lu comme un mot, conformément à l'usage courant."},
+                    {'cas': 'Nombre décimal',
+                     'entree': 'La température est de 3,5 degrés.',
+                     'attendu': 'Trois virgule cinq degrés.',
+                     'constat': 'Bon : décimale correctement rendue, aucune ambiguïté.'},
+                    {'cas': 'Phrase interrogative',
+                     'entree': 'Avez-vous terminé votre travail ?',
+                     'attendu': "Intonation montante en fin de phrase, typique d'une question.",
+                     'constat': 'Limite : intonation quasi absente, la phrase reste compréhensible grâce au '
+                                "sens mais ne 'sonne' pas comme une vraie question."},
+                    {'cas': 'Énumération avec virgules',
+                     'entree': 'Prenez du pain, du lait, des œufs et du beurre.',
+                     'attendu': 'Pauses régulières et cohérentes à chaque virgule.',
+                     'constat': 'Bon : énumération bien rythmée, facile à suivre pour prendre note.'},
+                    {'cas': 'Abréviation de titre',
+                     'entree': 'Le Dr Martin vous recevra à 14 heures.',
+                     'attendu': "Développé en 'docteur Martin'.",
+                     'constat': "Piège : 'Dr' est parfois épelé lettre par lettre (D, R) au lieu d'être "
+                                "développé en 'docteur', ce qui rend la phrase étrange."},
+                    {'cas': 'Nom propre français avec accents',
+                     'entree': 'Nous accueillons Émilie Béranger.',
+                     'attendu': 'Accents bien pris en compte dans la prononciation.',
+                     'constat': 'Bon : les accents français sont correctement gérés, prénom et nom bien '
+                                'articulés.'},
+                    {'cas': 'Chiffre romain',
+                     'entree': 'Louis XIV régna longtemps sur la France.',
+                     'attendu': 'Louis quatorze.',
+                     'constat': "Piège net : le chiffre romain XIV est souvent lu lettre par lettre ('X, I, "
+                                "V') au lieu d'être interprété comme un nombre ordinal."},
+                    {'cas': "Consigne d'accessibilité avec unité",
+                     'entree': 'Distance de sécurité : 2 mètres minimum.',
+                     'attendu': 'Deux mètres minimum, lu clairement.',
+                     'constat': 'Très bon : message court, rapide et sans ambiguïté, bien adapté à une '
+                                "annonce d'accessibilité."}]},
 ]
 
 

@@ -1332,6 +1332,19 @@ button:disabled {
   resize: vertical;
 }
 
+.simulateur-modeles-annonce {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  margin: 0.8rem 0;
+}
+
+.modele-annonce {
+  cursor: default;
+  background: var(--bg);
+}
+
 .simulateur-graphique {
   background: var(--bg-alt);
   border: 1px solid var(--border);

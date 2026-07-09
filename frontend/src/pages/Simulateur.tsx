@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { comparerModeles } from '../api/client'
+import { comparerModeles, listerModelesSimulateur } from '../api/client'
 
 const CATEGORIES = [
   {
@@ -113,6 +113,11 @@ export default function Simulateur() {
   const [enCours, setEnCours] = useState(false)
   const [resultat, setResultat] = useState<any>(null)
   const [erreur, setErreur] = useState<string | null>(null)
+  const [modeles, setModeles] = useState<any[]>([])
+
+  useEffect(() => {
+    listerModelesSimulateur().then(setModeles)
+  }, [])
 
   async function lancer() {
     setEnCours(true)
@@ -139,6 +144,19 @@ export default function Simulateur() {
         pas une estimation. L'énergie affichée, elle, est une <strong>approximation illustrative</strong>{' '}
         proportionnelle au nombre de paramètres, pas une mesure réelle de consommation.
       </p>
+
+      {modeles.length > 0 && (
+        <div className="simulateur-modeles-annonce">
+          <p className="texte-muted">{modeles.length} modèles seront comparés sur le même prompt :</p>
+          <div className="exemples-chips">
+            {modeles.map((m) => (
+              <span key={m.id} className="chip modele-annonce">
+                {m.nom} <span className="texte-muted">({m.parametres_milliards} Md)</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <p className="texte-muted">
         {TOUS_LES_EXEMPLES.length} exemples prêts à l'emploi, classés par type de tâche :
@@ -171,7 +189,9 @@ export default function Simulateur() {
       />
 
       <button onClick={lancer} disabled={enCours || !prompt.trim()}>
-        {enCours ? '7 modèles à comparer, cela peut prendre quelques minutes…' : 'Lancer la comparaison'}
+        {enCours
+          ? `${modeles.length || 7} modèles à comparer, cela peut prendre quelques minutes…`
+          : 'Lancer la comparaison'}
       </button>
 
       {erreur && <p className="erreur">{erreur}</p>}
