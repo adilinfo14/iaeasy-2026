@@ -414,3 +414,20 @@ export async function genererEpisodeTheatre() {
     if (statut.status === 'erreur') throw new Error(statut.erreur || 'Erreur pendant la génération.')
   }
 }
+
+// Voix neuronale auto-hébergée (Piper, synthétisée côté serveur) — renvoie une URL d'objet
+// (à révoquer par l'appelant une fois la lecture terminée) plutôt que la voix très inégale du
+// navigateur (Web Speech API), jugée insuffisante en conditions réelles.
+export async function genererVoixTheatre(texte: string, personnage: string): Promise<string> {
+  const r = await fetch(`${BASE}/theatre/voix`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texte, personnage }),
+  })
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}))
+    throw new Error(messageErreur(err, 'Erreur pendant la synthèse vocale'))
+  }
+  const blob = await r.blob()
+  return URL.createObjectURL(blob)
+}

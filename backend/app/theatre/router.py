@@ -4,9 +4,12 @@ import re
 import secrets
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
+from pydantic import BaseModel, Field
 
 from ..core.jobs import JobStore
 from ..core.ollama_client import ollama
+from . import voix
 from .episodes import DECORS, EPISODES, PERSONNAGES
 
 router = APIRouter(prefix="/theatre", tags=["theatre"])
@@ -143,6 +146,19 @@ def episode(episode_id: str):
         if e["id"] == episode_id:
             return e
     raise HTTPException(404, "Épisode inconnu.")
+
+
+class VoixRequest(BaseModel):
+    texte: str = Field(min_length=1, max_length=600)
+    personnage: str = Field(max_length=16)
+
+
+@router.post("/voix")
+async def synthese_vocale(requete: VoixRequest):
+    if requete.personnage not in PERSONNAGES:
+        raise HTTPException(400, "Personnage inconnu.")
+    audio = await asyncio.to_thread(voix.synthetiser, requete.texte, requete.personnage)
+    return Response(content=audio, media_type="audio/wav")
 
 
 async def _executer_generation(job_id: str) -> None:

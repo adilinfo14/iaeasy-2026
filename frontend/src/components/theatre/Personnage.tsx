@@ -54,9 +54,23 @@ export default function Personnage({ type, parle, actif, decor, variante }: Prop
         />
         <path d="M 60 300 L 55 160 Q 55 145 65 135 L 70 300 Z" fill={couleurRobeOmbre} opacity="0.5" />
 
-        {/* Bras */}
-        <path d="M 55 170 Q 35 190 40 230" stroke={couleurRobe} strokeWidth="16" fill="none" strokeLinecap="round" />
-        <path d="M 145 170 Q 165 190 160 230" stroke={couleurRobe} strokeWidth="16" fill="none" strokeLinecap="round" />
+        {/* Bras — s'animent (geste) pendant que ce personnage parle */}
+        <path
+          className="personnage-bras personnage-bras-gauche"
+          d="M 55 170 Q 35 190 40 230"
+          stroke={couleurRobe}
+          strokeWidth="16"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <path
+          className="personnage-bras personnage-bras-droit"
+          d="M 145 170 Q 165 190 160 230"
+          stroke={couleurRobe}
+          strokeWidth="16"
+          fill="none"
+          strokeLinecap="round"
+        />
 
         {estClio ? (
           <>

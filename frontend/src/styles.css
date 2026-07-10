@@ -2471,7 +2471,7 @@ button:disabled {
 
 .personnage {
   width: min(38vw, 220px);
-  animation: personnage-idle 3.4s ease-in-out infinite;
+  animation: personnage-idle 2.6s ease-in-out infinite;
   transition: transform 0.4s ease, filter 0.4s ease, opacity 0.4s ease;
 }
 
@@ -2491,12 +2491,14 @@ button:disabled {
 
 @keyframes personnage-idle {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-6px) rotate(-1.2deg); }
+  30% { transform: translateY(-10px) rotate(-2deg); }
+  60% { transform: translateY(-3px) rotate(1.5deg); }
 }
 
 @keyframes personnage-idle-variante {
   0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-4px) rotate(1.5deg); }
+  35% { transform: translateY(-7px) rotate(2.2deg); }
+  65% { transform: translateY(-11px) rotate(-1deg); }
 }
 
 .personnage-variante-b {
@@ -2530,12 +2532,63 @@ button:disabled {
 }
 
 .personnage-parle .personnage-bouche {
-  animation: bouche-parle 0.32s ease-in-out infinite;
+  animation: bouche-parle 0.85s ease-in-out infinite;
 }
 
+/* Rythme irrégulier (pas un simple aller-retour métronomique) pour lire moins "mécanique". */
 @keyframes bouche-parle {
-  0%, 100% { transform: scaleY(1); }
-  50% { transform: scaleY(2.2); }
+  0% { transform: scaleY(1) scaleX(1); }
+  8% { transform: scaleY(1.9) scaleX(0.88); }
+  18% { transform: scaleY(1.1) scaleX(1); }
+  30% { transform: scaleY(2.4) scaleX(0.82); }
+  40% { transform: scaleY(1) scaleX(1); }
+  52% { transform: scaleY(1.5) scaleX(0.95); }
+  64% { transform: scaleY(1.05) scaleX(1); }
+  76% { transform: scaleY(2.1) scaleX(0.88); }
+  88% { transform: scaleY(1) scaleX(1); }
+  100% { transform: scaleY(1) scaleX(1); }
+}
+
+/* Gestes des bras : discrets en idle, nettement plus marqués pendant la réplique de ce
+   personnage — répond au retour "trop statique, manque de mouvement". */
+.personnage-bras {
+  transform-origin: 100px 168px;
+  animation: geste-repos 4.4s ease-in-out infinite;
+}
+
+.personnage-bras-droit {
+  transform-origin: 145px 168px;
+  animation-delay: 0.5s;
+}
+
+.personnage-bras-gauche {
+  transform-origin: 55px 168px;
+}
+
+@keyframes geste-repos {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.personnage-parle .personnage-bras-gauche {
+  animation: geste-parle-gauche 1.3s ease-in-out infinite;
+}
+
+.personnage-parle .personnage-bras-droit {
+  animation: geste-parle-droit 1.5s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+@keyframes geste-parle-gauche {
+  0%, 100% { transform: rotate(0deg); }
+  35% { transform: rotate(-18deg); }
+  70% { transform: rotate(6deg); }
+}
+
+@keyframes geste-parle-droit {
+  0%, 100% { transform: rotate(0deg); }
+  40% { transform: rotate(14deg); }
+  75% { transform: rotate(-8deg); }
 }
 
 .personnage-oeil {

@@ -1,3 +1,5 @@
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -17,13 +19,29 @@ from .securite.router import router as securite_router
 from .simulateur.router import router as simulateur_router
 from .stats.router import router as stats_router
 from .strategie_test.router import router as strategie_test_router
+from .theatre import voix as theatre_voix
 from .theatre.router import router as theatre_router
 from .training.router import router as training_router
 from .videos.router import router as videos_router
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Précharge les voix Piper au démarrage : sans ça, le premier visiteur après un déploiement
+    # paierait le coût du téléchargement (~61 Mo/voix) au milieu de sa lecture du Théâtre.
+    await asyncio.to_thread(theatre_voix.precharger_voix)
+    yield
+
+
 # Documentation interactive désactivée en production : le SPA React ne l'utilise jamais et
 # elle ne fait qu'élargir la surface de reconnaissance pour un visiteur non prévu.
-app = FastAPI(title="iaeasy — plateforme pédagogique IA", docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(
+    title="iaeasy — plateforme pédagogique IA",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+    lifespan=lifespan,
+)
 
 app.add_middleware(
     CORSMiddleware,

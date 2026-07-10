@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Decor from '../components/theatre/Decor'
 import Personnage from '../components/theatre/Personnage'
-import { genererEpisodeTheatre, listerEpisodesTheatre, lireEpisodeTheatre } from '../api/client'
+import {
+  genererEpisodeTheatre,
+  genererVoixTheatre,
+  listerEpisodesTheatre,
+  lireEpisodeTheatre,
+} from '../api/client'
 
 const NOMS = { clio: 'Clio', marco: 'Marco' }
 const VITESSE_FRAPPE_MS = 22
-const PAUSE_APRES_LIGNE_MS = 1100
-
-const VOIX_SUPPORTEE = typeof window !== 'undefined' && 'speechSynthesis' in window
+const PAUSE_APRES_LIGNE_MS = 500
 
 export default function Theatre() {
   const [liste, setListe] = useState<any[]>([])
@@ -19,24 +22,15 @@ export default function Theatre() {
   const [termine, setTermine] = useState(false)
   const [chargement, setChargement] = useState(false)
   const [erreur, setErreur] = useState<string | null>(null)
-  const [sonActif, setSonActif] = useState(VOIX_SUPPORTEE)
+  const [sonActif, setSonActif] = useState(true)
+  const [audioTermine, setAudioTermine] = useState(true)
 
   const minuteurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const voixFrRef = useRef<SpeechSynthesisVoice[]>([])
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const urlAudioRef = useRef<string | null>(null)
 
   useEffect(() => {
     listerEpisodesTheatre().then(setListe)
-
-    if (!VOIX_SUPPORTEE) return
-    function chargerVoix() {
-      voixFrRef.current = window.speechSynthesis.getVoices().filter((v) => v.lang.startsWith('fr'))
-    }
-    chargerVoix()
-    window.speechSynthesis.addEventListener('voiceschanged', chargerVoix)
-    return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', chargerVoix)
-      window.speechSynthesis.cancel()
-    }
   }, [])
 
   function nettoyerMinuteur() {
@@ -44,9 +38,20 @@ export default function Theatre() {
     minuteurRef.current = null
   }
 
+  function arreterAudio() {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    if (urlAudioRef.current) {
+      URL.revokeObjectURL(urlAudioRef.current)
+      urlAudioRef.current = null
+    }
+  }
+
   const demarrerEpisode = useCallback((e: any) => {
     nettoyerMinuteur()
-    if (VOIX_SUPPORTEE) window.speechSynthesis.cancel()
+    arreterAudio()
     setEpisode(e)
     setSceneIndex(0)
     setLigneIndex(0)
@@ -85,9 +90,9 @@ export default function Theatre() {
   const ligneCourante = episode?.scenes?.[sceneIndex]?.repliques?.[ligneIndex]
   const decorCourant = episode?.scenes?.[sceneIndex]?.decor
 
-  // Effet machine à écrire : ré-affiche la réplique courante caractère par caractère, et la
-  // fait lire à voix haute (Web Speech API — navigateur uniquement, aucun serveur impliqué) :
-  // Clio et Marco reçoivent chacun une voix/hauteur différente pour rester distinguables.
+  // Effet machine à écrire + narration vocale (voix neuronale Piper, générée côté serveur) :
+  // l'avance automatique n'a lieu qu'une fois le texte ET la voix RÉELLEMENT terminés (voir plus
+  // bas) — un délai fixe devinait mal la durée de la voix et la coupait souvent trop tôt.
   useEffect(() => {
     if (!ligneCourante) return
     setTexteAffiche('')
@@ -99,20 +104,30 @@ export default function Theatre() {
       if (i >= texte.length) clearInterval(id)
     }, VITESSE_FRAPPE_MS)
 
-    if (VOIX_SUPPORTEE && sonActif) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(texte)
-      utterance.lang = 'fr-FR'
-      const voix = voixFrRef.current
-      if (voix.length > 0) {
-        utterance.voice = ligneCourante.personnage === 'clio' ? voix[0] : voix[voix.length - 1]
-      }
-      utterance.pitch = ligneCourante.personnage === 'clio' ? 1.25 : 0.8
-      utterance.rate = 1.02
-      window.speechSynthesis.speak(utterance)
+    arreterAudio()
+    if (!sonActif) {
+      setAudioTermine(true)
+      return () => clearInterval(id)
     }
 
-    return () => clearInterval(id)
+    setAudioTermine(false)
+    let annule = false
+    genererVoixTheatre(texte, ligneCourante.personnage)
+      .then((url) => {
+        if (annule) return
+        urlAudioRef.current = url
+        const audio = new Audio(url)
+        audioRef.current = audio
+        audio.onended = () => setAudioTermine(true)
+        audio.onerror = () => setAudioTermine(true)
+        audio.play().catch(() => setAudioTermine(true))
+      })
+      .catch(() => setAudioTermine(true))
+
+    return () => {
+      annule = true
+      clearInterval(id)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episode, sceneIndex, ligneIndex, sonActif])
 
@@ -143,29 +158,34 @@ export default function Theatre() {
   }
 
   useEffect(() => {
-    if (!VOIX_SUPPORTEE) return
-    if (enPause) window.speechSynthesis.pause()
-    else window.speechSynthesis.resume()
+    if (!audioRef.current) return
+    if (enPause) audioRef.current.pause()
+    else audioRef.current.play().catch(() => {})
   }, [enPause])
 
-  // Avance automatique une fois la réplique entièrement affichée, sauf en pause.
+  // Avance automatique une fois le texte affiché en entier ET la voix réellement terminée
+  // (ou désactivée) — corrige le son qui se coupait avant la fin du texte.
   useEffect(() => {
     nettoyerMinuteur()
     if (!ligneCourante || enPause || termine) return
     if (texteAffiche.length < ligneCourante.texte.length) return
+    if (!audioTermine) return
     minuteurRef.current = setTimeout(avancer, PAUSE_APRES_LIGNE_MS)
     return nettoyerMinuteur
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texteAffiche, enPause, termine])
+  }, [texteAffiche, enPause, termine, audioTermine])
+
+  useEffect(() => arreterAudio, [])
 
   return (
     <div className="page page-theatre">
       <h1>🎭 Le Théâtre de l'Histoire</h1>
       <p className="page-intro">
-        Deux personnages, générés et animés par une IA, se racontent des histoires vraies —
-        le décor et l'ambiance changent avec le récit. Les 5 premières histoires sont écrites à
-        l'avance ; le bouton « Nouvelle histoire » en fait générer une nouvelle en direct, sur un
-        sujet historique réel tiré au sort.
+        Deux personnages, générés et animés par une IA, se racontent des histoires vraies — le
+        décor et l'ambiance changent avec le récit, et une voix neuronale auto-hébergée (Piper)
+        les fait parler. Les 5 premières histoires sont écrites à l'avance ; le bouton « Nouvelle
+        histoire » en fait générer une nouvelle en direct, sur un sujet historique réel tiré au
+        sort.
       </p>
 
       {!episode && (
@@ -192,14 +212,14 @@ export default function Theatre() {
             <Personnage
               type="clio"
               decor={decorCourant}
-              parle={ligneCourante?.personnage === 'clio'}
+              parle={ligneCourante?.personnage === 'clio' && !termine}
               actif={!termine}
               variante={ligneIndex % 2 === 0}
             />
             <Personnage
               type="marco"
               decor={decorCourant}
-              parle={ligneCourante?.personnage === 'marco'}
+              parle={ligneCourante?.personnage === 'marco' && !termine}
               actif={!termine}
               variante={ligneIndex % 2 === 0}
             />
@@ -226,20 +246,18 @@ export default function Theatre() {
             <button onClick={avancer} disabled={termine}>
               Suivant ▶
             </button>
-            {VOIX_SUPPORTEE && (
-              <button
-                onClick={() => {
-                  setSonActif((s) => !s)
-                  window.speechSynthesis.cancel()
-                }}
-              >
-                {sonActif ? '🔊 Son' : '🔇 Muet'}
-              </button>
-            )}
+            <button
+              onClick={() => {
+                arreterAudio()
+                setSonActif((s) => !s)
+              }}
+            >
+              {sonActif ? '🔊 Son' : '🔇 Muet'}
+            </button>
             <button
               onClick={() => {
                 nettoyerMinuteur()
-                if (VOIX_SUPPORTEE) window.speechSynthesis.cancel()
+                arreterAudio()
                 setEpisode(null)
               }}
             >
