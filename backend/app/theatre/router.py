@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from ..core.jobs import JobStore
 from ..core.ollama_client import ollama
 from . import voix
-from .episodes import DECORS, EPISODES, PERSONNAGES
+from .episodes import DECORS, EMOTIONS, EPISODES, PERSONNAGES
 
 router = APIRouter(prefix="/theatre", tags=["theatre"])
 
@@ -47,7 +47,9 @@ _SUJETS = [
 _SCHEMA_ATTENDU = (
     '{"titre": "...", "annee": "...", "scenes": [{"decor": "'
     + '" | "'.join(DECORS)
-    + '", "repliques": [{"personnage": "clio" ou "marco", "texte": "..."}, ...]}, ...]}'
+    + '", "repliques": [{"personnage": "clio" ou "marco", "emotion": "'
+    + '" | "'.join(EMOTIONS)
+    + '", "texte": "..."}, ...]}, ...]}'
 )
 
 # Un prompt trop rigide produisait toujours la même mécanique conversationnelle (Clio demande
@@ -80,6 +82,11 @@ def _instruction(sujet: str) -> str:
         "Structure exactement 2 scènes de 4 répliques chacune (8 répliques au total), en "
         "alternant Clio et Marco. Chaque scène choisit UN décor dans cette liste fermée (jamais "
         f"un autre mot) : {', '.join(DECORS)}.\n\n"
+        "Chaque réplique porte aussi un champ \"emotion\" reflétant ce que RESSENT le personnage "
+        f"en la prononçant, choisie dans cette liste fermée (jamais un autre mot) : {', '.join(EMOTIONS)}. "
+        "Varie les émotions selon le contenu réel de la réplique (un fait terrible = triste ou "
+        "inquiet, une révélation étonnante = surprise, une conclusion triomphante = joyeux) — "
+        "pas la même émotion sur toutes les répliques.\n\n"
         "Le champ \"annee\" doit être l'année ou la période HISTORIQUE de l'événement décrit dans "
         "le sujet imposé ci-dessus (jamais l'année actuelle, jamais une autre époque).\n\n"
         "Réponds TOUJOURS entièrement en français, du début à la fin, sans jamais basculer même "
@@ -117,13 +124,14 @@ def _valider_episode(data: dict) -> dict:
         for r in repliques:
             personnage = r.get("personnage")
             texte = r.get("texte")
+            emotion = r.get("emotion") if r.get("emotion") in EMOTIONS else "neutre"
             if personnage not in PERSONNAGES:
                 raise ValueError(f"personnage inconnu : {personnage}")
             if not isinstance(texte, str) or not texte.strip():
                 raise ValueError("réplique vide")
             if _CARACTERES_NON_LATINS.search(texte):
                 raise ValueError("caractères non latins détectés dans la réplique")
-            repliques_validees.append({"personnage": personnage, "texte": texte.strip()[:500]})
+            repliques_validees.append({"personnage": personnage, "emotion": emotion, "texte": texte.strip()[:500]})
         scenes_validees.append({"decor": decor, "repliques": repliques_validees})
 
     return {

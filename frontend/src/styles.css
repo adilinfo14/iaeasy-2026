@@ -2526,27 +2526,51 @@ button:disabled {
   filter: grayscale(0.25) brightness(0.9);
 }
 
-.personnage-bouche {
-  transform-origin: center;
-  animation: none;
+/* Bouche pendant la parole : 3 formes DISTINCTES (fermée / mi-ouverte / grande ouverte) qui
+   alternent par coupures nettes, plutôt qu'un seul cercle qui grossit et rétrécit — signalé en
+   conditions réelles comme lisant "un rond qui se déplace sur une ligne verticale", pas comme
+   une bouche qui articule. Chaque paire de % consécutifs à la même valeur crée un palier tenu,
+   le court intervalle jusqu'au palier suivant (2% du cycle, ~15ms) bascule assez vite pour lire
+   comme une coupure nette plutôt qu'un fondu.
+   Cycle de 0,8s en 5 segments de 20% : fermée / mi-ouverte / fermée / grande ouverte / fermée. */
+.bouche-cadre {
+  opacity: 0;
 }
 
-.personnage-parle .personnage-bouche {
-  animation: bouche-parle 0.85s ease-in-out infinite;
+.bouche-fermee {
+  opacity: 1;
 }
 
-/* Rythme irrégulier (pas un simple aller-retour métronomique) pour lire moins "mécanique". */
-@keyframes bouche-parle {
-  0% { transform: scaleY(1) scaleX(1); }
-  8% { transform: scaleY(1.9) scaleX(0.88); }
-  18% { transform: scaleY(1.1) scaleX(1); }
-  30% { transform: scaleY(2.4) scaleX(0.82); }
-  40% { transform: scaleY(1) scaleX(1); }
-  52% { transform: scaleY(1.5) scaleX(0.95); }
-  64% { transform: scaleY(1.05) scaleX(1); }
-  76% { transform: scaleY(2.1) scaleX(0.88); }
-  88% { transform: scaleY(1) scaleX(1); }
-  100% { transform: scaleY(1) scaleX(1); }
+.personnage-parle .bouche-fermee {
+  animation: bouche-cycle-fermee 0.8s linear infinite;
+}
+
+.personnage-parle .bouche-mi-ouverte {
+  animation: bouche-cycle-mi 0.8s linear infinite;
+}
+
+.personnage-parle .bouche-grande-ouverte {
+  animation: bouche-cycle-grande 0.8s linear infinite;
+}
+
+@keyframes bouche-cycle-fermee {
+  0%, 18% { opacity: 1; }
+  20%, 38% { opacity: 0; }
+  40%, 58% { opacity: 1; }
+  60%, 78% { opacity: 0; }
+  80%, 100% { opacity: 1; }
+}
+
+@keyframes bouche-cycle-mi {
+  0%, 18% { opacity: 0; }
+  20%, 38% { opacity: 1; }
+  40%, 100% { opacity: 0; }
+}
+
+@keyframes bouche-cycle-grande {
+  0%, 58% { opacity: 0; }
+  60%, 78% { opacity: 1; }
+  80%, 100% { opacity: 0; }
 }
 
 /* Gestes des bras : discrets en idle, nettement plus marqués pendant la réplique de ce

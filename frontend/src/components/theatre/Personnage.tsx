@@ -1,9 +1,12 @@
+type Emotion = 'neutre' | 'surprise' | 'joyeux' | 'triste' | 'inquiet'
+
 type Props = {
   type: 'clio' | 'marco'
   parle: boolean
   actif: boolean
   decor?: string
   variante?: boolean
+  emotion?: Emotion
 }
 
 // Une couleur de robe par décor (donc par époque/ambiance) plutôt qu'une couleur fixe : Clio et
@@ -21,6 +24,34 @@ const COULEURS_PAR_DECOR: Record<string, { clio: string; marco: string }> = {
 }
 const COULEURS_DEFAUT = { clio: '#b45f3a', marco: '#2c3e6b' }
 
+// Un sourcil différent par émotion (paire gauche/droite) — l'expression change réellement selon
+// ce qui est en train d'être raconté, pas seulement "qui parle en ce moment".
+const SOURCILS: Record<Emotion, { gauche: string; droit: string }> = {
+  neutre: { gauche: 'M 77 80 Q 84 76 91 80', droit: 'M 109 80 Q 116 76 123 80' },
+  surprise: { gauche: 'M 76 70 Q 84 64 92 70', droit: 'M 108 70 Q 116 64 124 70' },
+  joyeux: { gauche: 'M 77 77 Q 84 71 91 77', droit: 'M 109 77 Q 116 71 123 77' },
+  triste: { gauche: 'M 78 72 Q 84 80 90 76', droit: 'M 110 76 Q 116 80 122 72' },
+  inquiet: { gauche: 'M 77 74 Q 84 80 91 72', droit: 'M 109 72 Q 116 80 123 74' },
+}
+
+// Bouche au repos (personnage qui écoute) — reprend l'émotion. Pendant que le personnage PARLE,
+// cette forme est remplacée par le cycle d'ouverture/fermeture (voir plus bas), quelle que soit
+// l'émotion : une bouche qui parle doit bouger, l'émotion ne s'exprime alors que par les sourcils.
+function boucheRepos(emotion: Emotion) {
+  switch (emotion) {
+    case 'joyeux':
+      return <path d="M 88 107 Q 100 117 112 107" stroke="#8f4a3a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    case 'triste':
+      return <path d="M 88 114 Q 100 105 112 114" stroke="#8f4a3a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    case 'surprise':
+      return <ellipse cx="100" cy="110" rx="5" ry="6" fill="#5a2018" />
+    case 'inquiet':
+      return <path d="M 92 111 L 108 111" stroke="#8f4a3a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+    default:
+      return <path d="M 91 110 Q 100 113 109 110" stroke="#8f4a3a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+  }
+}
+
 function assombrir(hex: string, facteur = 0.72): string {
   const n = parseInt(hex.slice(1), 16)
   const r = Math.round(((n >> 16) & 255) * facteur)
@@ -30,15 +61,15 @@ function assombrir(hex: string, facteur = 0.72): string {
 }
 
 // Deux personnages simples et distincts (silhouette illustrée, pas photoréaliste) : Clio la
-// curieuse (chignon, tient un livre) et Marco le conteur (capuche, tient une lanterne). La
-// bouche s'anime en boucle pendant la réplique de ce personnage (classe .parle).
-export default function Personnage({ type, parle, actif, decor, variante }: Props) {
+// curieuse (chignon, tient un livre) et Marco le conteur (capuche, tient une lanterne).
+export default function Personnage({ type, parle, actif, decor, variante, emotion = 'neutre' }: Props) {
   const estClio = type === 'clio'
   const palette = (decor && COULEURS_PAR_DECOR[decor]) || COULEURS_DEFAUT
   const couleurRobe = estClio ? palette.clio : palette.marco
   const couleurRobeOmbre = assombrir(couleurRobe)
   const couleurCapuche = estClio ? '#4a2e1a' : couleurRobe
   const couleurPeau = '#e8b98a'
+  const sourcils = SOURCILS[emotion]
 
   return (
     <div
@@ -107,12 +138,26 @@ export default function Personnage({ type, parle, actif, decor, variante }: Prop
         <ellipse cx="84" cy="90" rx="4.5" ry="6" fill="#2a2018" className="personnage-oeil" />
         <ellipse cx="116" cy="90" rx="4.5" ry="6" fill="#2a2018" className="personnage-oeil" />
 
-        {/* Sourcils */}
-        <path d="M 77 80 Q 84 76 91 80" stroke="#4a2e1a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <path d="M 109 80 Q 116 76 123 80" stroke="#4a2e1a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        {/* Sourcils — varient selon l'émotion de la réplique en cours */}
+        <path d={sourcils.gauche} stroke="#4a2e1a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+        <path d={sourcils.droit} stroke="#4a2e1a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
 
-        {/* Bouche (anime pendant la réplique) */}
-        <ellipse cx="100" cy="110" rx="9" ry="4" fill="#8f4a3a" className="personnage-bouche" />
+        {/* Bouche : au repos, une forme fixe selon l'émotion ; en train de parler, 3 formes
+            distinctes alternent (fermée / mi-ouverte / grande ouverte) plutôt qu'un simple
+            cercle qui grossit — un cercle qui change juste d'échelle lit comme "un rond qui se
+            déplace", pas comme une bouche qui articule. */}
+        {parle ? (
+          <g className="personnage-bouche-groupe">
+            <path className="bouche-cadre bouche-fermee" d="M 91 110 Q 100 113 109 110" stroke="#5a2e1a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            <ellipse className="bouche-cadre bouche-mi-ouverte" cx="100" cy="110" rx="6" ry="5" fill="#5a2018" />
+            <g className="bouche-cadre bouche-grande-ouverte">
+              <ellipse cx="100" cy="111" rx="9" ry="8" fill="#3a1610" />
+              <rect x="93" y="104" width="14" height="3" fill="#fff" opacity="0.85" rx="1" />
+            </g>
+          </g>
+        ) : (
+          boucheRepos(emotion)
+        )}
       </svg>
     </div>
   )

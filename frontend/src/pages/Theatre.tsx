@@ -12,6 +12,17 @@ const NOMS = { clio: 'Clio', marco: 'Marco' }
 const VITESSE_FRAPPE_MS = 22
 const PAUSE_APRES_LIGNE_MS = 500
 
+// Le personnage qui écoute réagit lui aussi, plutôt que de rester figé en "neutre" pendant
+// toute la réplique de l'autre — dérivé de l'émotion du locuteur (générée par l'IA ou écrite à
+// la main), sans données supplémentaires à produire.
+const REACTION_AUDITEUR: Record<string, string> = {
+  neutre: 'neutre',
+  surprise: 'surprise',
+  joyeux: 'joyeux',
+  triste: 'inquiet',
+  inquiet: 'inquiet',
+}
+
 export default function Theatre() {
   const [liste, setListe] = useState<any[]>([])
   const [episode, setEpisode] = useState<any>(null)
@@ -182,10 +193,11 @@ export default function Theatre() {
       <h1>🎭 Le Théâtre de l'Histoire</h1>
       <p className="page-intro">
         Deux personnages, générés et animés par une IA, se racontent des histoires vraies — le
-        décor et l'ambiance changent avec le récit, et une voix neuronale auto-hébergée (Piper)
-        les fait parler. Les 5 premières histoires sont écrites à l'avance ; le bouton « Nouvelle
-        histoire » en fait générer une nouvelle en direct, sur un sujet historique réel tiré au
-        sort.
+        décor et l'ambiance changent avec le récit, une voix neuronale auto-hébergée (Piper) les
+        fait parler, et l'IA associe une émotion réelle à chaque réplique (surprise, joie,
+        tristesse, inquiétude...) qui change l'expression du personnage — y compris celle qui
+        écoute. Les 5 premières histoires sont écrites à l'avance ; le bouton « Nouvelle histoire »
+        en fait générer une nouvelle en direct, sur un sujet historique réel tiré au sort.
       </p>
 
       {!episode && (
@@ -215,6 +227,11 @@ export default function Theatre() {
               parle={ligneCourante?.personnage === 'clio' && !termine}
               actif={!termine}
               variante={ligneIndex % 2 === 0}
+              emotion={
+                ligneCourante?.personnage === 'clio'
+                  ? ligneCourante?.emotion
+                  : REACTION_AUDITEUR[ligneCourante?.emotion || 'neutre']
+              }
             />
             <Personnage
               type="marco"
@@ -222,6 +239,11 @@ export default function Theatre() {
               parle={ligneCourante?.personnage === 'marco' && !termine}
               actif={!termine}
               variante={ligneIndex % 2 === 0}
+              emotion={
+                ligneCourante?.personnage === 'marco'
+                  ? ligneCourante?.emotion
+                  : REACTION_AUDITEUR[ligneCourante?.emotion || 'neutre']
+              }
             />
           </div>
 
